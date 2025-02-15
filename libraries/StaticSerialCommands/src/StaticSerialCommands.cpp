@@ -123,12 +123,53 @@ const Command *SerialCommands::findCommand(const char *const string, const Comma
   return nullptr;
 }
 
+bool SerialCommands::processArguments(const Command *cmd, char **string, Args &args, uint8_t &argIndex)
+{
+  uint8_t argCount;
+  const impl::ArgConstraint *argcs = cmd->getArgsPgm(&argCount);
+  impl::ArgConstraint argc;
+  for (uint8_t i = 0; i < argCount; ++i)
+  {
+    memcpy_P(&argc, &argcs[i], sizeof(impl::ArgConstraint));
+    char *token = getToken(string);
+    if (token == nullptr)
+    {
+      serial.println(F("ERROR: Not enough arguments"));
+      printCommand(*cmd);
+      serial.println();
+      return false;
+    }
+    if (!getArg(args[argIndex], token, argc))
+    {
+      serial.print(F("ERROR: Can't parse argument "));
+      serial.println(argIndex + 1);
+      printCommand(*cmd);
+      serial.println();
+      return false;
+    }
+    if (!argc.isInRange(args[argIndex]))
+    {
+      serial.print(F("ERROR: Argument out of range "));
+      serial.print(argIndex + 1);
+      impl::Range range = argc.getRange();
+      serial.print(F(" ("));
+      serial.print(range.minimum);
+      serial.print(F(" - "));
+      serial.print(range.maximum);
+      serial.println(')');
+      printCommand(*cmd);
+      serial.println();
+      return false;
+    }
+    argIndex++;
+  }
+  return true;
+}
+
 void SerialCommands::parseCommand(char *string)
 {
   char *token;
-  uint16_t i;
-  uint8_t argCount;
-  uint16_t argIndex = 0;
+  uint8_t argIndex = 0;
   Args args{};
   const Command *cmd = nullptr;
   const Command *cmds = this->commands;
@@ -140,51 +181,14 @@ void SerialCommands::parseCommand(char *string)
     cmd = findCommand(token, cmds, cmdsCount);
     if (cmd != nullptr)
     {
-      const impl::ArgConstraint *argcs = cmd->getArgsPgm(&argCount);
-      impl::ArgConstraint argc;
-      for (i = 0; i < argCount; ++i)
-      {
-        memcpy_P(&argc, &argcs[i], sizeof(impl::ArgConstraint));
-        if ((token = getToken(&string)) != nullptr)
-        {
-          if (!getArg(args[argIndex], token, argc))
-          {
-            serial.print(F("ERROR: Can't parse argument "));
-            serial.println(argIndex + 1);
-            printCommand(*cmd);
-            serial.println();
-            return;
-          }
+      if (!processArguments(cmd, &string, args, argIndex))
+        return;
 
-          if (!argc.isInRange(args[argIndex]))
-          {
-            serial.print(F("ERROR: Argument out of range "));
-            serial.print(argIndex + 1);
-            impl::Range range = argc.getRange();
-            serial.print(F(" ("));
-            serial.print(range.minimum);
-            serial.print(F(" - "));
-            serial.print(range.maximum);
-            serial.println(')');
-            printCommand(*cmd);
-            serial.println();
-            return;
-          }
-          argIndex++;
-        }
-        else
-        {
-          serial.println(F("ERROR: Not enough arguments"));
-          printCommand(*cmd);
-          serial.println();
-          return;
-        }
-      }
       cmd->getSubCommands(&cmds, &cmdsCount);
-
+      token = getToken(&string);
       if (cmds == nullptr)
       {
-        if ((token = getToken(&string)) != nullptr)
+        if (token != nullptr)
         {
           serial.println(F("ERROR: Too many arguments"));
           printCommand(*cmd);
@@ -192,11 +196,9 @@ void SerialCommands::parseCommand(char *string)
           return;
         }
         cmd->runCommand(*this, args);
+        return;
       }
-
-      token = getToken(&string);
-
-      if (token == nullptr && cmds != nullptr)
+      else if (token == nullptr)
       {
         cmd->runCommand(*this, args);
         return;
@@ -262,10 +264,9 @@ bool SerialCommands::getArg(Arg &out, const char *string, const impl::ArgConstra
   switch (arg.type)
   {
   case ArgType::String:
-  {
     out = Arg(string);
     return true;
-  }
+
   case ArgType::Int:
   {
     int32_t value;
@@ -276,6 +277,7 @@ bool SerialCommands::getArg(Arg &out, const char *string, const impl::ArgConstra
     }
   }
   break;
+
   case ArgType::Float:
   {
     float value_f;
@@ -286,6 +288,7 @@ bool SerialCommands::getArg(Arg &out, const char *string, const impl::ArgConstra
     }
   }
   break;
+
   default:
     break;
   }

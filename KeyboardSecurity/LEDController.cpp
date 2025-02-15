@@ -31,12 +31,6 @@ void LEDController::setState(const State state) {
         break;
 
       case CONNECTING:
-        {
-          m_greenLED.turnOFF();
-          m_redLED.blink(500, 500);
-        }
-        break;
-
       case PRESSING:
         {
           m_greenLED.turnOFF();

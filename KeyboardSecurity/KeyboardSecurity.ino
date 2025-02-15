@@ -23,7 +23,7 @@
 #define HC05_STATE 1
 #define HC05_KEY 0
 
-#define SOFT_SERIAL_BUFFER_SIZE 64
+#define SOFT_SERIAL_BUFFER_SIZE 32
 
 enum State : uint8_t {
   IDLE,
@@ -31,6 +31,7 @@ enum State : uint8_t {
   FORMATTING
 };
 
+// Global Objects
 WatchdogController watchdogController;
 StatisticController statisticController;
 LEDController ledController(GREEN_LED_PIN, RED_LED_PIN);
@@ -44,10 +45,11 @@ SoftSerial<SOFT_SERIAL_BUFFER_SIZE, SOFT_SERIAL_BUFFER_SIZE> softwareSerial(HC05
 HC05 hc05(softwareSerial, HC05_KEY, HC05_STATE, HC05_RESET);
 EEPROMController eepromController(Wire);
 
-PipedStreamPair commandPipes(256);
+PipedStreamPair commandPipes(192);
 PipedStream& streamBluetooth = commandPipes.first;
 PipedStream& streamCommander = commandPipes.second;
 
+// Statistic objects
 Statistic watchdogControllerStatistic;
 Statistic statisticControllerStatistic;
 Statistic ledControllerStatistic;
@@ -81,7 +83,7 @@ bool locked = true;
 State state = IDLE;
 SimpleTimer bluetoothConnectionTimeout;
 
-//================ Common Helper Methods ==================
+//================ Helper Functions for Commands ==================
 
 // Print the standard OK response.
 static inline void printOK(SerialCommands& sender) {
@@ -97,6 +99,121 @@ static inline void printError(SerialCommands& sender, const __FlashStringHelper*
 static inline void printHexByte(SerialCommands& sender, byte value) {
   if (value < 0x10) sender.getSerial().print('0');
   sender.getSerial().print(value, HEX);
+}
+
+// Helper to check that the seed has not been set already.
+static inline bool requireSeedNotChecked(SerialCommands& sender) {
+  if (keyboardController.isSeedChecked()) {
+    printError(sender, F("ERROR: Already checked\r\n"));
+    return false;
+  }
+  return true;
+}
+
+//================ Helper Functions for Seed Parsing ==================
+
+// Converts a hex character to its numeric value.
+static inline byte hexCharToByte(const char c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+  return 0;
+}
+
+// Parse a hexadecimal string into a seed array.
+static void parseSeedString(const char* str, byte* seed, size_t length) {
+  for (size_t i = 0; i < length; ++i) {
+    seed[i] = (hexCharToByte(str[i * 2]) << 4) | hexCharToByte(str[i * 2 + 1]);
+  }
+}
+
+//================ Business Logic Helpers ==================
+
+// Reset the Bluetooth module by sending a group of commands.
+static void resetBluetoothModule() {
+  Serial.println(F("BT module resetting..."));
+  state = CONNECTING;
+  ledController.setState(LEDController::CONNECTING);
+  hc05.sendCommand(F("AT+RMAAD"), bluetoothCallback);
+  hc05.sendCommand(F("AT+NAME=K810"), bluetoothCallback);
+  hc05.sendCommand(F("AT+PSWD=1588"), bluetoothCallback);
+  hc05.sendCommand(F("AT+UART=38400,0,0"), bluetoothCallback);
+  hc05.sendCommand(F("AT+RESET"), bluetoothCallback);
+  hc05.reset(false);
+  bluetoothConnectionTimeout.reset();
+}
+
+// Update LED and keyboard states based on the global "locked" flag.
+static void updateLockState() {
+  if (locked) {
+    if (state == IDLE && !buttonController.isPressing()) {
+      ledController.setState(LEDController::LOCKED);
+    }
+    keyboardController.lock();
+  } else {
+    if (state == IDLE && !buttonController.isPressing()) {
+      ledController.setState(LEDController::UNLOCKED);
+    }
+    keyboardController.unlock();
+  }
+}
+
+// Encapsulates the business logic that runs each loop iteration.
+static void handleBusinessLogic() {
+  const bool checked = keyboardController.isSeedChecked();
+
+  switch (state) {
+    case IDLE:
+      if (buttonController.isPressing()) {
+        ledController.setState(LEDController::PRESSING);
+      } else {
+        switch (buttonController.state()) {
+          case ButtonController::SHORT_PRESS:
+            if (!checked) {
+              locked = !locked;
+            }
+            break;
+          case ButtonController::LONG_PRESS:
+            resetBluetoothModule();
+            break;
+          case ButtonController::VERY_LONG_PRESS:
+            Serial.println(F("Keypad formatting..."));
+            previousLocked = locked;
+            locked = false;
+            state = FORMATTING;
+            ledController.setState(LEDController::FORMATTING);
+            eepromController.format();
+            break;
+          case ButtonController::NO_PRESS:
+            if (checked && !hc05.isConnected()) {
+              locked = true;
+            }
+            break;
+          default:
+            break;
+        }
+      }
+      break;
+
+    case CONNECTING:
+      if (hc05.isConnected()) {
+        state = IDLE;
+      } else if (bluetoothConnectionTimeout.isReady()) {
+        hc05.reset(true);
+        state = IDLE;
+      }
+      break;
+
+    case FORMATTING:
+      if (eepromController.state() == EEPROMController::IDLE) {
+        state = IDLE;
+        locked = previousLocked;
+        Serial.println(F("Formatting completed."));
+      }
+      break;
+  }
+
+  updateLockState();
 }
 
 //================ Command Callbacks ==================
@@ -129,24 +246,20 @@ void commandStatistics(SerialCommands& sender, Args& args) {
 }
 
 void commandGenSalt(SerialCommands& sender, Args& args) {
-  if (KeyboardController::isSeedChecked()) {
-    printError(sender, F("ERROR: Already checked\r\n"));
+  if (!requireSeedNotChecked(sender))
     return;
-  }
-  const byte salt = KeyboardController::generateSalt();
+  const byte salt = keyboardController.generateSalt();
   printHexByte(sender, salt);
   printOK(sender);
 }
 
 void commandGenSeed(SerialCommands& sender, Args& args) {
-  if (KeyboardController::isSeedChecked()) {
-    printError(sender, F("ERROR: Already checked\r\n"));
+  if (!requireSeedNotChecked(sender))
     return;
-  }
-  const byte salt = KeyboardController::generateSalt();
+  const byte salt = keyboardController.generateSalt();
   byte seed[SEED_LENGTH];
-  KeyboardController::generateSeed(seed, SEED_LENGTH);
-  KeyboardController::cypherEncryption(seed, SEED_LENGTH, salt);
+  keyboardController.generateSeed(seed, SEED_LENGTH);
+  keyboardController.cypherEncryption(seed, SEED_LENGTH, salt);
   for (int i = 0; i < SEED_LENGTH; ++i) {
     printHexByte(sender, seed[i]);
     sender.getSerial().print(' ');
@@ -155,33 +268,26 @@ void commandGenSeed(SerialCommands& sender, Args& args) {
 }
 
 void commandCheck(SerialCommands& sender, Args& args) {
-  if (KeyboardController::isSeedChecked()) {
+  if (keyboardController.isSeedChecked()) {
     printError(sender, F("ERROR: Already checked\r\n"));
     return;
   }
-  KeyboardController::seedChecked();
+  keyboardController.seedChecked();
   printOK(sender);
 }
 
-byte hexCharToByte(const char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-  return 0;
-}
-
+// Check the provided seed argument against the generated seed.
 bool seedCheck(SerialCommands& sender, Args& args) {
-  if (!KeyboardController::isSeedChecked()) {
+  if (!keyboardController.isSeedChecked()) {
     printError(sender, F("ERROR: Seed not checked\r\n"));
     return false;
   }
   byte seed[SEED_LENGTH];
-  for (size_t i = 0; i < SEED_LENGTH; ++i) {
-    seed[i] = (hexCharToByte(args[0].getString()[i * 2]) << 4) | hexCharToByte(args[0].getString()[i * 2 + 1]);
-  }
+  parseSeedString(args[0].getString(), seed, SEED_LENGTH);
+
   byte genSeed[SEED_LENGTH];
-  KeyboardController::generateSeed(genSeed, SEED_LENGTH);
-  KeyboardController::cypherDecryption(seed, SEED_LENGTH, genSeed, SEED_LENGTH);
+  keyboardController.generateSeed(genSeed, SEED_LENGTH);
+  keyboardController.cypherDecryption(seed, SEED_LENGTH, genSeed, SEED_LENGTH);
   for (int i = 0; i < SEED_LENGTH; ++i) {
     if (seed[i] != genSeed[i]) {
       printError(sender, F("ERROR: Seed not matched\r\n"));
@@ -294,15 +400,21 @@ void setup() {
   rxLED.blink(1000, 1000);
   txLED.blink(1000, 1000, 1000);
 
+  const bool checked = keyboardController.isSeedChecked();
   hc05.begin();
   hc05.onDataReceived(bluetoothDataCallback);
-  if (KeyboardController::isSeedChecked()) {
+  if (checked) {
     hc05.sendCommand(F("AT+ROLE=0"), bluetoothCallback);
   }
   hc05.sendCommand(F("AT+CMODE=1"), bluetoothCallback);
   hc05.sendCommand(F("AT+RESET"), bluetoothCallback);
+  if (!checked) {
+    hc05.reset(true);
+    locked = false;
+  }
   bluetoothConnectionTimeout.setInterval(40000);
 
+  // Set statistic names.
   watchdogControllerStatistic.setName(F("Watchdog"));
   statisticControllerStatistic.setName(F("Statistic"));
   ledControllerStatistic.setName(F("Led"));
@@ -315,11 +427,6 @@ void setup() {
   bluetoothCommandsStatistic.setName(F("BT Cmds"));
   businessLogicStatistic.setName(F("Business Logic"));
   loopStatistic.setName(F("Loop"));
-
-  if (!KeyboardController::isSeedChecked()) {
-    hc05.reset(true);
-    locked = false;
-  }
 
   Serial.println(F("K810 Security started."));
 }
@@ -363,75 +470,7 @@ void loop() {
       eepromController.loop();
     }
     MEASURE_TIME(businessLogicStatistic) {
-      switch (state) {
-        case IDLE:
-          if (buttonController.isPressing()) {
-            ledController.setState(LEDController::PRESSING);
-          } else {
-            switch (buttonController.state()) {
-              case ButtonController::SHORT_PRESS:
-                if (!KeyboardController::isSeedChecked()) {
-                  locked = !locked;
-                }
-                break;
-              case ButtonController::LONG_PRESS:
-                Serial.println(F("BT module resetting..."));
-                state = CONNECTING;
-                ledController.setState(LEDController::CONNECTING);
-                hc05.sendCommand(F("AT+RMAAD"), bluetoothCallback);
-                hc05.sendCommand(F("AT+NAME=K810"), bluetoothCallback);
-                hc05.sendCommand(F("AT+PSWD=1588"), bluetoothCallback);
-                hc05.sendCommand(F("AT+UART=38400,0,0"), bluetoothCallback);
-                hc05.sendCommand(F("AT+RESET"), bluetoothCallback);
-                hc05.reset(false);
-                bluetoothConnectionTimeout.reset();
-                break;
-              case ButtonController::VERY_LONG_PRESS:
-                Serial.println(F("Keypad formatting..."));
-                previousLocked = locked;
-                locked = false;
-                state = FORMATTING;
-                ledController.setState(LEDController::FORMATTING);
-                eepromController.format();
-                break;
-              case ButtonController::NO_PRESS:
-                if (KeyboardController::isSeedChecked() && !hc05.isConnected()) {
-                  locked = true;
-                }
-                break;
-              default:
-                break;
-            }
-          }
-          break;
-        case CONNECTING:
-          if (hc05.isConnected()) {
-            state = IDLE;
-          } else if (bluetoothConnectionTimeout.isReady()) {
-            hc05.reset(true);
-            state = IDLE;
-          }
-          break;
-        case FORMATTING:
-          if (eepromController.state() == EEPROMController::IDLE) {
-            state = IDLE;
-            locked = previousLocked;
-            Serial.println(F("Formatting completed."));
-          }
-          break;
-      }
-
-      if (locked) {
-        if (state == IDLE && !buttonController.isPressing()) {
-          ledController.setState(LEDController::LOCKED);
-        }
-        keyboardController.lock();
-      } else {
-        if (state == IDLE && !buttonController.isPressing()) {
-          ledController.setState(LEDController::UNLOCKED);
-        }
-        keyboardController.unlock();
-      }
+      handleBusinessLogic();
     }
   }
 }

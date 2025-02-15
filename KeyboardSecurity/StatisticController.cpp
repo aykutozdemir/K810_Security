@@ -8,10 +8,10 @@ void StatisticController::setup() {
 void StatisticController::loop(Print& print,
                                const Statistic* statistics[],
                                const uint8_t statisticSize) {
-  static bool first = true;
+  static bool firstRun = true;
 
-  if (first) {
-    first = false;
+  if (firstRun) {
+    firstRun = false;
 
     printRam(print);
     printInterruptTable(print);

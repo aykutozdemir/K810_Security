@@ -79,7 +79,7 @@ void KeyboardController::seedChecked() {
 void KeyboardController::cypherEncryption(byte* const dataArr,
                                           const uint8_t arrLength,
                                           const byte salt) {
-  if (arrLength <= 0) {
+  if (arrLength == 0) {
     return;
   }
 
@@ -93,7 +93,7 @@ void KeyboardController::cypherEncryption(byte* const dataArr,
 void KeyboardController::cypherDecryption(byte* const dataArr,
                                           const uint8_t arrLength,
                                           const byte salt) {
-  if (arrLength <= 0) {
+  if (arrLength == 0) {
     return;
   }
 

@@ -50,6 +50,8 @@ private:
   void setState(const State newState);
   void processNextCommand();
   void updateConnectionState();
+  void appendStreamData();
+  bool processResponseBufferForCommand();
 
   void handleInitializing();
   void handleResetting();

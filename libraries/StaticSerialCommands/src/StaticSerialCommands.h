@@ -114,6 +114,7 @@ private:
   char *getToken(char **stringp);
 
   bool getArg(Arg &out, const char *string, const impl::ArgConstraint &arg);
+  bool processArguments(const Command *cmd, char **string, Args &args, uint8_t &argIndex);
 
   void printFromPgm(PGM_P str);
 
