@@ -41,7 +41,8 @@ public:
     void clear();
 
 private:
-    struct {
+    struct
+    {
         limb_t h[(16 / sizeof(limb_t)) + 1];
         limb_t c[(16 / sizeof(limb_t)) + 1];
         limb_t r[(16 / sizeof(limb_t))];

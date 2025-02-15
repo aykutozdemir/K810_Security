@@ -29,12 +29,13 @@
 #if defined(CRYPTO_AES_ESP32)
 
 // Declare the functions in the esp-idf SDK that we need.
-extern "C" {
-int esp_aes_setkey(unsigned char *ctx, const unsigned char *key,
-                   unsigned int keybits);
-int esp_aes_crypt_ecb(unsigned char *ctx, int mode,
-                      const unsigned char *input,
-                      unsigned char *output);
+extern "C"
+{
+    int esp_aes_setkey(unsigned char *ctx, const unsigned char *key,
+                       unsigned int keybits);
+    int esp_aes_crypt_ecb(unsigned char *ctx, int mode,
+                          const unsigned char *input,
+                          unsigned char *output);
 };
 
 AESCommon::AESCommon(uint8_t keySize)
@@ -60,7 +61,8 @@ size_t AESCommon::keySize() const
 
 bool AESCommon::setKey(const uint8_t *key, size_t len)
 {
-    if (len == ctx[0]) {
+    if (len == ctx[0])
+    {
         esp_aes_setkey(ctx, key, len * 8);
         return true;
     }

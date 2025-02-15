@@ -53,7 +53,8 @@ public:
 private:
     ChaCha chacha;
     Poly1305 poly1305;
-    struct {
+    struct
+    {
         uint8_t nonce[16];
         uint64_t authSize;
         uint64_t dataSize;

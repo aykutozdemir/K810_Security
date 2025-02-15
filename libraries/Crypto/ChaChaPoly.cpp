@@ -104,7 +104,8 @@ bool ChaChaPoly::setIV(const uint8_t *iv, size_t len)
 
 void ChaChaPoly::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    if (!state.dataStarted) {
+    if (!state.dataStarted)
+    {
         poly1305.pad();
         state.dataStarted = true;
     }
@@ -115,7 +116,8 @@ void ChaChaPoly::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 
 void ChaChaPoly::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    if (!state.dataStarted) {
+    if (!state.dataStarted)
+    {
         poly1305.pad();
         state.dataStarted = true;
     }
@@ -126,7 +128,8 @@ void ChaChaPoly::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 
 void ChaChaPoly::addAuthData(const void *data, size_t len)
 {
-    if (!state.dataStarted) {
+    if (!state.dataStarted)
+    {
         poly1305.update(data, len);
         state.authSize += len;
     }

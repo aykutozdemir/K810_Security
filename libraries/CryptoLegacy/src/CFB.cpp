@@ -40,8 +40,7 @@
  * This constructor should be followed by a call to setBlockCipher().
  */
 CFBCommon::CFBCommon()
-    : blockCipher(0)
-    , posn(16)
+    : blockCipher(0), posn(16)
 {
 }
 
@@ -85,10 +84,12 @@ bool CFBCommon::setIV(const uint8_t *iv, size_t len)
 void CFBCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
     uint8_t size;
-    while (len > 0) {
+    while (len > 0)
+    {
         // If we have exhausted the current keystream block, then encrypt
         // the IV/ciphertext to get another keystream block.
-        if (posn >= 16) {
+        if (posn >= 16)
+        {
             blockCipher->encryptBlock(iv, iv);
             posn = 0;
         }
@@ -101,7 +102,8 @@ void CFBCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
         if (size > len)
             size = len;
         len -= size;
-        while (size > 0) {
+        while (size > 0)
+        {
             iv[posn] ^= *input++;
             *output++ = iv[posn++];
             --size;
@@ -112,10 +114,12 @@ void CFBCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 void CFBCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
     uint8_t size;
-    while (len > 0) {
+    while (len > 0)
+    {
         // If we have exhausted the current keystream block, then encrypt
         // the IV/ciphertext to get another keystream block.
-        if (posn >= 16) {
+        if (posn >= 16)
+        {
             blockCipher->encryptBlock(iv, iv);
             posn = 0;
         }
@@ -128,7 +132,8 @@ void CFBCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
         if (size > len)
             size = len;
         len -= size;
-        while (size > 0) {
+        while (size > 0)
+        {
             uint8_t in = *input++;
             *output++ = iv[posn] ^ in;
             iv[posn++] = in;

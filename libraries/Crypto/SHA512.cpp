@@ -78,8 +78,7 @@ void SHA512::reset()
     static uint64_t const hashStart[8] PROGMEM = {
         0x6A09E667F3BCC908ULL, 0xBB67AE8584CAA73BULL, 0x3C6EF372FE94F82BULL,
         0xA54FF53A5F1D36F1ULL, 0x510E527FADE682D1ULL, 0x9B05688C2B3E6C1FULL,
-        0x1F83D9ABFB41BD6BULL, 0x5BE0CD19137E2179ULL
-    };
+        0x1F83D9ABFB41BD6BULL, 0x5BE0CD19137E2179ULL};
     memcpy_P(state.h, hashStart, sizeof(hashStart));
     state.chunkSize = 0;
     state.lengthLow = 0;
@@ -97,7 +96,8 @@ void SHA512::update(const void *data, size_t len)
 
     // Break the input up into 1024-bit chunks and process each in turn.
     const uint8_t *d = (const uint8_t *)data;
-    while (len > 0) {
+    while (len > 0)
+    {
         uint8_t size = 128 - state.chunkSize;
         if (size > len)
             size = len;
@@ -105,7 +105,8 @@ void SHA512::update(const void *data, size_t len)
         state.chunkSize += size;
         len -= size;
         d += size;
-        if (state.chunkSize == 128) {
+        if (state.chunkSize == 128)
+        {
             processChunk();
             state.chunkSize = 0;
         }
@@ -117,13 +118,16 @@ void SHA512::finalize(void *hash, size_t len)
     // Pad the last chunk.  We may need two padding chunks if there
     // isn't enough room in the first for the padding and length.
     uint8_t *wbytes = (uint8_t *)state.w;
-    if (state.chunkSize <= (128 - 17)) {
+    if (state.chunkSize <= (128 - 17))
+    {
         wbytes[state.chunkSize] = 0x80;
         memset(wbytes + state.chunkSize + 1, 0x00, 128 - 16 - (state.chunkSize + 1));
         state.w[14] = htobe64(state.lengthHigh);
         state.w[15] = htobe64(state.lengthLow);
         processChunk();
-    } else {
+    }
+    else
+    {
         wbytes[state.chunkSize] = 0x80;
         memset(wbytes + state.chunkSize + 1, 0x00, 128 - (state.chunkSize + 1));
         processChunk();
@@ -204,8 +208,7 @@ void SHA512::processChunk()
         0x0A637DC5A2C898A6ULL, 0x113F9804BEF90DAEULL, 0x1B710B35131C471BULL,
         0x28DB77F523047D84ULL, 0x32CAAB7B40C72493ULL, 0x3C9EBE0A15C9BEBCULL,
         0x431D67C49C100D4CULL, 0x4CC5D4BECB3E42B6ULL, 0x597F299CFC657E2AULL,
-        0x5FCB6FAB3AD6FAECULL, 0x6C44198C4A475817ULL
-    };
+        0x5FCB6FAB3AD6FAECULL, 0x6C44198C4A475817ULL};
 
     // Convert the first 16 words from big endian to host byte order.
     uint8_t index;
@@ -224,12 +227,15 @@ void SHA512::processChunk()
 
     // Perform the first 16 rounds of the compression function main loop.
     uint64_t temp1, temp2;
-    for (index = 0; index < 16; ++index) {
+    for (index = 0; index < 16; ++index)
+    {
         temp1 = h + pgm_read_qword(k + index) + state.w[index] +
                 (rightRotate14_64(e) ^ rightRotate18_64(e) ^
-                 rightRotate41_64(e)) + ((e & f) ^ ((~e) & g));
+                 rightRotate41_64(e)) +
+                ((e & f) ^ ((~e) & g));
         temp2 = (rightRotate28_64(a) ^ rightRotate34_64(a) ^
-                 rightRotate39_64(a)) + ((a & b) ^ (a & c) ^ (b & c));
+                 rightRotate39_64(a)) +
+                ((a & b) ^ (a & c) ^ (b & c));
         h = g;
         g = f;
         f = e;
@@ -243,23 +249,26 @@ void SHA512::processChunk()
     // Perform the 64 remaining rounds.  We expand the first 16 words to
     // 80 in-place in the "w" array.  This saves 512 bytes of memory
     // that would have otherwise need to be allocated to the "w" array.
-    for (; index < 80; ++index) {
+    for (; index < 80; ++index)
+    {
         // Expand the next word.
         temp1 = state.w[(index - 15) & 0x0F];
         temp2 = state.w[(index - 2) & 0x0F];
         temp1 = state.w[index & 0x0F] =
             state.w[(index - 16) & 0x0F] + state.w[(index - 7) & 0x0F] +
-                (rightRotate1_64(temp1) ^ rightRotate8_64(temp1) ^
-                 (temp1 >> 7)) +
-                (rightRotate19_64(temp2) ^ rightRotate61_64(temp2) ^
-                 (temp2 >> 6));
+            (rightRotate1_64(temp1) ^ rightRotate8_64(temp1) ^
+             (temp1 >> 7)) +
+            (rightRotate19_64(temp2) ^ rightRotate61_64(temp2) ^
+             (temp2 >> 6));
 
         // Perform the round.
         temp1 = h + pgm_read_qword(k + index) + temp1 +
                 (rightRotate14_64(e) ^ rightRotate18_64(e) ^
-                 rightRotate41_64(e)) + ((e & f) ^ ((~e) & g));
+                 rightRotate41_64(e)) +
+                ((e & f) ^ ((~e) & g));
         temp2 = (rightRotate28_64(a) ^ rightRotate34_64(a) ^
-                 rightRotate39_64(a)) + ((a & b) ^ (a & c) ^ (b & c));
+                 rightRotate39_64(a)) +
+                ((a & b) ^ (a & c) ^ (b & c));
         h = g;
         g = f;
         f = e;

@@ -39,10 +39,7 @@
  * This constructor must be followed by a call to setHashAlgorithm().
  */
 HKDFCommon::HKDFCommon()
-    : hash(0)
-    , buf(0)
-    , counter(1)
-    , posn(255)
+    : hash(0), buf(0), counter(1), posn(255)
 {
 }
 
@@ -65,11 +62,14 @@ void HKDFCommon::setKey(const void *key, size_t keyLen, const void *salt, size_t
 {
     // Initialise the HKDF context with the key and salt to generate the PRK.
     size_t hashSize = hash->hashSize();
-    if (salt && saltLen) {
+    if (salt && saltLen)
+    {
         hash->resetHMAC(salt, saltLen);
         hash->update(key, keyLen);
         hash->finalizeHMAC(salt, saltLen, buf + hashSize, hashSize);
-    } else {
+    }
+    else
+    {
         // If no salt is provided, RFC 5869 says that a string of
         // hashSize zeroes should be used instead.
         memset(buf, 0, hashSize);
@@ -97,9 +97,11 @@ void HKDFCommon::extract(void *out, size_t outLen, const void *info, size_t info
 {
     size_t hashSize = hash->hashSize();
     uint8_t *outPtr = (uint8_t *)out;
-    while (outLen > 0) {
+    while (outLen > 0)
+    {
         // Generate a new output block if necessary.
-        if (posn >= hashSize) {
+        if (posn >= hashSize)
+        {
             hash->resetHMAC(buf + hashSize, hashSize);
             if (counter != 1)
                 hash->update(buf, hashSize);

@@ -25,7 +25,8 @@
 
 #define SOFT_SERIAL_BUFFER_SIZE 32
 
-enum State : uint8_t {
+enum State : uint8_t
+{
   IDLE,
   CONNECTING,
   FORMATTING
@@ -46,8 +47,8 @@ HC05 hc05(softwareSerial, HC05_KEY, HC05_STATE, HC05_RESET);
 EEPROMController eepromController(Wire);
 
 PipedStreamPair commandPipes(192);
-PipedStream& streamBluetooth = commandPipes.first;
-PipedStream& streamCommander = commandPipes.second;
+PipedStream &streamBluetooth = commandPipes.first;
+PipedStream &streamCommander = commandPipes.second;
 
 // Statistic objects
 Statistic watchdogControllerStatistic;
@@ -63,20 +64,19 @@ Statistic eepromControllerStatistic;
 Statistic businessLogicStatistic;
 Statistic loopStatistic;
 
-const Statistic* statistics[] = {
-  &watchdogControllerStatistic,
-  &statisticControllerStatistic,
-  &ledControllerStatistic,
-  &rxTxLedStatistic,
-  &buttonControllerStatistic,
-  &keyboardControllerStatistic,
-  &serialCommandsStatistic,
-  &hc05Statistic,
-  &bluetoothCommandsStatistic,
-  &eepromControllerStatistic,
-  &businessLogicStatistic,
-  &loopStatistic
-};
+const Statistic *statistics[] = {
+    &watchdogControllerStatistic,
+    &statisticControllerStatistic,
+    &ledControllerStatistic,
+    &rxTxLedStatistic,
+    &buttonControllerStatistic,
+    &keyboardControllerStatistic,
+    &serialCommandsStatistic,
+    &hc05Statistic,
+    &bluetoothCommandsStatistic,
+    &eepromControllerStatistic,
+    &businessLogicStatistic,
+    &loopStatistic};
 
 bool previousLocked = true;
 bool locked = true;
@@ -86,24 +86,30 @@ SimpleTimer bluetoothConnectionTimeout;
 //================ Helper Functions for Commands ==================
 
 // Print the standard OK response.
-static inline void printOK(SerialCommands& sender) {
+static inline void printOK(SerialCommands &sender)
+{
   sender.getSerial().println(F("\r\nOK\r\n"));
 }
 
 // Print an error message stored in flash.
-static inline void printError(SerialCommands& sender, const __FlashStringHelper* msg) {
+static inline void printError(SerialCommands &sender, const __FlashStringHelper *msg)
+{
   sender.getSerial().println(msg);
 }
 
 // Print a single byte in HEX with a leading zero if needed.
-static inline void printHexByte(SerialCommands& sender, byte value) {
-  if (value < 0x10) sender.getSerial().print('0');
+static inline void printHexByte(SerialCommands &sender, byte value)
+{
+  if (value < 0x10)
+    sender.getSerial().print('0');
   sender.getSerial().print(value, HEX);
 }
 
 // Helper to check that the seed has not been set already.
-static inline bool requireSeedNotChecked(SerialCommands& sender) {
-  if (keyboardController.isSeedChecked()) {
+static inline bool requireSeedNotChecked(SerialCommands &sender)
+{
+  if (keyboardController.isSeedChecked())
+  {
     printError(sender, F("ERROR: Already checked\r\n"));
     return false;
   }
@@ -113,16 +119,22 @@ static inline bool requireSeedNotChecked(SerialCommands& sender) {
 //================ Helper Functions for Seed Parsing ==================
 
 // Converts a hex character to its numeric value.
-static inline byte hexCharToByte(const char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+static inline byte hexCharToByte(const char c)
+{
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  if (c >= 'A' && c <= 'F')
+    return c - 'A' + 10;
+  if (c >= 'a' && c <= 'f')
+    return c - 'a' + 10;
   return 0;
 }
 
 // Parse a hexadecimal string into a seed array.
-static void parseSeedString(const char* str, byte* seed, size_t length) {
-  for (size_t i = 0; i < length; ++i) {
+static void parseSeedString(const char *str, byte *seed, size_t length)
+{
+  for (size_t i = 0; i < length; ++i)
+  {
     seed[i] = (hexCharToByte(str[i * 2]) << 4) | hexCharToByte(str[i * 2 + 1]);
   }
 }
@@ -130,7 +142,8 @@ static void parseSeedString(const char* str, byte* seed, size_t length) {
 //================ Business Logic Helpers ==================
 
 // Reset the Bluetooth module by sending a group of commands.
-static void resetBluetoothModule() {
+static void resetBluetoothModule()
+{
   Serial.println(F("BT module resetting..."));
   state = CONNECTING;
   ledController.setState(LEDController::CONNECTING);
@@ -144,14 +157,20 @@ static void resetBluetoothModule() {
 }
 
 // Update LED and keyboard states based on the global "locked" flag.
-static void updateLockState() {
-  if (locked) {
-    if (state == IDLE && !buttonController.isPressing()) {
+static void updateLockState()
+{
+  if (locked)
+  {
+    if (state == IDLE && !buttonController.isPressing())
+    {
       ledController.setState(LEDController::LOCKED);
     }
     keyboardController.lock();
-  } else {
-    if (state == IDLE && !buttonController.isPressing()) {
+  }
+  else
+  {
+    if (state == IDLE && !buttonController.isPressing())
+    {
       ledController.setState(LEDController::UNLOCKED);
     }
     keyboardController.unlock();
@@ -159,58 +178,70 @@ static void updateLockState() {
 }
 
 // Encapsulates the business logic that runs each loop iteration.
-static void handleBusinessLogic() {
+static void handleBusinessLogic()
+{
   const bool checked = keyboardController.isSeedChecked();
 
-  switch (state) {
-    case IDLE:
-      if (buttonController.isPressing()) {
-        ledController.setState(LEDController::PRESSING);
-      } else {
-        switch (buttonController.state()) {
-          case ButtonController::SHORT_PRESS:
-            if (!checked) {
-              locked = !locked;
-            }
-            break;
-          case ButtonController::LONG_PRESS:
-            resetBluetoothModule();
-            break;
-          case ButtonController::VERY_LONG_PRESS:
-            Serial.println(F("Keypad formatting..."));
-            previousLocked = locked;
-            locked = false;
-            state = FORMATTING;
-            ledController.setState(LEDController::FORMATTING);
-            eepromController.format();
-            break;
-          case ButtonController::NO_PRESS:
-            if (checked && !hc05.isConnected()) {
-              locked = true;
-            }
-            break;
-          default:
-            break;
+  switch (state)
+  {
+  case IDLE:
+    if (buttonController.isPressing())
+    {
+      ledController.setState(LEDController::PRESSING);
+    }
+    else
+    {
+      switch (buttonController.state())
+      {
+      case ButtonController::SHORT_PRESS:
+        if (!checked)
+        {
+          locked = !locked;
         }
+        break;
+      case ButtonController::LONG_PRESS:
+        resetBluetoothModule();
+        break;
+      case ButtonController::VERY_LONG_PRESS:
+        Serial.println(F("Keypad formatting..."));
+        previousLocked = locked;
+        locked = false;
+        state = FORMATTING;
+        ledController.setState(LEDController::FORMATTING);
+        eepromController.format();
+        break;
+      case ButtonController::NO_PRESS:
+        if (checked && !hc05.isConnected())
+        {
+          locked = true;
+        }
+        break;
+      default:
+        break;
       }
-      break;
+    }
+    break;
 
-    case CONNECTING:
-      if (hc05.isConnected()) {
-        state = IDLE;
-      } else if (bluetoothConnectionTimeout.isReady()) {
-        hc05.reset(true);
-        state = IDLE;
-      }
-      break;
+  case CONNECTING:
+    if (hc05.isConnected())
+    {
+      state = IDLE;
+    }
+    else if (bluetoothConnectionTimeout.isReady())
+    {
+      hc05.reset(true);
+      state = IDLE;
+    }
+    break;
 
-    case FORMATTING:
-      if (eepromController.state() == EEPROMController::IDLE) {
-        state = IDLE;
-        locked = previousLocked;
-        Serial.println(F("Formatting completed."));
-      }
-      break;
+  case FORMATTING:
+    if (eepromController.state() == EEPROMController::IDLE)
+    {
+      state = IDLE;
+      locked = previousLocked;
+      Serial.println(F("Formatting completed."));
+    }
+    break;
   }
 
   updateLockState();
@@ -218,34 +249,40 @@ static void handleBusinessLogic() {
 
 //================ Command Callbacks ==================
 
-void commandHelp(SerialCommands& sender, Args& args) {
+void commandHelp(SerialCommands &sender, Args &args)
+{
   sender.listCommands();
   printOK(sender);
 }
 
-void commandPing(SerialCommands& sender, Args& args) {
+void commandPing(SerialCommands &sender, Args &args)
+{
   sender.getSerial().println(F("pong"));
   printOK(sender);
 }
 
-void commandIrq(SerialCommands& sender, Args& args) {
+void commandIrq(SerialCommands &sender, Args &args)
+{
   statisticController.printInterruptTable(sender.getSerial());
   printOK(sender);
 }
 
-void commandRam(SerialCommands& sender, Args& args) {
+void commandRam(SerialCommands &sender, Args &args)
+{
   statisticController.printRam(sender.getSerial());
   printOK(sender);
 }
 
-void commandStatistics(SerialCommands& sender, Args& args) {
+void commandStatistics(SerialCommands &sender, Args &args)
+{
   statisticController.printStatisticTable(sender.getSerial(),
                                           statistics,
                                           sizeof(statistics) / sizeof(statistics[0]));
   printOK(sender);
 }
 
-void commandGenSalt(SerialCommands& sender, Args& args) {
+void commandGenSalt(SerialCommands &sender, Args &args)
+{
   if (!requireSeedNotChecked(sender))
     return;
   const byte salt = keyboardController.generateSalt();
@@ -253,22 +290,26 @@ void commandGenSalt(SerialCommands& sender, Args& args) {
   printOK(sender);
 }
 
-void commandGenSeed(SerialCommands& sender, Args& args) {
+void commandGenSeed(SerialCommands &sender, Args &args)
+{
   if (!requireSeedNotChecked(sender))
     return;
   const byte salt = keyboardController.generateSalt();
   byte seed[SEED_LENGTH];
   keyboardController.generateSeed(seed, SEED_LENGTH);
   keyboardController.cypherEncryption(seed, SEED_LENGTH, salt);
-  for (int i = 0; i < SEED_LENGTH; ++i) {
+  for (int i = 0; i < SEED_LENGTH; ++i)
+  {
     printHexByte(sender, seed[i]);
     sender.getSerial().print(' ');
   }
   printOK(sender);
 }
 
-void commandCheck(SerialCommands& sender, Args& args) {
-  if (keyboardController.isSeedChecked()) {
+void commandCheck(SerialCommands &sender, Args &args)
+{
+  if (keyboardController.isSeedChecked())
+  {
     printError(sender, F("ERROR: Already checked\r\n"));
     return;
   }
@@ -277,8 +318,10 @@ void commandCheck(SerialCommands& sender, Args& args) {
 }
 
 // Check the provided seed argument against the generated seed.
-bool seedCheck(SerialCommands& sender, Args& args) {
-  if (!keyboardController.isSeedChecked()) {
+bool seedCheck(SerialCommands &sender, Args &args)
+{
+  if (!keyboardController.isSeedChecked())
+  {
     printError(sender, F("ERROR: Seed not checked\r\n"));
     return false;
   }
@@ -288,8 +331,10 @@ bool seedCheck(SerialCommands& sender, Args& args) {
   byte genSeed[SEED_LENGTH];
   keyboardController.generateSeed(genSeed, SEED_LENGTH);
   keyboardController.cypherDecryption(seed, SEED_LENGTH, genSeed, SEED_LENGTH);
-  for (int i = 0; i < SEED_LENGTH; ++i) {
-    if (seed[i] != genSeed[i]) {
+  for (int i = 0; i < SEED_LENGTH; ++i)
+  {
+    if (seed[i] != genSeed[i])
+    {
       printError(sender, F("ERROR: Seed not matched\r\n"));
       return false;
     }
@@ -297,14 +342,18 @@ bool seedCheck(SerialCommands& sender, Args& args) {
   return true;
 }
 
-void commandLock(SerialCommands& sender, Args& args) {
-  if (!seedCheck(sender, args)) return;
+void commandLock(SerialCommands &sender, Args &args)
+{
+  if (!seedCheck(sender, args))
+    return;
   locked = true;
   printOK(sender);
 }
 
-void commandUnlock(SerialCommands& sender, Args& args) {
-  if (!seedCheck(sender, args)) return;
+void commandUnlock(SerialCommands &sender, Args &args)
+{
+  if (!seedCheck(sender, args))
+    return;
   locked = false;
   printOK(sender);
 }
@@ -312,26 +361,24 @@ void commandUnlock(SerialCommands& sender, Args& args) {
 //================ Command Arrays ==================
 
 Command serCommands[]{
-  COMMAND(commandHelp, "help", NULL, "list commands"),
-  COMMAND(commandPing, "ping", NULL, "ping"),
-  COMMAND(commandIrq, "irq", NULL, "list irq registers"),
-  COMMAND(commandRam, "ram", NULL, "display ram usage"),
-  COMMAND(commandStatistics, "statistics", NULL, "list statistics")
-};
+    COMMAND(commandHelp, "help", NULL, "list commands"),
+    COMMAND(commandPing, "ping", NULL, "ping"),
+    COMMAND(commandIrq, "irq", NULL, "list irq registers"),
+    COMMAND(commandRam, "ram", NULL, "display ram usage"),
+    COMMAND(commandStatistics, "statistics", NULL, "list statistics")};
 
 char serialCommandBuffer[SOFT_SERIAL_BUFFER_SIZE];
 SerialCommands serialCommands(Serial, serCommands, sizeof(serCommands) / sizeof(Command),
                               serialCommandBuffer, SOFT_SERIAL_BUFFER_SIZE);
 
 Command btCommands[]{
-  COMMAND(commandHelp, "help", NULL, "list commands"),
-  COMMAND(commandPing, "ping", NULL, "ping"),
-  COMMAND(commandGenSalt, "genSalt", NULL, "generate salt"),
-  COMMAND(commandGenSeed, "genSeed", NULL, "generate seed"),
-  COMMAND(commandCheck, "check", NULL, "check"),
-  COMMAND(commandLock, "lock", NULL, "lock the keypad"),
-  COMMAND(commandUnlock, "unlock", ARG(ArgType::String), NULL, "unlock the keypad")
-};
+    COMMAND(commandHelp, "help", NULL, "list commands"),
+    COMMAND(commandPing, "ping", NULL, "ping"),
+    COMMAND(commandGenSalt, "genSalt", NULL, "generate salt"),
+    COMMAND(commandGenSeed, "genSeed", NULL, "generate seed"),
+    COMMAND(commandCheck, "check", NULL, "check"),
+    COMMAND(commandLock, "lock", NULL, "lock the keypad"),
+    COMMAND(commandUnlock, "unlock", ARG(ArgType::String), NULL, "unlock the keypad")};
 
 char bluetoothCommandBuffer[SOFT_SERIAL_BUFFER_SIZE];
 SerialCommands bluetoothCommands(streamCommander, btCommands, sizeof(btCommands) / sizeof(Command),
@@ -339,7 +386,8 @@ SerialCommands bluetoothCommands(streamCommander, btCommands, sizeof(btCommands)
 
 //================ Timer and ISR ==================
 
-void timer1Setup(const unsigned long period) {
+void timer1Setup(const unsigned long period)
+{
   // Set Timer1 to CTC mode (WGM12 = 1, others = 0)
   TCCR1A = 0;
   TCCR1B = 0;
@@ -355,18 +403,23 @@ void timer1Setup(const unsigned long period) {
   TIMSK1 |= (1 << OCIE1A);
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect)
+{
   softwareSerial.processISR();
 }
 
 //================ Bluetooth Callbacks ==================
 
-void bluetoothCallback(const String& command, const bool result, const String& response) {
-  if (result) {
+void bluetoothCallback(const String &command, const bool result, const String &response)
+{
+  if (result)
+  {
     Serial.print(F("BT module successfully "));
     Serial.print(command);
     Serial.println(F("."));
-  } else {
+  }
+  else
+  {
     Serial.print(F("BT module error "));
     Serial.print(command);
     Serial.print(F(": "));
@@ -375,13 +428,15 @@ void bluetoothCallback(const String& command, const bool result, const String& r
   }
 }
 
-void bluetoothDataCallback(const char data) {
+void bluetoothDataCallback(const char data)
+{
   streamBluetooth.write(data);
 }
 
 //================ Setup ==================
 
-void setup() {
+void setup()
+{
   SimpleTimer serialWaitTimeout;
   serialWaitTimeout.setInterval(2000);
 
@@ -403,12 +458,14 @@ void setup() {
   const bool checked = keyboardController.isSeedChecked();
   hc05.begin();
   hc05.onDataReceived(bluetoothDataCallback);
-  if (checked) {
+  if (checked)
+  {
     hc05.sendCommand(F("AT+ROLE=0"), bluetoothCallback);
   }
   hc05.sendCommand(F("AT+CMODE=1"), bluetoothCallback);
   hc05.sendCommand(F("AT+RESET"), bluetoothCallback);
-  if (!checked) {
+  if (!checked)
+  {
     hc05.reset(true);
     locked = false;
   }
@@ -433,43 +490,57 @@ void setup() {
 
 //================ Main Loop ==================
 
-void loop() {
-  MEASURE_TIME(loopStatistic) {
-    MEASURE_TIME(watchdogControllerStatistic) {
+void loop()
+{
+  MEASURE_TIME(loopStatistic)
+  {
+    MEASURE_TIME(watchdogControllerStatistic)
+    {
       watchdogController.loop();
     }
-    MEASURE_TIME(statisticControllerStatistic) {
+    MEASURE_TIME(statisticControllerStatistic)
+    {
       statisticController.loop(Serial, statistics, sizeof(statistics) / sizeof(statistics[0]));
     }
-    MEASURE_TIME(ledControllerStatistic) {
+    MEASURE_TIME(ledControllerStatistic)
+    {
       ledController.loop();
     }
-    MEASURE_TIME(rxTxLedStatistic) {
+    MEASURE_TIME(rxTxLedStatistic)
+    {
       rxLED.loop();
       txLED.loop();
     }
-    MEASURE_TIME(buttonControllerStatistic) {
+    MEASURE_TIME(buttonControllerStatistic)
+    {
       buttonController.loop();
     }
-    MEASURE_TIME(keyboardControllerStatistic) {
+    MEASURE_TIME(keyboardControllerStatistic)
+    {
       keyboardController.loop();
     }
-    MEASURE_TIME(serialCommandsStatistic) {
+    MEASURE_TIME(serialCommandsStatistic)
+    {
       serialCommands.readSerial();
     }
-    MEASURE_TIME(hc05Statistic) {
+    MEASURE_TIME(hc05Statistic)
+    {
       hc05.loop();
-      if (hc05.isDataMode() && streamBluetooth.available()) {
+      if (hc05.isDataMode() && streamBluetooth.available())
+      {
         hc05.sendData(streamBluetooth.read());
       }
     }
-    MEASURE_TIME(bluetoothCommandsStatistic) {
+    MEASURE_TIME(bluetoothCommandsStatistic)
+    {
       bluetoothCommands.readSerial();
     }
-    MEASURE_TIME(eepromControllerStatistic) {
+    MEASURE_TIME(eepromControllerStatistic)
+    {
       eepromController.loop();
     }
-    MEASURE_TIME(businessLogicStatistic) {
+    MEASURE_TIME(businessLogicStatistic)
+    {
       handleBusinessLogic();
     }
   }

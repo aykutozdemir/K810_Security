@@ -41,7 +41,8 @@ public:
     void clear();
 
 private:
-    struct {
+    struct
+    {
         uint32_t H[4];
         uint32_t Y[4];
         uint8_t posn;

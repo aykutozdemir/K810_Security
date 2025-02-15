@@ -44,7 +44,7 @@
 // Global switch to enable/disable AVR inline assembly optimizations.
 #if defined(__AVR__)
 // Disabled for now - there are issues with newer Arduino compilers.  FIXME
-//#define CURVE25519_ASM_AVR 1
+// #define CURVE25519_ASM_AVR 1
 #endif
 
 // The overhead of clean() calls in mul(), reduceQuick(), etc can
@@ -53,9 +53,13 @@
 // like curve25519-donna don't do any cleaning at all so the value
 // of cleaning up the stack is dubious at best anyway.
 #if defined(CURVE25519_STRICT_CLEAN)
-#define strict_clean(x)     clean(x)
+#define strict_clean(x) clean(x)
 #else
-#define strict_clean(x)     do { ; } while (0)
+#define strict_clean(x) \
+    do                  \
+    {                   \
+        ;               \
+    } while (0)
 #endif
 
 /**
@@ -101,12 +105,15 @@ bool Curve25519::eval(uint8_t result[32], const uint8_t s[32], const uint8_t x[3
 
     // Unpack the "x" argument into the limb representation
     // which also masks off the high bit.  NULL means 9.
-    if (x) {
+    if (x)
+    {
         // x1 = x
         BigNumberUtil::unpackLE(x_1, NUM_LIMBS_256BIT, x, 32);
         x_1[NUM_LIMBS_256BIT - 1] &= ((((limb_t)1) << (LIMB_BITS - 1)) - 1);
-    } else {
-        memset(x_1, 0, sizeof(x_1));    // x_1 = 9
+    }
+    else
+    {
+        memset(x_1, 0, sizeof(x_1)); // x_1 = 9
         x_1[0] = 9;
     }
 
@@ -120,18 +127,19 @@ bool Curve25519::eval(uint8_t result[32], const uint8_t s[32], const uint8_t x[3
     retval = (bool)(reduceQuick(x_1) & 0x01);
 
     // Initialize the other temporary variables.
-    memset(x_2, 0, sizeof(x_2));        // x_2 = 1
+    memset(x_2, 0, sizeof(x_2)); // x_2 = 1
     x_2[0] = 1;
-    memset(z_2, 0, sizeof(z_2));        // z_2 = 0
-    memcpy(x_3, x_1, sizeof(x_1));      // x_3 = x
-    memcpy(z_3, x_2, sizeof(x_2));      // z_3 = 1
+    memset(z_2, 0, sizeof(z_2));   // z_2 = 0
+    memcpy(x_3, x_1, sizeof(x_1)); // x_3 = x
+    memcpy(z_3, x_2, sizeof(x_2)); // z_3 = 1
 
     // Iterate over all 255 bits of "s" from the highest to the lowest.
     // We ignore the high bit of the 256-bit representation of "s".
     mask = 0x40;
     sposn = 31;
     swap = 0;
-    for (uint8_t t = 255; t > 0; --t) {
+    for (uint8_t t = 255; t > 0; --t)
+    {
         // Conditional swaps on entry to this bit but only if we
         // didn't swap on the previous bit.
         select = s[sposn] & mask;
@@ -140,32 +148,35 @@ bool Curve25519::eval(uint8_t result[32], const uint8_t s[32], const uint8_t x[3
         cswap(swap, z_2, z_3);
 
         // Evaluate the curve.
-        add(A, x_2, z_2);               // A = x_2 + z_2
-        square(AA, A);                  // AA = A^2
-        sub(B, x_2, z_2);               // B = x_2 - z_2
-        square(BB, B);                  // BB = B^2
-        sub(E, AA, BB);                 // E = AA - BB
-        add(C, x_3, z_3);               // C = x_3 + z_3
-        sub(D, x_3, z_3);               // D = x_3 - z_3
-        mul(DA, D, A);                  // DA = D * A
-        mul(CB, C, B);                  // CB = C * B
-        add(x_3, DA, CB);               // x_3 = (DA + CB)^2
+        add(A, x_2, z_2); // A = x_2 + z_2
+        square(AA, A);    // AA = A^2
+        sub(B, x_2, z_2); // B = x_2 - z_2
+        square(BB, B);    // BB = B^2
+        sub(E, AA, BB);   // E = AA - BB
+        add(C, x_3, z_3); // C = x_3 + z_3
+        sub(D, x_3, z_3); // D = x_3 - z_3
+        mul(DA, D, A);    // DA = D * A
+        mul(CB, C, B);    // CB = C * B
+        add(x_3, DA, CB); // x_3 = (DA + CB)^2
         square(x_3, x_3);
-        sub(z_3, DA, CB);               // z_3 = x_1 * (DA - CB)^2
+        sub(z_3, DA, CB); // z_3 = x_1 * (DA - CB)^2
         square(z_3, z_3);
         mul(z_3, z_3, x_1);
-        mul(x_2, AA, BB);               // x_2 = AA * BB
-        mulA24(z_2, E);                 // z_2 = E * (AA + a24 * E)
+        mul(x_2, AA, BB); // x_2 = AA * BB
+        mulA24(z_2, E);   // z_2 = E * (AA + a24 * E)
         add(z_2, z_2, AA);
         mul(z_2, z_2, E);
 
         // Move onto the next lower bit of "s".
         mask >>= 1;
-        if (!mask) {
+        if (!mask)
+        {
             --sposn;
             mask = 0x80;
             swap = select << 7;
-        } else {
+        }
+        else
+        {
             swap = select >> 1;
         }
     }
@@ -244,7 +255,8 @@ bool Curve25519::eval(uint8_t result[32], const uint8_t s[32], const uint8_t x[3
  */
 void Curve25519::dh1(uint8_t k[32], uint8_t f[32])
 {
-    do {
+    do
+    {
         // Generate a random "f" value and then adjust the value to make
         // it valid as an "s" value for eval().  According to the specification
         // we need to mask off the 3 right-most bits of f[0], mask off the
@@ -290,9 +302,9 @@ bool Curve25519::dh2(uint8_t k[32], uint8_t f[32])
     // we perform every phase of the weak checks even if we could
     // bail out earlier so that the execution takes the same
     // amount of time for weak and non-weak "k" values.
-    weak  = isWeakPoint(k);                     // Is "k" weak before?
-    weak |= ((eval(k, f, k) ^ 0x01) & 0x01);    // Is "k" weak during?
-    weak |= isWeakPoint(k);                     // Is "k" weak after?
+    weak = isWeakPoint(k);                   // Is "k" weak before?
+    weak |= ((eval(k, f, k) ^ 0x01) & 0x01); // Is "k" weak during?
+    weak |= isWeakPoint(k);                  // Is "k" weak after?
     clean(f, 32);
     return (bool)((weak ^ 0x01) & 0x01);
 }
@@ -330,8 +342,7 @@ uint8_t Curve25519::isWeakPoint(const uint8_t k[32])
         {0xEC, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
          0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
          0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F}
-    };
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F}};
 
     // Check each of the weak points in turn.  We perform the
     // comparisons carefully so as not to reveal the value of "k"
@@ -339,7 +350,8 @@ uint8_t Curve25519::isWeakPoint(const uint8_t k[32])
     // we still check everything so as not to reveal which
     // weak point it is.
     uint8_t result = 0;
-    for (uint8_t posn = 0; posn < 5; ++posn) {
+    for (uint8_t posn = 0; posn < 5; ++posn)
+    {
         const uint8_t *point = points[posn];
         uint8_t check = (pgm_read_byte(&(point[31])) ^ k[31]) & 0x7F;
         for (uint8_t index = 31; index > 0; --index)
@@ -415,16 +427,19 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
     // value of the form "answer + j * (2^255 - 19)".
     carry = ((dlimb_t)(x[NUM_LIMBS_256BIT - 1] >> (LIMB_BITS - 1))) * 19U;
     x[NUM_LIMBS_256BIT - 1] &= ((((limb_t)1) << (LIMB_BITS - 1)) - 1);
-    for (posn = 0; posn < size; ++posn) {
+    for (posn = 0; posn < size; ++posn)
+    {
         carry += ((dlimb_t)(x[posn + NUM_LIMBS_256BIT])) * 38U;
         carry += x[posn];
         x[posn] = (limb_t)carry;
         carry >>= LIMB_BITS;
     }
-    if (size < NUM_LIMBS_256BIT) {
+    if (size < NUM_LIMBS_256BIT)
+    {
         // The high order half of the number is short; e.g. for mulA24().
         // Propagate the carry through the rest of the low order part.
-        for (posn = size; posn < NUM_LIMBS_256BIT; ++posn) {
+        for (posn = size; posn < NUM_LIMBS_256BIT; ++posn)
+        {
             carry += x[posn];
             x[posn] = (limb_t)carry;
             carry >>= LIMB_BITS;
@@ -438,7 +453,8 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
     carry *= 38U;
     carry += ((dlimb_t)(x[NUM_LIMBS_256BIT - 1] >> (LIMB_BITS - 1))) * 19U;
     x[NUM_LIMBS_256BIT - 1] &= ((((limb_t)1) << (LIMB_BITS - 1)) - 1);
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         carry += x[posn];
         x[posn] = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -450,7 +466,8 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
     // trial answer into the top-most limbs of the original "x" array.
     // We add 19 here; the subtraction of 2^255 occurs in the next step.
     carry = 19U;
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         carry += x[posn];
         x[posn + NUM_LIMBS_256BIT] = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -465,37 +482,38 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
     limb_t mask = (limb_t)(((slimb_t)(x[NUM_LIMBS_512BIT - 1])) >> (LIMB_BITS - 1));
     limb_t nmask = ~mask;
     x[NUM_LIMBS_512BIT - 1] &= ((((limb_t)1) << (LIMB_BITS - 1)) - 1);
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         result[posn] = (x[posn] & nmask) | (x[posn + NUM_LIMBS_256BIT] & mask);
     }
 #else
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         // Calculate (x mod 2^255) + ((x / 2^255) * 19) which will
         // either produce the answer we want or it will produce a
         // value of the form "answer + j * (2^255 - 19)".
-        "ldd r24,Z+31\n"                // Extract the high bit of x[31]
-        "mov r25,r24\n"                 // and mask it off
+        "ldd r24,Z+31\n" // Extract the high bit of x[31]
+        "mov r25,r24\n"  // and mask it off
         "andi r25,0x7F\n"
         "std Z+31,r25\n"
-        "lsl r24\n"                     // carry = high bit * 19
+        "lsl r24\n" // carry = high bit * 19
         "mov r24,__zero_reg__\n"
         "sbc r24,__zero_reg__\n"
         "andi r24,19\n"
 
-        "mov r25,%1\n"                  // load "size" into r25
-        "ldi r23,38\n"                  // r23 = 38
-        "mov r22,__zero_reg__\n"        // r22 = 0 (we're about to destroy r1)
+        "mov r25,%1\n"           // load "size" into r25
+        "ldi r23,38\n"           // r23 = 38
+        "mov r22,__zero_reg__\n" // r22 = 0 (we're about to destroy r1)
         "1:\n"
-        "ld r16,Z\n"                    // r16 = x[0]
-        "ldd r17,Z+32\n"                // r17 = x[32]
-        "mul r17,r23\n"                 // r0:r1 = r17 * 38
-        "add r0,r24\n"                  // r0:r1 += carry
+        "ld r16,Z\n"     // r16 = x[0]
+        "ldd r17,Z+32\n" // r17 = x[32]
+        "mul r17,r23\n"  // r0:r1 = r17 * 38
+        "add r0,r24\n"   // r0:r1 += carry
         "adc r1,r22\n"
-        "add r0,r16\n"                  // r0:r1 += r16
+        "add r0,r16\n" // r0:r1 += r16
         "adc r1,r22\n"
-        "st Z+,r0\n"                    // *x++ = r0
-        "mov r24,r1\n"                  // carry = r1
-        "dec r25\n"                     // if (--r25 != 0) loop
+        "st Z+,r0\n"   // *x++ = r0
+        "mov r24,r1\n" // carry = r1
+        "dec r25\n"    // if (--r25 != 0) loop
         "brne 1b\n"
 
         // If the size is short, then we need to continue propagating carries.
@@ -508,48 +526,48 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
         "st Z+,__tmp_reg__\n"
         "dec r25\n"
         "2:\n"
-        "ld __tmp_reg__,Z\n"            // *x++ += carry
+        "ld __tmp_reg__,Z\n" // *x++ += carry
         "adc __tmp_reg__,r22\n"
         "st Z+,__tmp_reg__\n"
         "dec r25\n"
         "brne 2b\n"
-        "mov r24,r22\n"                 // put the carry back into r24
+        "mov r24,r22\n" // put the carry back into r24
         "adc r24,r22\n"
         "3:\n"
-        "sbiw r30,32\n"                 // Point Z back to the start of "x"
+        "sbiw r30,32\n" // Point Z back to the start of "x"
 
         // The "j" value may still be too large due to the final carry-out.
         // We must repeat the reduction.  If we already have the answer,
         // then this won't do any harm but we must still do the calculation
         // to preserve the overall timing.
-        "mul r24,r23\n"                 // carry *= 38
-        "ldd r24,Z+31\n"                // Extract the high bit of x[31]
-        "mov r25,r24\n"                 // and mask it off
+        "mul r24,r23\n"  // carry *= 38
+        "ldd r24,Z+31\n" // Extract the high bit of x[31]
+        "mov r25,r24\n"  // and mask it off
         "andi r25,0x7F\n"
         "std Z+31,r25\n"
-        "lsl r24\n"                     // carry += high bit * 19
+        "lsl r24\n" // carry += high bit * 19
         "mov r24,r22\n"
         "sbc r24,r22\n"
         "andi r24,19\n"
         "add r0,r24\n"
-        "adc r1,r22\n"                  // 9-bit carry is now in r0:r1
+        "adc r1,r22\n" // 9-bit carry is now in r0:r1
 
         // Propagate the carry through the rest of x.
-        "ld r24,Z\n"                    // x[0]
+        "ld r24,Z\n" // x[0]
         "add r0,r24\n"
         "adc r1,r22\n"
         "st Z+,r0\n"
-        "ld r24,Z\n"                    // x[1]
+        "ld r24,Z\n" // x[1]
         "add r1,r24\n"
         "st Z+,r1\n"
-        "ldi r25,30\n"                  // x[2..31]
+        "ldi r25,30\n" // x[2..31]
         "4:\n"
         "ld r24,Z\n"
         "adc r24,r22\n"
         "st Z+,r24\n"
         "dec r25\n"
         "brne 4b\n"
-        "sbiw r30,32\n"                 // Point Z back to the start of "x"
+        "sbiw r30,32\n" // Point Z back to the start of "x"
 
         // We destroyed __zero_reg__ (r1) above, so restore its zero value.
         "mov __zero_reg__,r22\n"
@@ -559,20 +577,20 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
         // is equivalent to adding 19 and subtracting 2^255.  We put the
         // trial answer into the top-most limbs of the original "x" array.
         // We add 19 here; the subtraction of 2^255 occurs in the next step.
-        "ldi r24,8\n"               // Loop counter.
-        "ldi r25,19\n"              // carry = 19
+        "ldi r24,8\n"  // Loop counter.
+        "ldi r25,19\n" // carry = 19
         "5:\n"
-        "ld r16,Z+\n"               // r16:r19:carry = *xx++ + carry
+        "ld r16,Z+\n" // r16:r19:carry = *xx++ + carry
         "ld r17,Z+\n"
         "ld r18,Z+\n"
         "ld r19,Z+\n"
-        "add r16,r25\n"             // r16:r19:carry += carry
+        "add r16,r25\n" // r16:r19:carry += carry
         "adc r17,__zero_reg__\n"
         "adc r18,__zero_reg__\n"
         "adc r19,__zero_reg__\n"
         "mov r25,__zero_reg__\n"
         "adc r25,r25\n"
-        "std Z+28,r16\n"            // *tt++ = r16:r19
+        "std Z+28,r16\n" // *tt++ = r16:r19
         "std Z+29,r17\n"
         "std Z+30,r18\n"
         "std Z+31,r19\n"
@@ -593,7 +611,7 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
         // we want, or 0xFF if x[32..63] is the answer we want.  Essentially
         // we need to do a conditional move of either x[0..31] or x[32..63]
         // into "result".
-        "sbiw r30,32\n"             // Point Z back to x[0].
+        "sbiw r30,32\n" // Point Z back to x[0].
         "ldi r24,8\n"
         "6:\n"
         "ldd r16,Z+32\n"
@@ -625,8 +643,7 @@ void Curve25519::reduce(limb_t *result, limb_t *x, uint8_t size)
 
         : : "z"(x), "r"((uint8_t)(size * sizeof(limb_t))), "x"(result)
         : "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-          "r24", "r25"
-    );
+          "r24", "r25");
 #endif
 }
 
@@ -651,14 +668,15 @@ limb_t Curve25519::reduceQuick(limb_t *x)
     uint8_t posn;
     limb_t *xx;
     limb_t *tt;
-    
+
     // Perform a trial subtraction of (2^255 - 19) from "x" which is
     // equivalent to adding 19 and subtracting 2^255.  We add 19 here;
     // the subtraction of 2^255 occurs in the next step.
     carry = 19U;
     xx = x;
     tt = temp;
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         carry += *xx++;
         *tt++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -674,7 +692,8 @@ limb_t Curve25519::reduceQuick(limb_t *x)
     temp[NUM_LIMBS_256BIT - 1] &= ((((limb_t)1) << (LIMB_BITS - 1)) - 1);
     xx = x;
     tt = temp;
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         *xx = ((*xx) & nmask) | ((*tt++) & mask);
         ++xx;
     }
@@ -684,26 +703,26 @@ limb_t Curve25519::reduceQuick(limb_t *x)
 
     // Return a zero value if we actually subtracted (2^255 - 19) from "x".
     return nmask;
-#else // CURVE25519_ASM_AVR
+#else  // CURVE25519_ASM_AVR
     limb_t temp[NUM_LIMBS_256BIT];
     uint8_t result;
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         // Subtract (2^255 - 19) from "x", which is the same as adding 19
         // and then subtracting 2^255.
-        "ldi r24,8\n"               // Loop counter.
-        "ldi r25,19\n"              // carry = 19
+        "ldi r24,8\n"  // Loop counter.
+        "ldi r25,19\n" // carry = 19
         "1:\n"
-        "ld r16,Z+\n"               // r16:r19:carry = *xx++ + carry
+        "ld r16,Z+\n" // r16:r19:carry = *xx++ + carry
         "ld r17,Z+\n"
         "ld r18,Z+\n"
         "ld r19,Z+\n"
-        "add r16,r25\n"             // r16:r19:carry += carry
+        "add r16,r25\n" // r16:r19:carry += carry
         "adc r17,__zero_reg__\n"
         "adc r18,__zero_reg__\n"
         "adc r19,__zero_reg__\n"
         "mov r25,__zero_reg__\n"
         "adc r25,r25\n"
-        "st X+,r16\n"               // *tt++ = r16:r19
+        "st X+,r16\n" // *tt++ = r16:r19
         "st X+,r17\n"
         "st X+,r18\n"
         "st X+,r19\n"
@@ -723,8 +742,8 @@ limb_t Curve25519::reduceQuick(limb_t *x)
         // At this point, r25 is 0 if the original "x" is the answer
         // we want, or 0xFF if "temp" is the answer we want.  Essentially
         // we need to do a conditional move of "temp" into "x".
-        "sbiw r26,31\n"             // Point X back to the start of "temp".
-        "sbiw r30,32\n"             // Point Z back to the start of "x".
+        "sbiw r26,31\n" // Point X back to the start of "temp".
+        "sbiw r30,32\n" // Point Z back to the start of "x".
         "ldi r24,8\n"
         "2:\n"
         "ld r16,X+\n"
@@ -757,8 +776,7 @@ limb_t Curve25519::reduceQuick(limb_t *x)
         : "=r"(result)
         : "x"(temp), "z"(x)
         : "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-          "r24", "r25"
-    );
+          "r24", "r25");
     strict_clean(temp);
     return result;
 #endif // CURVE25519_ASM_AVR
@@ -790,7 +808,8 @@ void Curve25519::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
     word = x[0];
     yy = y;
     rr = result;
-    for (i = 0; i < NUM_LIMBS_256BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_256BIT; ++i)
+    {
         carry += ((dlimb_t)(*yy++)) * word;
         *rr++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -798,12 +817,14 @@ void Curve25519::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
     *rr = (limb_t)carry;
 
     // Multiply and add the remaining words of x by y.
-    for (i = 1; i < NUM_LIMBS_256BIT; ++i) {
+    for (i = 1; i < NUM_LIMBS_256BIT; ++i)
+    {
         word = x[i];
         carry = 0;
         yy = y;
         rr = result + i;
-        for (j = 0; j < NUM_LIMBS_256BIT; ++j) {
+        for (j = 0; j < NUM_LIMBS_256BIT; ++j)
+        {
             carry += ((dlimb_t)(*yy++)) * word;
             carry += *rr;
             *rr++ = (limb_t)carry;
@@ -812,7 +833,7 @@ void Curve25519::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
         *rr = (limb_t)carry;
     }
 #else
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         // Save Y and copy the "result" pointer into it.
         "push r28\n"
         "push r29\n"
@@ -820,71 +841,71 @@ void Curve25519::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
         "mov r29,%B2\n"
 
         // Multiply the first byte of "x" by y[0..31].
-        "ldi r25,8\n"               // loop 8 times: 4 bytes of y each time
-        "clr r24\n"                 // carry = 0
-        "clr r22\n"                 // r22 = 0 to replace __zero_reg__
-        "ld r23,X+\n"               // r23 = *x++
+        "ldi r25,8\n" // loop 8 times: 4 bytes of y each time
+        "clr r24\n"   // carry = 0
+        "clr r22\n"   // r22 = 0 to replace __zero_reg__
+        "ld r23,X+\n" // r23 = *x++
         "1:\n"
-        "ld r16,Z\n"                // r16 = y[0]
-        "mul r16,r23\n"             // r8:r9 = y[0] * r23
+        "ld r16,Z\n"    // r16 = y[0]
+        "mul r16,r23\n" // r8:r9 = y[0] * r23
         "movw r8,r0\n"
-        "ldd r16,Z+2\n"             // r16 = y[2]
-        "mul r16,r23\n"             // r10:r11 = y[2] * r23
+        "ldd r16,Z+2\n" // r16 = y[2]
+        "mul r16,r23\n" // r10:r11 = y[2] * r23
         "movw r10,r0\n"
-        "ldd r16,Z+1\n"             // r16 = y[1]
-        "mul r16,r23\n"             // r9:r10:r11 += y[1] * r23
+        "ldd r16,Z+1\n" // r16 = y[1]
+        "mul r16,r23\n" // r9:r10:r11 += y[1] * r23
         "add r9,r0\n"
         "adc r10,r1\n"
         "adc r11,r22\n"
-        "ldd r16,Z+3\n"             // r16 = y[3]
-        "mul r16,r23\n"             // r11:r1 += y[3] * r23
+        "ldd r16,Z+3\n" // r16 = y[3]
+        "mul r16,r23\n" // r11:r1 += y[3] * r23
         "add r11,r0\n"
         "adc r1,r22\n"
-        "add r8,r24\n"              // r8:r9:r10:r11:r1 += carry
+        "add r8,r24\n" // r8:r9:r10:r11:r1 += carry
         "adc r9,r22\n"
         "adc r10,r22\n"
         "adc r11,r22\n"
         "adc r1,r22\n"
-        "mov r24,r1\n"              // carry = r1
-        "st Y+,r8\n"                // *rr++ = r8:r9:r10:r11
+        "mov r24,r1\n" // carry = r1
+        "st Y+,r8\n"   // *rr++ = r8:r9:r10:r11
         "st Y+,r9\n"
         "st Y+,r10\n"
         "st Y+,r11\n"
         "adiw r30,4\n"
         "dec r25\n"
         "brne 1b\n"
-        "st Y+,r24\n"               // *rr++ = carry
-        "sbiw r28,32\n"             // rr -= 32
-        "sbiw r30,32\n"             // Point Z back to the start of y
+        "st Y+,r24\n"   // *rr++ = carry
+        "sbiw r28,32\n" // rr -= 32
+        "sbiw r30,32\n" // Point Z back to the start of y
 
         // Multiply and add the remaining bytes of "x" by y[0..31].
-        "ldi r21,31\n"              // 31 more bytes of x to go.
+        "ldi r21,31\n" // 31 more bytes of x to go.
         "2:\n"
-        "ldi r25,8\n"               // loop 8 times: 4 bytes of y each time
-        "clr r24\n"                 // carry = 0
-        "ld r23,X+\n"               // r23 = *x++
+        "ldi r25,8\n" // loop 8 times: 4 bytes of y each time
+        "clr r24\n"   // carry = 0
+        "ld r23,X+\n" // r23 = *x++
         "3:\n"
-        "ld r16,Z\n"                // r16 = y[0]
-        "mul r16,r23\n"             // r8:r9 = y[0] * r23
+        "ld r16,Z\n"    // r16 = y[0]
+        "mul r16,r23\n" // r8:r9 = y[0] * r23
         "movw r8,r0\n"
-        "ldd r16,Z+2\n"             // r16 = y[2]
-        "mul r16,r23\n"             // r10:r11 = y[2] * r23
+        "ldd r16,Z+2\n" // r16 = y[2]
+        "mul r16,r23\n" // r10:r11 = y[2] * r23
         "movw r10,r0\n"
-        "ldd r16,Z+1\n"             // r16 = y[1]
-        "mul r16,r23\n"             // r9:r10:r11 += y[1] * r23
+        "ldd r16,Z+1\n" // r16 = y[1]
+        "mul r16,r23\n" // r9:r10:r11 += y[1] * r23
         "add r9,r0\n"
         "adc r10,r1\n"
         "adc r11,r22\n"
-        "ldd r16,Z+3\n"             // r16 = y[3]
-        "mul r16,r23\n"             // r11:r1 += y[3] * r23
+        "ldd r16,Z+3\n" // r16 = y[3]
+        "mul r16,r23\n" // r11:r1 += y[3] * r23
         "add r11,r0\n"
         "adc r1,r22\n"
-        "add r8,r24\n"              // r8:r9:r10:r11:r1 += carry
+        "add r8,r24\n" // r8:r9:r10:r11:r1 += carry
         "adc r9,r22\n"
         "adc r10,r22\n"
         "adc r11,r22\n"
         "adc r1,r22\n"
-        "ld r16,Y\n"                // r8:r9:r10:r11:r1 += rr[0..3]
+        "ld r16,Y\n" // r8:r9:r10:r11:r1 += rr[0..3]
         "add r8,r16\n"
         "ldd r16,Y+1\n"
         "adc r9,r16\n"
@@ -893,17 +914,17 @@ void Curve25519::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
         "ldd r16,Y+3\n"
         "adc r11,r16\n"
         "adc r1,r22\n"
-        "mov r24,r1\n"              // carry = r1
-        "st Y+,r8\n"                // *rr++ = r8:r9:r10:r11
+        "mov r24,r1\n" // carry = r1
+        "st Y+,r8\n"   // *rr++ = r8:r9:r10:r11
         "st Y+,r9\n"
         "st Y+,r10\n"
         "st Y+,r11\n"
         "adiw r30,4\n"
         "dec r25\n"
         "brne 3b\n"
-        "st Y+,r24\n"               // *r++ = carry
-        "sbiw r28,32\n"             // rr -= 32
-        "sbiw r30,32\n"             // Point Z back to the start of y
+        "st Y+,r24\n"   // *r++ = carry
+        "sbiw r28,32\n" // rr -= 32
+        "sbiw r30,32\n" // Point Z back to the start of y
         "dec r21\n"
         "brne 2b\n"
 
@@ -913,8 +934,7 @@ void Curve25519::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
         "clr __zero_reg__\n"
         : : "x"(x), "z"(y), "r"(result)
         : "r8", "r9", "r10", "r11", "r16", "r20", "r21", "r22",
-          "r23", "r24", "r25"
-    );
+          "r23", "r24", "r25");
 #endif
 }
 
@@ -967,9 +987,9 @@ void Curve25519::mulA24(limb_t *result, const limb_t *x)
 #elif BIGNUMBER_LIMB_32BIT || BIGNUMBER_LIMB_64BIT
     static limb_t const a24[1] PROGMEM = {0x0001DB41};
 #else
-    #error "limb_t must be 8, 16, 32, or 64 bits in size"
+#error "limb_t must be 8, 16, 32, or 64 bits in size"
 #endif
-    #define NUM_A24_LIMBS   (sizeof(a24) / sizeof(limb_t))
+#define NUM_A24_LIMBS (sizeof(a24) / sizeof(limb_t))
 
     // Multiply the lowest limb of a24 by x and zero-extend into the result.
     limb_t temp[NUM_LIMBS_512BIT];
@@ -978,7 +998,8 @@ void Curve25519::mulA24(limb_t *result, const limb_t *x)
     limb_t word = pgm_read_limb(&(a24[0]));
     const limb_t *xx = x;
     limb_t *tt = temp;
-    for (i = 0; i < NUM_LIMBS_256BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_256BIT; ++i)
+    {
         carry += ((dlimb_t)(*xx++)) * word;
         *tt++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -986,12 +1007,14 @@ void Curve25519::mulA24(limb_t *result, const limb_t *x)
     *tt = (limb_t)carry;
 
     // Multiply and add the remaining limbs of a24.
-    for (i = 1; i < NUM_A24_LIMBS; ++i) {
+    for (i = 1; i < NUM_A24_LIMBS; ++i)
+    {
         word = pgm_read_limb(&(a24[i]));
         carry = 0;
         xx = x;
         tt = temp + i;
-        for (j = 0; j < NUM_LIMBS_256BIT; ++j) {
+        for (j = 0; j < NUM_LIMBS_256BIT; ++j)
+        {
             carry += ((dlimb_t)(*xx++)) * word;
             carry += *tt;
             *tt++ = (limb_t)carry;
@@ -1001,43 +1024,43 @@ void Curve25519::mulA24(limb_t *result, const limb_t *x)
     }
 #else
     limb_t temp[NUM_LIMBS_512BIT];
-    #define NUM_A24_LIMBS   ((3 + sizeof(limb_t) - 1) / sizeof(limb_t))
-    __asm__ __volatile__ (
+#define NUM_A24_LIMBS ((3 + sizeof(limb_t) - 1) / sizeof(limb_t))
+    __asm__ __volatile__(
         // Load the two low bytes of a24 into r16 and r17.
         // The third byte is 0x01 which we can deal with implicitly.
         "ldi r16,0x41\n"
         "ldi r17,0xDB\n"
 
         // Iterate over the bytes of "x" and multiply each with a24.
-        "ldi r25,32\n"              // 32 bytes in "x"
-        "clr r22\n"                 // r22 = 0
-        "clr r18\n"                 // r18:r19:r11 = 0 (carry)
+        "ldi r25,32\n" // 32 bytes in "x"
+        "clr r22\n"    // r22 = 0
+        "clr r18\n"    // r18:r19:r11 = 0 (carry)
         "clr r19\n"
         "clr r11\n"
         "1:\n"
-        "ld r21,X+\n"               // r21 = *x++
-        "mul r21,r16\n"             // r8:r9 = r21 * a24[0]
+        "ld r21,X+\n"   // r21 = *x++
+        "mul r21,r16\n" // r8:r9 = r21 * a24[0]
         "movw r8,r0\n"
-        "mul r21,r17\n"             // r9:r1 += r21 * a24[1]
+        "mul r21,r17\n" // r9:r1 += r21 * a24[1]
         "add r9,r0\n"
-        "adc r1,r21\n"              // r1:r10 += r21 * a24[2] (implicitly 1)
+        "adc r1,r21\n" // r1:r10 += r21 * a24[2] (implicitly 1)
         "mov r10,r22\n"
         "adc r10,r22\n"
-        "add r8,r18\n"              // r8:r9:r1:r10 += carry
+        "add r8,r18\n" // r8:r9:r1:r10 += carry
         "adc r9,r19\n"
         "adc r1,r11\n"
         "adc r10,r22\n"
-        "st Z+,r8\n"                // *tt++ = r8
-        "mov r18,r9\n"              // carry = r9:r1:r10
+        "st Z+,r8\n"   // *tt++ = r8
+        "mov r18,r9\n" // carry = r9:r1:r10
         "mov r19,r1\n"
         "mov r11,r10\n"
         "dec r25\n"
         "brne 1b\n"
-        "st Z,r18\n"                // *tt = carry
+        "st Z,r18\n" // *tt = carry
         "std Z+1,r19\n"
         "std Z+2,r11\n"
 #if BIGNUMBER_LIMB_16BIT || BIGNUMBER_LIMB_32BIT
-        "std Z+3,r22\n"             // Zero pad to a limb boundary
+        "std Z+3,r22\n" // Zero pad to a limb boundary
 #endif
 
         // Restore __zero_reg__
@@ -1045,8 +1068,7 @@ void Curve25519::mulA24(limb_t *result, const limb_t *x)
 
         : : "x"(x), "z"(temp)
         : "r8", "r9", "r10", "r11", "r16", "r17", "r18", "r19",
-          "r20", "r21", "r22", "r25"
-    );
+          "r20", "r21", "r22", "r25");
 #endif
 
     // Reduce the intermediate result modulo 2^255 - 19.
@@ -1079,7 +1101,8 @@ void Curve25519::mul_P(limb_t *result, const limb_t *x, const limb_t *y)
     word = pgm_read_limb(&(y[0]));
     xx = x;
     tt = temp;
-    for (i = 0; i < NUM_LIMBS_256BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_256BIT; ++i)
+    {
         carry += ((dlimb_t)(*xx++)) * word;
         *tt++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -1087,12 +1110,14 @@ void Curve25519::mul_P(limb_t *result, const limb_t *x, const limb_t *y)
     *tt = (limb_t)carry;
 
     // Multiply and add the remaining words of y by x.
-    for (i = 1; i < NUM_LIMBS_256BIT; ++i) {
+    for (i = 1; i < NUM_LIMBS_256BIT; ++i)
+    {
         word = pgm_read_limb(&(y[i]));
         carry = 0;
         xx = x;
         tt = temp + i;
-        for (j = 0; j < NUM_LIMBS_256BIT; ++j) {
+        for (j = 0; j < NUM_LIMBS_256BIT; ++j)
+        {
             carry += ((dlimb_t)(*xx++)) * word;
             carry += *tt;
             *tt++ = (limb_t)carry;
@@ -1124,14 +1149,15 @@ void Curve25519::add(limb_t *result, const limb_t *x, const limb_t *y)
     limb_t *rr = result;
 
     // Add the two arrays to obtain the intermediate result.
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         carry += *x++;
         carry += *y++;
         *rr++ = (limb_t)carry;
         carry >>= LIMB_BITS;
     }
-#else // CURVE25519_ASM_AVR
-    __asm__ __volatile__ (
+#else  // CURVE25519_ASM_AVR
+    __asm__ __volatile__(
         // Save Y and copy the "result" pointer into it.
         "push r28\n"
         "push r29\n"
@@ -1139,29 +1165,29 @@ void Curve25519::add(limb_t *result, const limb_t *x, const limb_t *y)
         "mov r29,%B2\n"
 
         // Unroll the loop to operate on 4 bytes at a time (8 iterations).
-        "ldi r24,8\n"               // Loop counter.
-        "clr r25\n"                 // carry = 0
+        "ldi r24,8\n" // Loop counter.
+        "clr r25\n"   // carry = 0
         "1:\n"
-        "ld r16,X+\n"               // r16:r19 = *x++
+        "ld r16,X+\n" // r16:r19 = *x++
         "ld r17,X+\n"
         "ld r18,X+\n"
         "ld r19,X+\n"
-        "ld r20,Z+\n"               // r20:r23 = *y++
+        "ld r20,Z+\n" // r20:r23 = *y++
         "ld r21,Z+\n"
         "ld r22,Z+\n"
         "ld r23,Z+\n"
-        "add r16,r25\n"             // r16:r19:carry += carry
+        "add r16,r25\n" // r16:r19:carry += carry
         "adc r17,__zero_reg__\n"
         "adc r18,__zero_reg__\n"
         "adc r19,__zero_reg__\n"
         "mov r25,__zero_reg__\n"
         "adc r25,r25\n"
-        "add r16,r20\n"             // r16:r19:carry += r20:r23
+        "add r16,r20\n" // r16:r19:carry += r20:r23
         "adc r17,r21\n"
         "adc r18,r22\n"
         "adc r19,r23\n"
         "adc r25,__zero_reg__\n"
-        "st Y+,r16\n"               // *rr++ = r16:r23
+        "st Y+,r16\n" // *rr++ = r16:r23
         "st Y+,r17\n"
         "st Y+,r18\n"
         "st Y+,r19\n"
@@ -1173,8 +1199,7 @@ void Curve25519::add(limb_t *result, const limb_t *x, const limb_t *y)
         "pop r28\n"
         : : "x"(x), "z"(y), "r"(result)
         : "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-          "r24", "r25"
-    );
+          "r24", "r25");
 #endif // CURVE25519_ASM_AVR
 
     // Reduce the result using the quick trial subtraction method.
@@ -1200,7 +1225,8 @@ void Curve25519::sub(limb_t *result, const limb_t *x, const limb_t *y)
 
     // Subtract y from x to generate the intermediate result.
     borrow = 0;
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         borrow = ((dlimb_t)(*x++)) - (*y++) - ((borrow >> LIMB_BITS) & 0x01);
         *rr++ = (limb_t)borrow;
     }
@@ -1214,13 +1240,14 @@ void Curve25519::sub(limb_t *result, const limb_t *x, const limb_t *y)
     borrow = (borrow >> LIMB_BITS) & 19U;
     borrow = ((dlimb_t)(*rr)) - borrow;
     *rr++ = (limb_t)borrow;
-    for (posn = 1; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 1; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         borrow = ((dlimb_t)(*rr)) - ((borrow >> LIMB_BITS) & 0x01);
         *rr++ = (limb_t)borrow;
     }
     *(--rr) &= ((((limb_t)1) << (LIMB_BITS - 1)) - 1);
-#else // CURVE25519_ASM_AVR
-    __asm__ __volatile__ (
+#else  // CURVE25519_ASM_AVR
+    __asm__ __volatile__(
         // Save Y and copy the "result" pointer into it.
         "push r28\n"
         "push r29\n"
@@ -1228,61 +1255,61 @@ void Curve25519::sub(limb_t *result, const limb_t *x, const limb_t *y)
         "mov r29,%B2\n"
 
         // Unroll the sub loop to operate on 4 bytes at a time (8 iterations).
-        "ldi r24,8\n"               // Loop counter.
-        "clr r25\n"                 // borrow = 0
+        "ldi r24,8\n" // Loop counter.
+        "clr r25\n"   // borrow = 0
         "1:\n"
-        "ld r16,X+\n"               // r16:r19 = *x++
+        "ld r16,X+\n" // r16:r19 = *x++
         "ld r17,X+\n"
         "ld r18,X+\n"
         "ld r19,X+\n"
-        "ld r20,Z+\n"               // r20:r23 = *y++
+        "ld r20,Z+\n" // r20:r23 = *y++
         "ld r21,Z+\n"
         "ld r22,Z+\n"
         "ld r23,Z+\n"
-        "sub r16,r25\n"             // r16:r19:borrow -= borrow
+        "sub r16,r25\n" // r16:r19:borrow -= borrow
         "sbc r17,__zero_reg__\n"
         "sbc r18,__zero_reg__\n"
         "sbc r19,__zero_reg__\n"
         "mov r25,__zero_reg__\n"
         "sbc r25,__zero_reg__\n"
-        "sub r16,r20\n"             // r16:r19:borrow -= r20:r23
+        "sub r16,r20\n" // r16:r19:borrow -= r20:r23
         "sbc r17,r21\n"
         "sbc r18,r22\n"
         "sbc r19,r23\n"
         "sbc r25,__zero_reg__\n"
-        "st Y+,r16\n"               // *rr++ = r16:r23
+        "st Y+,r16\n" // *rr++ = r16:r23
         "st Y+,r17\n"
         "st Y+,r18\n"
         "st Y+,r19\n"
-        "andi r25,1\n"              // Only need the bottom bit of the borrow
+        "andi r25,1\n" // Only need the bottom bit of the borrow
         "dec r24\n"
         "brne 1b\n"
 
         // If there was a borrow, then we need to add 2^255 - 19 back.
         // We conditionally subtract 19 and then mask off the high bit.
-        "neg r25\n"                 // borrow = mask(borrow) & 19
+        "neg r25\n" // borrow = mask(borrow) & 19
         "andi r25,19\n"
-        "sbiw r28,32\n"             // Point Y back to the start of "result"
+        "sbiw r28,32\n" // Point Y back to the start of "result"
         "ldi r24,8\n"
         "2:\n"
-        "ld r16,Y\n"                // r16:r19 = *rr
+        "ld r16,Y\n" // r16:r19 = *rr
         "ldd r17,Y+1\n"
         "ldd r18,Y+2\n"
         "ldd r19,Y+3\n"
         "sub r16,r25\n"
-        "sbc r17,__zero_reg__\n"    // r16:r19:borrow -= borrow
+        "sbc r17,__zero_reg__\n" // r16:r19:borrow -= borrow
         "sbc r18,__zero_reg__\n"
         "sbc r19,__zero_reg__\n"
         "mov r25,__zero_reg__\n"
         "sbc r25,__zero_reg__\n"
         "andi r25,1\n"
-        "st Y+,r16\n"               // *r++ = r16:r19
+        "st Y+,r16\n" // *r++ = r16:r19
         "st Y+,r17\n"
         "st Y+,r18\n"
         "st Y+,r19\n"
         "dec r24\n"
         "brne 2b\n"
-        "andi r19,0x7F\n"           // Mask off the high bit in the last byte
+        "andi r19,0x7F\n" // Mask off the high bit in the last byte
         "sbiw r28,1\n"
         "st Y,r19\n"
 
@@ -1291,8 +1318,7 @@ void Curve25519::sub(limb_t *result, const limb_t *x, const limb_t *y)
         "pop r28\n"
         : : "x"(x), "z"(y), "r"(result)
         : "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-          "r24", "r25"
-    );
+          "r24", "r25");
 #endif // CURVE25519_ASM_AVR
 }
 
@@ -1322,13 +1348,14 @@ void Curve25519::cswap(limb_t select, limb_t *x, limb_t *y)
 
     // Swap the two values based on "select".  Algorithm from:
     // http://tools.ietf.org/html/rfc7748
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         dummy = sel & (x[posn] ^ y[posn]);
         x[posn] ^= dummy;
         y[posn] ^= dummy;
     }
 #else // CURVE25519_ASM_AVR
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         // Combine all bytes from "select" into one and then turn
         // that byte into the "sel" mask in r24.
         "clr r24\n"
@@ -1349,15 +1376,15 @@ void Curve25519::cswap(limb_t select, limb_t *x, limb_t *y)
         // Perform the conditional swap 4 bytes at a time.
         "ldi r25,8\n"
         "1:\n"
-        "ld r16,X+\n"           // r16:r19 = *x
+        "ld r16,X+\n" // r16:r19 = *x
         "ld r17,X+\n"
         "ld r18,X+\n"
         "ld r19,X\n"
-        "ld r20,Z\n"            // r20:r23 = *y
+        "ld r20,Z\n" // r20:r23 = *y
         "ldd r21,Z+1\n"
         "ldd r22,Z+2\n"
         "ldd r23,Z+3\n"
-        "mov r12,r16\n"         // r12:r15 = (r16:r19 ^ r20:r23) & sel
+        "mov r12,r16\n" // r12:r15 = (r16:r19 ^ r20:r23) & sel
         "mov r13,r17\n"
         "mov r14,r18\n"
         "mov r15,r19\n"
@@ -1369,20 +1396,20 @@ void Curve25519::cswap(limb_t select, limb_t *x, limb_t *y)
         "and r13,r24\n"
         "and r14,r24\n"
         "and r15,r24\n"
-        "eor r16,r12\n"         // r16:r19 ^= r12:r15
+        "eor r16,r12\n" // r16:r19 ^= r12:r15
         "eor r17,r13\n"
         "eor r18,r14\n"
         "eor r19,r15\n"
-        "eor r20,r12\n"         // r20:r23 ^= r12:r15
+        "eor r20,r12\n" // r20:r23 ^= r12:r15
         "eor r21,r13\n"
         "eor r22,r14\n"
         "eor r23,r15\n"
-        "st X,r19\n"            // *x++ = r16:r19
+        "st X,r19\n" // *x++ = r16:r19
         "st -X,r18\n"
         "st -X,r17\n"
         "st -X,r16\n"
         "adiw r26,4\n"
-        "st Z+,r20\n"           // *y++ = r20:r23
+        "st Z+,r20\n" // *y++ = r20:r23
         "st Z+,r21\n"
         "st Z+,r22\n"
         "st Z+,r23\n"
@@ -1391,8 +1418,7 @@ void Curve25519::cswap(limb_t select, limb_t *x, limb_t *y)
 
         : : "x"(x), "z"(y), "r"(select)
         : "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19",
-          "r20", "r21", "r22", "r23", "r24", "r25"
-    );
+          "r20", "r21", "r22", "r23", "r24", "r25");
 #endif // CURVE25519_ASM_AVR
 }
 
@@ -1421,12 +1447,13 @@ void Curve25519::cmove(limb_t select, limb_t *x, const limb_t *y)
     --sel;
 
     // Move y into x based on "select".  Similar to conditional swap above.
-    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_256BIT; ++posn)
+    {
         dummy = sel & (x[posn] ^ y[posn]);
         x[posn] ^= dummy;
     }
 #else // CURVE25519_ASM_AVR
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         // Combine all bytes from "select" into one and then turn
         // that byte into the "sel" mask in r24.
         "clr r24\n"
@@ -1447,15 +1474,15 @@ void Curve25519::cmove(limb_t select, limb_t *x, const limb_t *y)
         // Perform the conditional move 4 bytes at a time.
         "ldi r25,8\n"
         "1:\n"
-        "ld r16,X+\n"           // r16:r19 = *x
+        "ld r16,X+\n" // r16:r19 = *x
         "ld r17,X+\n"
         "ld r18,X+\n"
         "ld r19,X\n"
-        "ld r20,Z+\n"           // r20:r23 = *y++
+        "ld r20,Z+\n" // r20:r23 = *y++
         "ld r21,Z+\n"
         "ld r22,Z+\n"
         "ld r23,Z+\n"
-        "eor r20,r16\n"         // r20:r23 = (r16:r19 ^ r20:r23) & sel
+        "eor r20,r16\n" // r20:r23 = (r16:r19 ^ r20:r23) & sel
         "eor r21,r17\n"
         "eor r22,r18\n"
         "eor r23,r19\n"
@@ -1463,11 +1490,11 @@ void Curve25519::cmove(limb_t select, limb_t *x, const limb_t *y)
         "and r21,r24\n"
         "and r22,r24\n"
         "and r23,r24\n"
-        "eor r16,r20\n"         // r16:r19 ^= r20:r23
+        "eor r16,r20\n" // r16:r19 ^= r20:r23
         "eor r17,r21\n"
         "eor r18,r22\n"
         "eor r19,r23\n"
-        "st X,r19\n"            // *x++ = r16:r19
+        "st X,r19\n" // *x++ = r16:r19
         "st -X,r18\n"
         "st -X,r17\n"
         "st -X,r16\n"
@@ -1477,8 +1504,7 @@ void Curve25519::cmove(limb_t select, limb_t *x, const limb_t *y)
 
         : : "x"(x), "z"(y), "r"(select)
         : "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-          "r24", "r25"
-    );
+          "r24", "r25");
 #endif // CURVE25519_ASM_AVR
 }
 
@@ -1493,24 +1519,25 @@ void Curve25519::pow250(limb_t *result, const limb_t *x)
     limb_t t1[NUM_LIMBS_256BIT];
     uint8_t i, j;
 
-    // The big-endian hexadecimal expansion of (2^250 - 1) is:
-    // 03FFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
-    //
-    // The naive implementation needs to do 2 multiplications per 1 bit and
-    // 1 multiplication per 0 bit.  We can improve upon this by creating a
-    // pattern 0000000001 ... 0000000001.  If we square and multiply the
-    // pattern by itself we can turn the pattern into the partial results
-    // 0000000011 ... 0000000011, 0000000111 ... 0000000111, etc.
-    // This averages out to about 1.1 multiplications per 1 bit instead of 2.
+// The big-endian hexadecimal expansion of (2^250 - 1) is:
+// 03FFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+//
+// The naive implementation needs to do 2 multiplications per 1 bit and
+// 1 multiplication per 0 bit.  We can improve upon this by creating a
+// pattern 0000000001 ... 0000000001.  If we square and multiply the
+// pattern by itself we can turn the pattern into the partial results
+// 0000000011 ... 0000000011, 0000000111 ... 0000000111, etc.
+// This averages out to about 1.1 multiplications per 1 bit instead of 2.
 
-    // Build a pattern of 250 bits in length of repeated copies of 0000000001.
-    #define RECIP_GROUP_SIZE 10
-    #define RECIP_GROUP_BITS 250    // Must be a multiple of RECIP_GROUP_SIZE.
+// Build a pattern of 250 bits in length of repeated copies of 0000000001.
+#define RECIP_GROUP_SIZE 10
+#define RECIP_GROUP_BITS 250 // Must be a multiple of RECIP_GROUP_SIZE.
     square(t1, x);
     for (j = 0; j < (RECIP_GROUP_SIZE - 1); ++j)
         square(t1, t1);
     mul(result, t1, x);
-    for (i = 0; i < ((RECIP_GROUP_BITS / RECIP_GROUP_SIZE) - 2); ++i) {
+    for (i = 0; i < ((RECIP_GROUP_BITS / RECIP_GROUP_SIZE) - 2); ++i)
+    {
         for (j = 0; j < RECIP_GROUP_SIZE; ++j)
             square(t1, t1);
         mul(result, result, t1);
@@ -1520,7 +1547,8 @@ void Curve25519::pow250(limb_t *result, const limb_t *x)
     // the result to "fill in" the gaps in the pattern.
     square(t1, result);
     mul(result, result, t1);
-    for (j = 0; j < (RECIP_GROUP_SIZE - 2); ++j) {
+    for (j = 0; j < (RECIP_GROUP_SIZE - 2); ++j)
+    {
         square(t1, t1);
         mul(result, result, t1);
     }
@@ -1575,8 +1603,7 @@ bool Curve25519::sqrt(limb_t *result, const limb_t *x)
     // sqrt(-1) mod (2^255 - 19).
     static limb_t const numSqrtM1[NUM_LIMBS_256BIT] PROGMEM = {
         LIMB_PAIR(0x4A0EA0B0, 0xC4EE1B27), LIMB_PAIR(0xAD2FE478, 0x2F431806),
-        LIMB_PAIR(0x3DFBD7A7, 0x2B4D0099), LIMB_PAIR(0x4FC1DF0B, 0x2B832480)
-    };
+        LIMB_PAIR(0x3DFBD7A7, 0x2B4D0099), LIMB_PAIR(0x4FC1DF0B, 0x2B832480)};
     limb_t y[NUM_LIMBS_256BIT];
 
     // Algorithm from: http://tools.ietf.org/html/rfc7748
@@ -1591,7 +1618,8 @@ bool Curve25519::sqrt(limb_t *result, const limb_t *x)
 
     // Did we get the square root immediately?
     square(y, result);
-    if (memcmp(x, y, sizeof(y)) == 0) {
+    if (memcmp(x, y, sizeof(y)) == 0)
+    {
         clean(y);
         return true;
     }
@@ -1599,7 +1627,8 @@ bool Curve25519::sqrt(limb_t *result, const limb_t *x)
     // Multiply the result by sqrt(-1) and check again.
     mul_P(result, result, numSqrtM1);
     square(y, result);
-    if (memcmp(x, y, sizeof(y)) == 0) {
+    if (memcmp(x, y, sizeof(y)) == 0)
+    {
         clean(y);
         return true;
     }

@@ -72,8 +72,10 @@ bool AES256::setKey(const uint8_t *key, size_t len)
     uint8_t iteration = 1;
     uint8_t n = 32;
     uint8_t w = 8;
-    while (n < 240) {
-        if (w == 8) {
+    while (n < 240)
+    {
+        if (w == 8)
+        {
             // Every 32 bytes (8 words) we need to apply the key schedule core.
             keyScheduleCore(schedule + 32, schedule + 28, iteration);
             schedule[32] ^= schedule[0];
@@ -82,14 +84,18 @@ bool AES256::setKey(const uint8_t *key, size_t len)
             schedule[35] ^= schedule[3];
             ++iteration;
             w = 0;
-        } else if (w == 4) {
+        }
+        else if (w == 4)
+        {
             // At the 16 byte mark we need to apply the S-box.
             applySbox(schedule + 32, schedule + 28);
             schedule[32] ^= schedule[0];
             schedule[33] ^= schedule[1];
             schedule[34] ^= schedule[2];
             schedule[35] ^= schedule[3];
-        } else {
+        }
+        else
+        {
             // Otherwise just XOR the word with the one 32 bytes previous.
             schedule[32] = schedule[28] ^ schedule[0];
             schedule[33] = schedule[29] ^ schedule[1];
@@ -134,48 +140,53 @@ bool AES256::setKey(const uint8_t *key, size_t len)
 // Helper macros.
 #define LEFT 0
 #define RIGHT 16
-#define ENCRYPT(phase) \
-    do { \
+#define ENCRYPT(phase)                                   \
+    do                                                   \
+    {                                                    \
         AESCommon::subBytesAndShiftRows(state2, state1); \
-        AESCommon::mixColumn(state1,      state2); \
-        AESCommon::mixColumn(state1 + 4,  state2 + 4); \
-        AESCommon::mixColumn(state1 + 8,  state2 + 8); \
-        AESCommon::mixColumn(state1 + 12, state2 + 12); \
-        for (posn = 0; posn < 16; ++posn) \
-            state1[posn] ^= schedule[posn + (phase)]; \
+        AESCommon::mixColumn(state1, state2);            \
+        AESCommon::mixColumn(state1 + 4, state2 + 4);    \
+        AESCommon::mixColumn(state1 + 8, state2 + 8);    \
+        AESCommon::mixColumn(state1 + 12, state2 + 12);  \
+        for (posn = 0; posn < 16; ++posn)                \
+            state1[posn] ^= schedule[posn + (phase)];    \
     } while (0)
-#define DECRYPT(phase) \
-    do { \
-        for (posn = 0; posn < 16; ++posn) \
-            state2[posn] ^= schedule[posn + (phase)]; \
-        AESCommon::inverseMixColumn(state1,      state2); \
-        AESCommon::inverseMixColumn(state1 + 4,  state2 + 4); \
-        AESCommon::inverseMixColumn(state1 + 8,  state2 + 8); \
-        AESCommon::inverseMixColumn(state1 + 12, state2 + 12); \
+#define DECRYPT(phase)                                          \
+    do                                                          \
+    {                                                           \
+        for (posn = 0; posn < 16; ++posn)                       \
+            state2[posn] ^= schedule[posn + (phase)];           \
+        AESCommon::inverseMixColumn(state1, state2);            \
+        AESCommon::inverseMixColumn(state1 + 4, state2 + 4);    \
+        AESCommon::inverseMixColumn(state1 + 8, state2 + 8);    \
+        AESCommon::inverseMixColumn(state1 + 12, state2 + 12);  \
         AESCommon::inverseShiftRowsAndSubBytes(state2, state1); \
     } while (0)
-#define KCORE(n) \
-    do { \
+#define KCORE(n)                                              \
+    do                                                        \
+    {                                                         \
         AESCommon::keyScheduleCore(temp, schedule + 28, (n)); \
-        schedule[0] ^= temp[0]; \
-        schedule[1] ^= temp[1]; \
-        schedule[2] ^= temp[2]; \
-        schedule[3] ^= temp[3]; \
+        schedule[0] ^= temp[0];                               \
+        schedule[1] ^= temp[1];                               \
+        schedule[2] ^= temp[2];                               \
+        schedule[3] ^= temp[3];                               \
     } while (0)
-#define KXOR(a, b) \
-    do { \
-        schedule[(a) * 4] ^= schedule[(b) * 4]; \
+#define KXOR(a, b)                                      \
+    do                                                  \
+    {                                                   \
+        schedule[(a) * 4] ^= schedule[(b) * 4];         \
         schedule[(a) * 4 + 1] ^= schedule[(b) * 4 + 1]; \
         schedule[(a) * 4 + 2] ^= schedule[(b) * 4 + 2]; \
         schedule[(a) * 4 + 3] ^= schedule[(b) * 4 + 3]; \
     } while (0)
-#define KSBOX() \
-    do { \
+#define KSBOX()                                    \
+    do                                             \
+    {                                              \
         AESCommon::applySbox(temp, schedule + 12); \
-        schedule[16] ^= temp[0]; \
-        schedule[17] ^= temp[1]; \
-        schedule[18] ^= temp[2]; \
-        schedule[19] ^= temp[3]; \
+        schedule[16] ^= temp[0];                   \
+        schedule[17] ^= temp[1];                   \
+        schedule[18] ^= temp[2];                   \
+        schedule[19] ^= temp[3];                   \
     } while (0)
 
 /** @endcond */
@@ -215,7 +226,8 @@ size_t AESTiny256::keySize() const
 
 bool AESTiny256::setKey(const uint8_t *key, size_t len)
 {
-    if (len == 32) {
+    if (len == 32)
+    {
         // Make a copy of the key - it will be expanded in encryptBlock().
         memcpy(schedule, key, 32);
         return true;
@@ -241,7 +253,8 @@ void AESTiny256::encryptBlock(uint8_t *output, const uint8_t *input)
     ENCRYPT(RIGHT);
 
     // Perform the next 12 rounds of the cipher two at a time.
-    for (round = 1; round <= 6; ++round) {
+    for (round = 1; round <= 6; ++round)
+    {
         // Expand the next 32 bytes of the key schedule.
         KCORE(round);
         KXOR(1, 0);
@@ -329,7 +342,8 @@ bool AESSmall256::setKey(const uint8_t *key, size_t len)
     // then work backwards from there in decryptBlock().
     schedule = reverse;
     memcpy(schedule, key, 32);
-    for (round = 1; round <= 6; ++round) {
+    for (round = 1; round <= 6; ++round)
+    {
         KCORE(round);
         KXOR(1, 0);
         KXOR(2, 1);
@@ -370,7 +384,8 @@ void AESSmall256::decryptBlock(uint8_t *output, const uint8_t *input)
     KCORE(7);
 
     // Perform the next 12 rounds of the decryption process two at a time.
-    for (round = 6; round >= 1; --round) {
+    for (round = 6; round >= 1; --round)
+    {
         // Decrypt using the right and left halves of the key schedule.
         DECRYPT(RIGHT);
         DECRYPT(LEFT);

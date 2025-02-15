@@ -12,15 +12,17 @@
 
 #include <ezLED.h> // ezLED library
 
-ezLED led(9);  // create a LED object that attach to pin 9
+ezLED led(9); // create a LED object that attach to pin 9
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
-  led.blink(250, 750);         // 250ms ON, 750ms OFF, blink immediately
-  //led.blink(250, 750, 1000); // 250ms ON, 750ms OFF, blink after 1 second
+  led.blink(250, 750); // 250ms ON, 750ms OFF, blink immediately
+  // led.blink(250, 750, 1000); // 250ms ON, 750ms OFF, blink after 1 second
 }
 
-void loop() {
+void loop()
+{
   led.loop(); // MUST call the led.loop() function in loop()
 
   if (led.getState() == LED_BLINKING)

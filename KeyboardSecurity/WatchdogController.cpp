@@ -1,18 +1,22 @@
 #include "WatchdogController.h"
 
-WatchdogController::WatchdogController() {
+WatchdogController::WatchdogController()
+{
 
-}  // end WatchdogController
+} // end WatchdogController
 
-void WatchdogController::enable(const uint8_t timeout) {
+void WatchdogController::enable(const uint8_t timeout)
+{
   wdt_disable();
   wdt_enable(timeout);
-}  // end enable
+} // end enable
 
-void WatchdogController::disable() {
+void WatchdogController::disable()
+{
   wdt_disable();
-}  // end disable
+} // end disable
 
-void WatchdogController::loop() {
+void WatchdogController::loop()
+{
   wdt_reset();
-}  // end loop
+} // end loop

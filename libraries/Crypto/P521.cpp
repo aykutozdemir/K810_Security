@@ -46,21 +46,25 @@
  */
 
 // Number of limbs that are needed to represent a 521-bit number.
-#define NUM_LIMBS_521BIT    NUM_LIMBS_BITS(521)
+#define NUM_LIMBS_521BIT NUM_LIMBS_BITS(521)
 
 // Number of limbs that are needed to represent a 1042-bit number.
 // To simply things we also require that this be twice the size of
 // NUM_LIMB_521BIT which involves a little wastage at the high end
 // of one extra limb for 8-bit and 32-bit limbs.  There is no
 // wastage for 16-bit limbs.
-#define NUM_LIMBS_1042BIT   (NUM_LIMBS_BITS(521) * 2)
+#define NUM_LIMBS_1042BIT (NUM_LIMBS_BITS(521) * 2)
 
 // The overhead of clean() calls in mul(), etc can add up to a lot of
 // processing time.  Only do such cleanups if strict mode has been enabled.
 #if defined(P521_STRICT_CLEAN)
-#define strict_clean(x)     clean(x)
+#define strict_clean(x) clean(x)
 #else
-#define strict_clean(x)     do { ; } while (0)
+#define strict_clean(x) \
+    do                  \
+    {                   \
+        ;               \
+    } while (0)
 #endif
 
 // Expand the partial 9-bit left over limb at the top of a 521-bit number.
@@ -80,8 +84,7 @@ static limb_t const P521_q[NUM_LIMBS_521BIT] PROGMEM = {
     LIMB_PAIR(0xf709a5d0, 0x7fcc0148), LIMB_PAIR(0xbf2f966b, 0x51868783),
     LIMB_PAIR(0xfffffffa, 0xffffffff), LIMB_PAIR(0xffffffff, 0xffffffff),
     LIMB_PAIR(0xffffffff, 0xffffffff), LIMB_PAIR(0xffffffff, 0xffffffff),
-    LIMB_PARTIAL(0x1ff)
-};
+    LIMB_PARTIAL(0x1ff)};
 
 // The "b" value from Appendix D.1.2.5 of NIST FIPS 186-4.
 static limb_t const P521_b[NUM_LIMBS_521BIT] PROGMEM = {
@@ -89,8 +92,7 @@ static limb_t const P521_b[NUM_LIMBS_521BIT] PROGMEM = {
     LIMB_PAIR(0x3bb1bf07, 0x1652c0bd), LIMB_PAIR(0xec7e937b, 0x56193951),
     LIMB_PAIR(0x8ef109e1, 0xb8b48991), LIMB_PAIR(0x99b315f3, 0xa2da725b),
     LIMB_PAIR(0xb68540ee, 0x929a21a0), LIMB_PAIR(0x8e1c9a1f, 0x953eb961),
-    LIMB_PARTIAL(0x051)
-};
+    LIMB_PARTIAL(0x051)};
 
 // The "Gx" value from Appendix D.1.2.5 of NIST FIPS 186-4.
 static limb_t const P521_Gx[NUM_LIMBS_521BIT] PROGMEM = {
@@ -98,8 +100,7 @@ static limb_t const P521_Gx[NUM_LIMBS_521BIT] PROGMEM = {
     LIMB_PAIR(0xa2ffa8de, 0xfe1dc127), LIMB_PAIR(0xefe75928, 0xa14b5e77),
     LIMB_PAIR(0x6b4d3dba, 0xf828af60), LIMB_PAIR(0x053fb521, 0x9c648139),
     LIMB_PAIR(0x2395b442, 0x9e3ecb66), LIMB_PAIR(0x0404e9cd, 0x858e06b7),
-    LIMB_PARTIAL(0x0c6)
-};
+    LIMB_PARTIAL(0x0c6)};
 
 // The "Gy" value from Appendix D.1.2.5 of NIST FIPS 186-4.
 static limb_t const P521_Gy[NUM_LIMBS_521BIT] PROGMEM = {
@@ -107,8 +108,7 @@ static limb_t const P521_Gy[NUM_LIMBS_521BIT] PROGMEM = {
     LIMB_PAIR(0x3fad0761, 0xc550b901), LIMB_PAIR(0x5ef42640, 0x97ee7299),
     LIMB_PAIR(0x273e662c, 0x17afbd17), LIMB_PAIR(0x579b4468, 0x98f54449),
     LIMB_PAIR(0x2c7d1bd9, 0x5c8a5fb4), LIMB_PAIR(0x9a3bc004, 0x39296a78),
-    LIMB_PARTIAL(0x118)
-};
+    LIMB_PARTIAL(0x118)};
 
 /** @endcond */
 
@@ -139,11 +139,14 @@ bool P521::eval(uint8_t result[132], const uint8_t f[66], const uint8_t point[13
     bool ok;
 
     // Unpack the curve point from the parameters and validate it.
-    if (point) {
+    if (point)
+    {
         BigNumberUtil::unpackBE(x, NUM_LIMBS_521BIT, point, 66);
         BigNumberUtil::unpackBE(y, NUM_LIMBS_521BIT, point + 66, 66);
         ok = validate(x, y);
-    } else {
+    }
+    else
+    {
         memcpy_P(x, P521_Gx, sizeof(x));
         memcpy_P(y, P521_Gy, sizeof(y));
         ok = true;
@@ -284,7 +287,8 @@ void P521::sign(uint8_t signature[132], const uint8_t privateKey[66],
     uint64_t count = 0;
 
     // Format the incoming message, hashing it if necessary.
-    if (hash) {
+    if (hash)
+    {
         // Hash the message.
         hash->reset();
         hash->update(message, len);
@@ -293,7 +297,9 @@ void P521::sign(uint8_t signature[132], const uint8_t privateKey[66],
             len = 64;
         memset(hm, 0, 66 - len);
         hash->finalize(hm + 66 - len, len);
-    } else {
+    }
+    else
+    {
         // The message is the hash.
         if (len > 64)
             len = 64;
@@ -302,7 +308,8 @@ void P521::sign(uint8_t signature[132], const uint8_t privateKey[66],
     }
 
     // Keep generating k values until both r and s are non-zero.
-    for (;;) {
+    for (;;)
+    {
         // Generate the k value deterministically according to RFC 6979.
         if (hash)
             generateK(k, hm, privateKey, hash, count);
@@ -318,7 +325,8 @@ void P521::sign(uint8_t signature[132], const uint8_t privateKey[66],
 
         // If r is zero, then we need to generate a new k value.
         // This is utterly improbable, but let's be safe anyway.
-        if (BigNumberUtil::isZero(x, NUM_LIMBS_521BIT)) {
+        if (BigNumberUtil::isZero(x, NUM_LIMBS_521BIT))
+        {
             ++count;
             continue;
         }
@@ -391,21 +399,24 @@ bool P521::verify(const uint8_t signature[132],
     BigNumberUtil::unpackBE(r, NUM_LIMBS_521BIT, signature, 66);
     BigNumberUtil::unpackBE(s, NUM_LIMBS_521BIT, signature + 66, 66);
     if (BigNumberUtil::isZero(r, NUM_LIMBS_521BIT) ||
-            BigNumberUtil::isZero(s, NUM_LIMBS_521BIT) ||
-            !BigNumberUtil::sub_P(x, r, P521_q, NUM_LIMBS_521BIT) ||
-            !BigNumberUtil::sub_P(x, s, P521_q, NUM_LIMBS_521BIT)) {
+        BigNumberUtil::isZero(s, NUM_LIMBS_521BIT) ||
+        !BigNumberUtil::sub_P(x, r, P521_q, NUM_LIMBS_521BIT) ||
+        !BigNumberUtil::sub_P(x, s, P521_q, NUM_LIMBS_521BIT))
+    {
         goto failed;
     }
 
     // Unpack the public key and check that it is a valid curve point.
     BigNumberUtil::unpackBE(x, NUM_LIMBS_521BIT, publicKey, 66);
     BigNumberUtil::unpackBE(y, NUM_LIMBS_521BIT, publicKey + 66, 66);
-    if (!validate(x, y)) {
+    if (!validate(x, y))
+    {
         goto failed;
     }
 
     // Hash the message to generate hm, which we store into u1.
-    if (hash) {
+    if (hash)
+    {
         // Hash the message.
         hash->reset();
         hash->update(message, len);
@@ -414,7 +425,9 @@ bool P521::verify(const uint8_t signature[132],
             len = 64;
         hash->finalize(u2, len);
         BigNumberUtil::unpackBE(u1, NUM_LIMBS_521BIT, (uint8_t *)u2, len);
-    } else {
+    }
+    else
+    {
         // The message is the hash.
         if (len > 64)
             len = 64;
@@ -471,7 +484,8 @@ void P521::generatePrivateKey(uint8_t privateKey[66])
     // from Appendix B of RFC 6090: generate a random 521-bit value
     // and discard it if it is not within the range 1 to q - 1.
     limb_t x[NUM_LIMBS_521BIT];
-    do {
+    do
+    {
         RNG.rand((uint8_t *)x, sizeof(x));
 #if BIGNUMBER_LIMB_8BIT
         x[NUM_LIMBS_521BIT - 1] &= 0x01;
@@ -533,12 +547,12 @@ bool P521::isValidPrivateKey(const uint8_t privateKey[66])
         0x96, 0x6B, 0x7F, 0xCC, 0x01, 0x48, 0xF7, 0x09,
         0xA5, 0xD0, 0x3B, 0xB5, 0xC9, 0xB8, 0x89, 0x9C,
         0x47, 0xAE, 0xBB, 0x6F, 0xB7, 0x1E, 0x91, 0x38,
-        0x64, 0x09
-    };
+        0x64, 0x09};
     uint8_t zeroTest = 0;
     uint8_t posn = 66;
     uint16_t borrow = 0;
-    while (posn > 0) {
+    while (posn > 0)
+    {
         --posn;
 
         // Check for zero.
@@ -623,14 +637,15 @@ void P521::evaluate(limb_t *x, limb_t *y, const uint8_t f[66])
     // Iterate over the remaining 520 bits of f from highest to lowest.
     uint8_t mask = 0x80;
     uint8_t fposn = 1;
-    for (uint16_t t = 520; t > 0; --t) {
+    for (uint16_t t = 520; t > 0; --t)
+    {
         // Double the answer.
         dblPoint(x1, y1, z1, x1, y1, z1);
 
         // Add (x, y, z) to (x1, y1, z1) for the next 1 bit.
         // We must always do this to preserve the overall timing.
         // The z value is always 1 so we can omit that argument.
-        addPoint(x2, y2, z2, x1, y1, z1, x, y/*, z*/);
+        addPoint(x2, y2, z2, x1, y1, z1, x, y /*, z*/);
 
         // If the bit was 1, then move (x2, y2, z2) into (x1, y1, z1).
         select = (f[fposn] & mask);
@@ -640,7 +655,8 @@ void P521::evaluate(limb_t *x, limb_t *y, const uint8_t f[66])
 
         // Move onto the next bit.
         mask >>= 1;
-        if (!mask) {
+        if (!mask)
+        {
             ++fposn;
             mask = 0x80;
         }
@@ -685,7 +701,7 @@ void P521::addAffine(limb_t *x1, limb_t *y1, const limb_t *x2, const limb_t *y2)
     memset(z1 + 1, 0, (NUM_LIMBS_521BIT - 1) * sizeof(limb_t));
 
     // Add the two points.
-    addPoint(xout, yout, zout, x1, y1, z1, x2, y2/*, z2*/);
+    addPoint(xout, yout, zout, x1, y1, z1, x2, y2 /*, z2*/);
 
     // Convert from Jacobian co-ordinates back into affine co-ordinates.
     // x1 = xout * (zout^2)^-1, y1 = yout * (zout^3)^-1.
@@ -751,7 +767,8 @@ bool P521::inRange(const limb_t *x)
     // to adding 1 and subtracting 2^521.  We only need the carry.
     dlimb_t carry = 1;
     limb_t word = 0;
-    for (uint8_t index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (uint8_t index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry += *x++;
         word = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -795,7 +812,8 @@ void P521::reduce(limb_t *result, const limb_t *x)
     limb_t word = x[NUM_LIMBS_521BIT - 1];
     carry = (word >> 9) + 1;
     word &= 0x1FF;
-    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index) {
+    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index)
+    {
         carry += *xl++;
         carry += ((dlimb_t)(*xh++)) << (LIMB_BITS - 9);
         *rr++ = (limb_t)carry;
@@ -812,7 +830,8 @@ void P521::reduce(limb_t *result, const limb_t *x)
     // then mask off the high bits.
     carry = ((word >> 9) ^ 0x01) & 0x01;
     rr = result;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry = ((dlimb_t)(*rr)) - carry;
         *rr++ = (limb_t)carry;
         carry = (carry >> LIMB_BITS) & 0x01;
@@ -828,7 +847,8 @@ void P521::reduce(limb_t *result, const limb_t *x)
     limb_t word = x[NUM_LIMBS_521BIT - 1];
     carry = (word >> 1) + 1;
     word &= 0x01;
-    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index) {
+    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index)
+    {
         carry += *xl++;
         carry += ((dlimb_t)(*xh++)) << 7;
         *rr++ = (limb_t)carry;
@@ -840,14 +860,15 @@ void P521::reduce(limb_t *result, const limb_t *x)
     *rr = word;
     carry = ((word >> 1) ^ 0x01) & 0x01;
     rr = result;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry = ((dlimb_t)(*rr)) - carry;
         *rr++ = (limb_t)carry;
         carry = (carry >> LIMB_BITS) & 0x01;
     }
     *(--rr) &= 0x01;
 #else
-    #error "Don't know how to reduce values mod 2^521 - 1"
+#error "Don't know how to reduce values mod 2^521 - 1"
 #endif
 }
 
@@ -870,7 +891,8 @@ void P521::reduceQuick(limb_t *x)
     uint8_t index;
     limb_t *xx = x;
     dlimb_t carry = 1;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry += *xx;
         *xx++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -883,7 +905,8 @@ void P521::reduceQuick(limb_t *x)
 #if BIGNUMBER_LIMB_16BIT || BIGNUMBER_LIMB_32BIT || BIGNUMBER_LIMB_64BIT
     carry = ((x[NUM_LIMBS_521BIT - 1] >> 9) ^ 0x01) & 0x01;
     xx = x;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry = ((dlimb_t)(*xx)) - carry;
         *xx++ = (limb_t)carry;
         carry = (carry >> LIMB_BITS) & 0x01;
@@ -892,7 +915,8 @@ void P521::reduceQuick(limb_t *x)
 #elif BIGNUMBER_LIMB_8BIT
     carry = ((x[NUM_LIMBS_521BIT - 1] >> 1) ^ 0x01) & 0x01;
     xx = x;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry = ((dlimb_t)(*xx)) - carry;
         *xx++ = (limb_t)carry;
         carry = (carry >> LIMB_BITS) & 0x01;
@@ -926,7 +950,8 @@ void P521::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
     word = x[0];
     yy = y;
     rr = result;
-    for (i = 0; i < NUM_LIMBS_521BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_521BIT; ++i)
+    {
         carry += ((dlimb_t)(*yy++)) * word;
         *rr++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -934,12 +959,14 @@ void P521::mulNoReduce(limb_t *result, const limb_t *x, const limb_t *y)
     *rr = (limb_t)carry;
 
     // Multiply and add the remaining words of x by y.
-    for (i = 1; i < NUM_LIMBS_521BIT; ++i) {
+    for (i = 1; i < NUM_LIMBS_521BIT; ++i)
+    {
         word = x[i];
         carry = 0;
         yy = y;
         rr = result + i;
-        for (j = 0; j < NUM_LIMBS_521BIT; ++j) {
+        for (j = 0; j < NUM_LIMBS_521BIT; ++j)
+        {
             carry += ((dlimb_t)(*yy++)) * word;
             carry += *rr;
             *rr++ = (limb_t)carry;
@@ -997,7 +1024,8 @@ void P521::mulLiteral(limb_t *result, const limb_t *x, limb_t y)
     // Multiply x by the literal and put it into the result array.
     // We assume that y is small enough that overflow from the
     // highest limb will not occur during this process.
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry += ((dlimb_t)(*xx++)) * y;
         *rr++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -1010,7 +1038,8 @@ void P521::mulLiteral(limb_t *result, const limb_t *x, limb_t y)
     carry = (word >> 9) + 1;
     word &= 0x1FF;
     rr = result;
-    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index) {
+    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index)
+    {
         carry += *rr;
         *rr++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -1025,7 +1054,8 @@ void P521::mulLiteral(limb_t *result, const limb_t *x, limb_t y)
     // then mask off the high bits.
     carry = ((word >> 9) ^ 0x01) & 0x01;
     rr = result;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry = ((dlimb_t)(*rr)) - carry;
         *rr++ = (limb_t)carry;
         carry = (carry >> LIMB_BITS) & 0x01;
@@ -1037,7 +1067,8 @@ void P521::mulLiteral(limb_t *result, const limb_t *x, limb_t y)
     carry = (word >> 1) + 1;
     word &= 0x01;
     rr = result;
-    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index) {
+    for (index = 0; index < (NUM_LIMBS_521BIT - 1); ++index)
+    {
         carry += *rr;
         *rr++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -1047,7 +1078,8 @@ void P521::mulLiteral(limb_t *result, const limb_t *x, limb_t y)
     *rr = word;
     carry = ((word >> 1) ^ 0x01) & 0x01;
     rr = result;
-    for (index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry = ((dlimb_t)(*rr)) - carry;
         *rr++ = (limb_t)carry;
         carry = (carry >> LIMB_BITS) & 0x01;
@@ -1070,7 +1102,8 @@ void P521::add(limb_t *result, const limb_t *x, const limb_t *y)
 {
     dlimb_t carry = 0;
     limb_t *rr = result;
-    for (uint8_t posn = 0; posn < NUM_LIMBS_521BIT; ++posn) {
+    for (uint8_t posn = 0; posn < NUM_LIMBS_521BIT; ++posn)
+    {
         carry += *x++;
         carry += *y++;
         *rr++ = (limb_t)carry;
@@ -1097,7 +1130,8 @@ void P521::sub(limb_t *result, const limb_t *x, const limb_t *y)
 
     // Subtract y from x to generate the intermediate result.
     borrow = 0;
-    for (posn = 0; posn < NUM_LIMBS_521BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_521BIT; ++posn)
+    {
         borrow = ((dlimb_t)(*x++)) - (*y++) - ((borrow >> LIMB_BITS) & 0x01);
         *rr++ = (limb_t)borrow;
     }
@@ -1111,7 +1145,8 @@ void P521::sub(limb_t *result, const limb_t *x, const limb_t *y)
     borrow = (borrow >> LIMB_BITS) & 1U;
     borrow = ((dlimb_t)(*rr)) - borrow;
     *rr++ = (limb_t)borrow;
-    for (posn = 1; posn < NUM_LIMBS_521BIT; ++posn) {
+    for (posn = 1; posn < NUM_LIMBS_521BIT; ++posn)
+    {
         borrow = ((dlimb_t)(*rr)) - ((borrow >> LIMB_BITS) & 0x01);
         *rr++ = (limb_t)borrow;
     }
@@ -1150,21 +1185,21 @@ void P521::dblPoint(limb_t *xout, limb_t *yout, limb_t *zout,
     // Double the point.  If it is the point at infinity (z = 0),
     // then zout will still be zero at the end of this process so
     // we don't need any special handling for that case.
-    square(delta, zin);       // delta = z^2
-    square(gamma, yin);       // gamma = y^2
-    mul(beta, xin, gamma);    // beta = x * gamma
-    sub(tmp, xin, delta);     // alpha = 3 * (x - delta) * (x + delta)
+    square(delta, zin);    // delta = z^2
+    square(gamma, yin);    // gamma = y^2
+    mul(beta, xin, gamma); // beta = x * gamma
+    sub(tmp, xin, delta);  // alpha = 3 * (x - delta) * (x + delta)
     mulLiteral(alpha, tmp, 3);
     add(tmp, xin, delta);
     mul(alpha, alpha, tmp);
-    square(xout, alpha);      // xout = alpha^2 - 8 * beta
+    square(xout, alpha); // xout = alpha^2 - 8 * beta
     mulLiteral(tmp, beta, 8);
     sub(xout, xout, tmp);
-    add(zout, yin, zin);      // zout = (y + z)^2 - gamma - delta
+    add(zout, yin, zin); // zout = (y + z)^2 - gamma - delta
     square(zout, zout);
     sub(zout, zout, gamma);
     sub(zout, zout, delta);
-    mulLiteral(yout, beta, 4);// yout = alpha * (4 * beta - xout) - 8 * gamma^2
+    mulLiteral(yout, beta, 4); // yout = alpha * (4 * beta - xout) - 8 * gamma^2
     sub(yout, yout, xout);
     mul(yout, alpha, yout);
     square(gamma, gamma);
@@ -1217,27 +1252,27 @@ void P521::addPoint(limb_t *xout, limb_t *yout, limb_t *zout,
     limb_t p1IsIdentity = BigNumberUtil::isZero(z1, NUM_LIMBS_521BIT);
 
     // Multiply the points, assuming that z2 = 1.
-    square(z1z1, z1);               // z1z1 = z1^2
-    mul(u2, x2, z1z1);              // u2 = x2 * z1z1
-    mul(s2, y2, z1);                // s2 = y2 * z1 * z1z1
+    square(z1z1, z1);  // z1z1 = z1^2
+    mul(u2, x2, z1z1); // u2 = x2 * z1z1
+    mul(s2, y2, z1);   // s2 = y2 * z1 * z1z1
     mul(s2, s2, z1z1);
-    sub(h, u2, x1);                 // h = u2 - x1
-    mulLiteral(i, h, 2);            // i = (2 * h)^2
+    sub(h, u2, x1);      // h = u2 - x1
+    mulLiteral(i, h, 2); // i = (2 * h)^2
     square(i, i);
-    sub(r, s2, y1);                 // r = 2 * (s2 - y1)
+    sub(r, s2, y1); // r = 2 * (s2 - y1)
     add(r, r, r);
-    mul(j, h, i);                   // j = h * i
-    mul(v, x1, i);                  // v = x1 * i
-    square(xout, r);                // xout = r^2 - j - 2 * v
+    mul(j, h, i);    // j = h * i
+    mul(v, x1, i);   // v = x1 * i
+    square(xout, r); // xout = r^2 - j - 2 * v
     sub(xout, xout, j);
     sub(xout, xout, v);
     sub(xout, xout, v);
-    sub(yout, v, xout);             // yout = r * (v - xout) - 2 * y1 * j
+    sub(yout, v, xout); // yout = r * (v - xout) - 2 * y1 * j
     mul(yout, r, yout);
     mul(j, y1, j);
     sub(yout, yout, j);
     sub(yout, yout, j);
-    mul(zout, z1, h);               // zout = 2 * z1 * h
+    mul(zout, z1, h); // zout = 2 * z1 * h
     add(zout, zout, zout);
 
     // Select the answer to return.  If (x1, y1, z1) was the identity,
@@ -1282,7 +1317,8 @@ void P521::cmove(limb_t select, limb_t *x, const limb_t *y)
     --sel;
 
     // Move y into x based on "select".
-    for (posn = 0; posn < NUM_LIMBS_521BIT; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS_521BIT; ++posn)
+    {
         dummy = sel & (*x ^ *y++);
         *x++ ^= dummy;
     }
@@ -1313,7 +1349,8 @@ void P521::cmove1(limb_t select, limb_t *x)
     // Move 1 into x based on "select".
     dummy = sel & (*x ^ 1);
     *x++ ^= dummy;
-    for (posn = 1; posn < NUM_LIMBS_521BIT; ++posn) {
+    for (posn = 1; posn < NUM_LIMBS_521BIT; ++posn)
+    {
         dummy = sel & *x;
         *x++ ^= dummy;
     }
@@ -1350,7 +1387,8 @@ void P521::recip(limb_t *result, const limb_t *x)
 
     // Shift and multiply by increasing powers of two.  This turns
     // 1111 into 11111111, and then 1111111111111111, and so on.
-    for (size_t power = 4; power <= 256; power <<= 1) {
+    for (size_t power = 4; power <= 256; power <<= 1)
+    {
         square(t1, result);
         for (size_t temp = 1; temp < power; ++temp)
             square(t1, t1);
@@ -1358,7 +1396,8 @@ void P521::recip(limb_t *result, const limb_t *x)
     }
 
     // Handle the 9 lowest bits of (p - 2), 111111101, from highest to lowest.
-    for (uint8_t index = 0; index < 7; ++index) {
+    for (uint8_t index = 0; index < 7; ++index)
+    {
         square(result, result);
         mul(result, result, x);
     }
@@ -1396,8 +1435,7 @@ void P521::reduceQ(limb_t *result, const limb_t *r)
         LIMB_PAIR(0x08F65A2F, 0x8033FEB7), LIMB_PAIR(0x40D06994, 0xAE79787C),
         LIMB_PAIR(0x00000005, 0x00000000), LIMB_PAIR(0x00000000, 0x00000000),
         LIMB_PAIR(0x00000000, 0x00000000), LIMB_PAIR(0x00000000, 0x00000000),
-        LIMB_PARTIAL(0x200)
-    };
+        LIMB_PARTIAL(0x200)};
     limb_t temp[NUM_LIMBS_1042BIT + NUM_LIMBS_521BIT];
     limb_t temp2[NUM_LIMBS_521BIT];
 
@@ -1407,14 +1445,16 @@ void P521::reduceQ(limb_t *result, const limb_t *r)
     // Compute (m * r / 4^521) = (m * r / 2^1042).
 #if BIGNUMBER_LIMB_8BIT || BIGNUMBER_LIMB_16BIT
     dlimb_t carry = temp[NUM_LIMBS_BITS(1040)] >> 2;
-    for (uint8_t index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (uint8_t index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry += ((dlimb_t)(temp[NUM_LIMBS_BITS(1040) + index + 1])) << (LIMB_BITS - 2);
         temp2[index] = (limb_t)carry;
         carry >>= LIMB_BITS;
     }
 #elif BIGNUMBER_LIMB_32BIT || BIGNUMBER_LIMB_64BIT
     dlimb_t carry = temp[NUM_LIMBS_BITS(1024)] >> 18;
-    for (uint8_t index = 0; index < NUM_LIMBS_521BIT; ++index) {
+    for (uint8_t index = 0; index < NUM_LIMBS_521BIT; ++index)
+    {
         carry += ((dlimb_t)(temp[NUM_LIMBS_BITS(1024) + index + 1])) << (LIMB_BITS - 18);
         temp2[index] = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -1468,8 +1508,7 @@ void P521::recipQ(limb_t *result, const limb_t *x)
     static limb_t const P521_q_m2[] PROGMEM = {
         LIMB_PAIR(0x91386407, 0xbb6fb71e), LIMB_PAIR(0x899c47ae, 0x3bb5c9b8),
         LIMB_PAIR(0xf709a5d0, 0x7fcc0148), LIMB_PAIR(0xbf2f966b, 0x51868783),
-        LIMB_PARTIAL(0x1fa)
-    };
+        LIMB_PARTIAL(0x1fa)};
 
     // Raise x to the power of q - 2, mod q.  We start with the top
     // 256 bits which are all-1's, using a similar technique to recip().
@@ -1480,7 +1519,8 @@ void P521::recipQ(limb_t *result, const limb_t *x)
     mulQ(result, result, x);
     mulQ(result, result, result);
     mulQ(result, result, x);
-    for (size_t power = 4; power <= 128; power <<= 1) {
+    for (size_t power = 4; power <= 128; power <<= 1)
+    {
         mulQ(t1, result, result);
         for (size_t temp = 1; temp < power; ++temp)
             mulQ(t1, t1, t1);
@@ -1492,11 +1532,13 @@ void P521::recipQ(limb_t *result, const limb_t *x)
     // each bit and multiply in x whenever there is a 1 bit.  The timing
     // is based on the publicly-known constant q - 2, not on the value of x.
     size_t bit = 265;
-    while (bit > 0) {
+    while (bit > 0)
+    {
         --bit;
         mulQ(result, result, result);
         if (pgm_read_limb(&(P521_q_m2[bit / LIMB_BITS])) &
-                (((limb_t)1) << (bit % LIMB_BITS))) {
+            (((limb_t)1) << (bit % LIMB_BITS)))
+        {
             mulQ(result, result, x);
         }
     }
@@ -1576,14 +1618,16 @@ void P521::generateK(uint8_t k[66], const uint8_t hm[66],
     hash->finalizeHMAC(K, hlen, V, hlen);
 
     // Step h.  Generate candidate k values until we find what we want.
-    for (;;) {
+    for (;;)
+    {
         // Step h.1 and h.2.  Generate a string of 66 bytes in length.
         //      T = empty
         //      while (len(T) < 66)
         //          V = HMAC_K(V)
         //          T = T || V
         size_t posn = 0;
-        while (posn < 66) {
+        while (posn < 66)
+        {
             size_t temp = 66 - posn;
             if (temp > hlen)
                 temp = hlen;

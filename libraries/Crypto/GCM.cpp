@@ -83,14 +83,17 @@ bool GCMCommon::setKey(const uint8_t *key, size_t len)
 bool GCMCommon::setIV(const uint8_t *iv, size_t len)
 {
     // Format the counter block from the IV.
-    if (len == 12) {
+    if (len == 12)
+    {
         // IV's of exactly 96 bits are used directly as the counter block.
         memcpy(state.counter, iv, 12);
         state.counter[12] = 0;
         state.counter[13] = 0;
         state.counter[14] = 0;
         state.counter[15] = 1;
-    } else {
+    }
+    else
+    {
         // IV's of other sizes are hashed to produce the counter block.
         memset(state.nonce, 0, 16);
         blockCipher->encryptBlock(state.nonce, state.nonce);
@@ -142,7 +145,8 @@ static inline void increment(uint8_t counter[16])
 void GCMCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
     // Finalize the authenticated data if necessary.
-    if (!state.dataStarted) {
+    if (!state.dataStarted)
+    {
         ghash.pad();
         state.dataStarted = true;
     }
@@ -150,9 +154,11 @@ void GCMCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
     // Encrypt the plaintext using the block cipher in counter mode.
     uint8_t *out = output;
     size_t size = len;
-    while (size > 0) {
+    while (size > 0)
+    {
         // Create a new keystream block if necessary.
-        if (state.posn >= 16) {
+        if (state.posn >= 16)
+        {
             increment(state.counter);
             blockCipher->encryptBlock(state.stream, state.counter);
             state.posn = 0;
@@ -165,7 +171,8 @@ void GCMCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
         uint8_t *stream = state.stream + state.posn;
         state.posn += temp;
         size -= temp;
-        while (temp > 0) {
+        while (temp > 0)
+        {
             *out++ = *input++ ^ *stream++;
             --temp;
         }
@@ -179,7 +186,8 @@ void GCMCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 void GCMCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
     // Finalize the authenticated data if necessary.
-    if (!state.dataStarted) {
+    if (!state.dataStarted)
+    {
         ghash.pad();
         state.dataStarted = true;
     }
@@ -189,9 +197,11 @@ void GCMCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
     state.dataSize += len;
 
     // Decrypt the plaintext using the block cipher in counter mode.
-    while (len > 0) {
+    while (len > 0)
+    {
         // Create a new keystream block if necessary.
-        if (state.posn >= 16) {
+        if (state.posn >= 16)
+        {
             increment(state.counter);
             blockCipher->encryptBlock(state.stream, state.counter);
             state.posn = 0;
@@ -204,7 +214,8 @@ void GCMCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
         uint8_t *stream = state.stream + state.posn;
         state.posn += temp;
         len -= temp;
-        while (temp > 0) {
+        while (temp > 0)
+        {
             *output++ = *input++ ^ *stream++;
             --temp;
         }
@@ -213,7 +224,8 @@ void GCMCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 
 void GCMCommon::addAuthData(const void *data, size_t len)
 {
-    if (!state.dataStarted) {
+    if (!state.dataStarted)
+    {
         ghash.update(data, len);
         state.authSize += len;
     }
@@ -225,8 +237,7 @@ void GCMCommon::computeTag(void *tag, size_t len)
     ghash.pad();
     uint64_t sizes[2] = {
         htobe64(state.authSize * 8),
-        htobe64(state.dataSize * 8)
-    };
+        htobe64(state.dataSize * 8)};
     ghash.update(sizes, sizeof(sizes));
     clean(sizes);
 

@@ -1,7 +1,6 @@
-Simple Arduino Timer
-====================
+# Simple Arduino Timer
 
-A simple Arduino library for work with time. 
+A simple Arduino library for work with time.
 
 ## Example
 
@@ -43,4 +42,5 @@ void loop()
 ```
 
 # License
+
 Copyright (c) 2019 Alexander Kiryanenko. Licensed under the MIT license.

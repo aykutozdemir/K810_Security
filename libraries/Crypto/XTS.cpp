@@ -149,9 +149,10 @@ bool XTSCommon::setTweak(const uint8_t *tweak, size_t len)
     return true;
 }
 
-#define xorTweak(output, input, tweak) \
-    do { \
-        for (uint8_t i = 0; i < 16; ++i) \
+#define xorTweak(output, input, tweak)                                \
+    do                                                                \
+    {                                                                 \
+        for (uint8_t i = 0; i < 16; ++i)                              \
             (output)[i] = (input)[i] ^ ((const uint8_t *)(tweak))[i]; \
     } while (0)
 
@@ -173,7 +174,8 @@ void XTSCommon::encryptSector(uint8_t *output, const uint8_t *input)
     size_t posn = 0;
     uint32_t t[4];
     memcpy(t, twk, sizeof(t));
-    while (posn < sectLast) {
+    while (posn < sectLast)
+    {
         // Process all complete 16-byte blocks.
         xorTweak(output, input, t);
         blockCipher1->encryptBlock(output, output);
@@ -183,11 +185,13 @@ void XTSCommon::encryptSector(uint8_t *output, const uint8_t *input)
         output += 16;
         posn += 16;
     }
-    if (posn < sectSize) {
+    if (posn < sectSize)
+    {
         // Perform ciphertext stealing on the final partial block.
         uint8_t leftOver = sectSize - posn;
         output -= 16;
-        while (leftOver > 0) {
+        while (leftOver > 0)
+        {
             // Swap the left-over bytes in the last two blocks.
             --leftOver;
             uint8_t temp = input[leftOver];
@@ -220,7 +224,8 @@ void XTSCommon::decryptSector(uint8_t *output, const uint8_t *input)
     memcpy(t, twk, sizeof(t));
     if (sectLast != sectSize)
         sectLast -= 16;
-    while (posn < sectLast) {
+    while (posn < sectLast)
+    {
         // Process all complete 16-byte blocks.
         xorTweak(output, input, t);
         blockCipher1->decryptBlock(output, output);
@@ -230,7 +235,8 @@ void XTSCommon::decryptSector(uint8_t *output, const uint8_t *input)
         output += 16;
         posn += 16;
     }
-    if (posn < sectSize) {
+    if (posn < sectSize)
+    {
         // Perform ciphertext stealing on the final two blocks.
         uint8_t leftOver = sectSize - 16 - posn;
         uint32_t u[4];
@@ -246,7 +252,8 @@ void XTSCommon::decryptSector(uint8_t *output, const uint8_t *input)
         xorTweak(output, output, t);
 
         // Swap the left-over bytes in the last two blocks.
-        while (leftOver > 0) {
+        while (leftOver > 0)
+        {
             --leftOver;
             uint8_t temp = input[leftOver + 16];
             output[leftOver + 16] = output[leftOver];

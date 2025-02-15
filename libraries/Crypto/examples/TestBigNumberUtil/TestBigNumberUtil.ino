@@ -30,7 +30,7 @@ This example runs tests on the utility functions in BigNumberUtil.
 #include <string.h>
 
 #define NUM_SIZE_512BIT (64 / sizeof(limb_t))
-#define LIMB_BITS       (sizeof(limb_t) * 8)
+#define LIMB_BITS (sizeof(limb_t) * 8)
 
 // Convert a decimal string in program memory into a big number.
 void fromString(limb_t *x, size_t xsize, const char *str)
@@ -38,11 +38,14 @@ void fromString(limb_t *x, size_t xsize, const char *str)
     uint8_t ch;
     size_t posn;
     memset(x, 0, sizeof(limb_t) * xsize);
-    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0') {
-        if (ch >= '0' && ch <= '9') {
+    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0')
+    {
+        if (ch >= '0' && ch <= '9')
+        {
             // Quick and simple method to multiply by 10 and add the new digit.
             dlimb_t carry = ch - '0';
-            for (posn = 0; posn < xsize; ++posn) {
+            for (posn = 0; posn < xsize; ++posn)
+            {
                 carry += ((dlimb_t)x[posn]) * 10U;
                 x[posn] = (limb_t)carry;
                 carry >>= LIMB_BITS;
@@ -58,11 +61,14 @@ void bytesFromString(uint8_t *x, size_t xsize, const char *str)
     uint8_t ch;
     size_t posn;
     memset(x, 0, xsize);
-    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0') {
-        if (ch >= '0' && ch <= '9') {
+    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0')
+    {
+        if (ch >= '0' && ch <= '9')
+        {
             // Quick and simple method to multiply by 10 and add the new digit.
             uint16_t carry = ch - '0';
-            for (posn = 0; posn < xsize; ++posn) {
+            for (posn = 0; posn < xsize; ++posn)
+            {
                 carry += ((uint16_t)x[posn]) * 10U;
                 x[posn] = (uint8_t)carry;
                 carry >>= 8;
@@ -76,16 +82,22 @@ void bytesFromString(uint8_t *x, size_t xsize, const char *str)
 int compare(const limb_t *x, size_t xsize, const limb_t *y, size_t ysize)
 {
     limb_t a, b;
-    while (xsize > 0 || ysize > 0) {
-        if (xsize > ysize) {
+    while (xsize > 0 || ysize > 0)
+    {
+        if (xsize > ysize)
+        {
             --xsize;
             a = x[xsize];
             b = 0;
-        } else if (ysize > xsize) {
+        }
+        else if (ysize > xsize)
+        {
             --ysize;
             a = 0;
             b = y[ysize];
-        } else {
+        }
+        else
+        {
             --xsize;
             --ysize;
             a = x[xsize];
@@ -113,8 +125,10 @@ void printNumber(const char *name, const limb_t *x, size_t xsize)
     static const char hexchars[] = "0123456789ABCDEF";
     Serial.print(name);
     Serial.print(" = ");
-    for (size_t posn = 0; posn < xsize; ++posn) {
-        for (uint8_t bit = LIMB_BITS; bit > 0; ) {
+    for (size_t posn = 0; posn < xsize; ++posn)
+    {
+        for (uint8_t bit = LIMB_BITS; bit > 0;)
+        {
             bit -= 4;
             Serial.print(hexchars[(x[xsize - 1 - posn] >> bit) & 0x0F]);
         }
@@ -131,19 +145,19 @@ char const num_4[] PROGMEM = "4";
 char const num_5[] PROGMEM = "5";
 char const num_128[] PROGMEM = "128";
 char const num_256[] PROGMEM = "256";
-char const num_2_64_m7[] PROGMEM = "18446744073709551609"; // 2^64 - 7
-char const num_2_129_m5[] PROGMEM = "680564733841876926926749214863536422907"; // 2^129 - 5
-char const num_pi_77[] PROGMEM = "31415926535897932384626433832795028841971693993751058209749445923078164062862"; // 77 digits of pi
+char const num_2_64_m7[] PROGMEM = "18446744073709551609";                                                                                                                                      // 2^64 - 7
+char const num_2_129_m5[] PROGMEM = "680564733841876926926749214863536422907";                                                                                                                  // 2^129 - 5
+char const num_pi_77[] PROGMEM = "31415926535897932384626433832795028841971693993751058209749445923078164062862";                                                                               // 77 digits of pi
 char const num_pi_154[] PROGMEM = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481"; // 154 digits of pi
-char const num_2_255_m253[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819715"; // 2^255 - 253
-char const num_2_255_m20[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819948"; // 2^255 - 20
-char const num_2_255_m19[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // 2^255 - 19
-char const num_2_255_m19_x2[] PROGMEM = "115792089237316195423570985008687907853269984665640564039457584007913129639898"; // (2^255 - 19) * 2
+char const num_2_255_m253[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819715";                                                                          // 2^255 - 253
+char const num_2_255_m20[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819948";                                                                           // 2^255 - 20
+char const num_2_255_m19[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819949";                                                                           // 2^255 - 19
+char const num_2_255_m19_x2[] PROGMEM = "115792089237316195423570985008687907853269984665640564039457584007913129639898";                                                                       // (2^255 - 19) * 2
 char const num_a24[] PROGMEM = "121665";
 char const num_2_512_m19[] PROGMEM = "13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084077"; // (2^512 - 19)
 
 // Table of useful numbers.
-const char * const numbers[] = {
+const char *const numbers[] = {
     num_0,
     num_1,
     num_2,
@@ -158,12 +172,11 @@ const char * const numbers[] = {
     num_2_255_m20,
     num_pi_154,
     num_2_512_m19,
-    0
-};
-#define numbers_count   ((sizeof(numbers) / sizeof(numbers[0])) - 1)
+    0};
+#define numbers_count ((sizeof(numbers) / sizeof(numbers[0])) - 1)
 
-#define foreach_number(var) \
-    const char *var = numbers[0]; \
+#define foreach_number(var)                                   \
+    const char *var = numbers[0];                             \
     for (unsigned index##var = 0; index##var < numbers_count; \
          ++index##var, var = numbers[index##var])
 
@@ -171,7 +184,8 @@ const char * const numbers[] = {
 void printProgMem(const char *str)
 {
     uint8_t ch;
-    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0') {
+    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0')
+    {
         Serial.print((char)ch);
         ++str;
     }
@@ -180,7 +194,8 @@ void printProgMem(const char *str)
 // Determine if an array consists of all zero bytes.
 static bool isAllZero(const uint8_t *bytes, size_t size)
 {
-    while (size > 0) {
+    while (size > 0)
+    {
         if (*bytes++ != 0)
             return false;
         --size;
@@ -191,7 +206,8 @@ static bool isAllZero(const uint8_t *bytes, size_t size)
 // Determine if an array consists of all 0xBA bytes.
 static bool isAllBad(const uint8_t *bytes, size_t size)
 {
-    while (size > 0) {
+    while (size > 0)
+    {
         if (*bytes++ != 0xBA)
             return false;
         --size;
@@ -214,7 +230,8 @@ static void truncateNumber(limb_t *limbs, size_t bytes)
     size_t posn = NUM_SIZE_512BIT * sizeof(limb_t);
     size_t posn2;
     limb_t mask;
-    while (posn > bytes) {
+    while (posn > bytes)
+    {
         --posn;
         posn2 = posn % sizeof(limb_t);
         if (posn2 == 0)
@@ -253,7 +270,8 @@ void testPackUnpack(void)
     size_t posn;
     uint8_t temp;
 
-    foreach_number(x) {
+    foreach_number(x)
+    {
         // What number are we on?
         Serial.print("pack ");
         printProgMem(x);
@@ -266,7 +284,8 @@ void testPackUnpack(void)
         bytesFromString(expected, sizeof(expected), x);
 
         // Check packLE() and unpackLE() against the expected values.
-        for (posn = 0; posn < 64; ++posn) {
+        for (posn = 0; posn < 64; ++posn)
+        {
             memset(bytes, 0xBA, sizeof(bytes));
             BigNumberUtil::packLE(bytes, posn, num, NUM_SIZE_512BIT);
             if (memcmp(bytes, expected, posn) != 0)
@@ -274,14 +293,16 @@ void testPackUnpack(void)
             if (!isAllBad(bytes + posn, sizeof(bytes) - posn))
                 ok = false;
         }
-        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn) {
+        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn)
+        {
             BigNumberUtil::packLE(bytes, sizeof(bytes), num, posn);
             if (memcmp(bytes, expected, posn * sizeof(limb_t)) != 0)
                 ok = false;
             if (!isAllZero(bytes + posn * sizeof(limb_t), sizeof(bytes) - posn * sizeof(limb_t)))
                 ok = false;
         }
-        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn) {
+        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn)
+        {
             memset(limbs, 0xBA, sizeof(limbs));
             BigNumberUtil::unpackLE(limbs, posn, expected, sizeof(expected));
             if (memcmp(limbs, num, posn) != 0)
@@ -289,7 +310,8 @@ void testPackUnpack(void)
             if (!isAllBad(limbs + posn, NUM_SIZE_512BIT - posn))
                 ok = false;
         }
-        for (posn = 0; posn < 64; ++posn) {
+        for (posn = 0; posn < 64; ++posn)
+        {
             memset(limbs, 0xBA, sizeof(limbs));
             BigNumberUtil::unpackLE(limbs, NUM_SIZE_512BIT,
                                     expected, sizeof(expected) - posn);
@@ -298,7 +320,8 @@ void testPackUnpack(void)
             if (memcmp(limbs, tnum, NUM_SIZE_512BIT) != 0)
                 ok = false;
         }
-        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn) {
+        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn)
+        {
             memset(limbs, 0xBA, sizeof(limbs));
             BigNumberUtil::unpackLE(limbs, posn, expected, sizeof(expected));
             if (memcmp(limbs, num, posn * sizeof(limb_t)) != 0)
@@ -308,14 +331,16 @@ void testPackUnpack(void)
         }
 
         // Swap the expected byte array into big-endian order.
-        for (posn = 0; posn < 32; ++posn) {
+        for (posn = 0; posn < 32; ++posn)
+        {
             temp = expected[posn];
             expected[posn] = expected[63 - posn];
             expected[63 - posn] = temp;
         }
 
         // Check packBE() and unpackBE() against the expected values.
-        for (posn = 0; posn < 64; ++posn) {
+        for (posn = 0; posn < 64; ++posn)
+        {
             memset(bytes, 0xBA, sizeof(bytes));
             BigNumberUtil::packBE(bytes, posn, num, NUM_SIZE_512BIT);
             if (memcmp(bytes, expected + 64 - posn, posn) != 0)
@@ -323,7 +348,8 @@ void testPackUnpack(void)
             if (!isAllBad(bytes + posn, sizeof(bytes) - posn))
                 ok = false;
         }
-        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn) {
+        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn)
+        {
             BigNumberUtil::packBE(bytes, sizeof(bytes), num, posn);
             if (memcmp(bytes + 64 - posn * sizeof(limb_t),
                        expected + 64 - posn * sizeof(limb_t),
@@ -332,7 +358,8 @@ void testPackUnpack(void)
             if (!isAllZero(bytes, sizeof(bytes) - posn * sizeof(limb_t)))
                 ok = false;
         }
-        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn) {
+        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn)
+        {
             memset(limbs, 0xBA, sizeof(limbs));
             BigNumberUtil::unpackBE(limbs, posn, expected, sizeof(expected));
             if (memcmp(limbs, num, posn) != 0)
@@ -340,7 +367,8 @@ void testPackUnpack(void)
             if (!isAllBad(limbs + posn, NUM_SIZE_512BIT - posn))
                 ok = false;
         }
-        for (posn = 0; posn < 64; ++posn) {
+        for (posn = 0; posn < 64; ++posn)
+        {
             memset(limbs, 0xBA, sizeof(limbs));
             BigNumberUtil::unpackBE(limbs, NUM_SIZE_512BIT,
                                     expected + posn, sizeof(expected) - posn);
@@ -349,7 +377,8 @@ void testPackUnpack(void)
             if (memcmp(limbs, tnum, NUM_SIZE_512BIT) != 0)
                 ok = false;
         }
-        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn) {
+        for (posn = 0; posn < NUM_SIZE_512BIT; ++posn)
+        {
             memset(limbs, 0xBA, sizeof(limbs));
             BigNumberUtil::unpackBE(limbs, posn, expected, sizeof(expected));
             if (memcmp(limbs, num, posn * sizeof(limb_t)) != 0)

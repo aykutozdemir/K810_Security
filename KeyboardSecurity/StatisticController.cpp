@@ -1,41 +1,49 @@
 #include "StatisticController.h"
 #include <MemoryUsage.h>
 
-void StatisticController::setup() {
+void StatisticController::setup()
+{
   MemoryUsage::stackPaint();
-}  // end setup
+} // end setup
 
-void StatisticController::loop(Print& print,
-                               const Statistic* statistics[],
-                               const uint8_t statisticSize) {
+void StatisticController::loop(Print &print,
+                               const Statistic *statistics[],
+                               const uint8_t statisticSize)
+{
   static bool firstRun = true;
 
-  if (firstRun) {
+  if (firstRun)
+  {
     firstRun = false;
 
     printRam(print);
     printInterruptTable(print);
   }
-}  // end loop
+} // end loop
 
-void StatisticController::printStatisticTable(Print& print,
-                                              const Statistic* statistics[],
-                                              const uint8_t statisticSize) {
+void StatisticController::printStatisticTable(Print &print,
+                                              const Statistic *statistics[],
+                                              const uint8_t statisticSize)
+{
   print.println(F("********************"));
-  for (int i = 0; i < statisticSize; ++i) {
+  for (int i = 0; i < statisticSize; ++i)
+  {
     statistics[i]->print(print);
-    if ((i + 1) < statisticSize) {
+    if ((i + 1) < statisticSize)
+    {
       print.println(F("--------------------"));
     }
   }
   print.println(F("********************"));
 }
 
-void StatisticController::printRam(Print& print) {
+void StatisticController::printRam(Print &print)
+{
   MemoryUsage::ramDisplay(print);
 }
 
-void StatisticController::printInterruptTable(Print& print) {
+void StatisticController::printInterruptTable(Print &print)
+{
   print.println(F("********************"));
   print.println(F("Enabled Interrupts"));
 

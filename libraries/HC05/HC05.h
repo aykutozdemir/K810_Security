@@ -5,16 +5,17 @@
 #include <ArduinoQueue.h>
 #include <Stream.h>
 
-class HC05 {
+class HC05
+{
 public:
   typedef void (*CommandCallback)(const String &, bool, const String &);
   typedef void (*DataCallback)(const char);
 
   HC05(
-    Stream &stream,
-    const uint8_t keyPin,
-    const uint8_t statePin,
-    const uint8_t resetPin);
+      Stream &stream,
+      const uint8_t keyPin,
+      const uint8_t statePin,
+      const uint8_t resetPin);
 
   void begin();
   void sendCommand(const String &command, const CommandCallback callback);
@@ -28,7 +29,8 @@ public:
   void loop();
 
 private:
-  enum State : uint8_t {
+  enum State : uint8_t
+  {
     IDLE,
     WAITING_FOR_RESPONSE,
     DATA_MODE,
@@ -42,7 +44,8 @@ private:
     WAITING_FOR_DATA_MODE
   };
 
-  struct Command {
+  struct Command
+  {
     String commandText;
     CommandCallback callback;
   };

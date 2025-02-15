@@ -14,17 +14,21 @@
 ezButton button(7); // create Button object that attach to pin 7;
 ezOutput led(9);    // create ezOutput object that attach to pin 9;
 
-void setup() {
+void setup()
+{
   button.setDebounceTime(50); // set debounce time to 50 milliseconds
   led.low();
 }
 
-void loop() {
+void loop()
+{
   button.loop(); // MUST call the loop() function first
   led.loop();    // MUST call the loop() function first
 
-  if (button.isPressed()) {
-    if (led.getState() == LOW) {
+  if (button.isPressed())
+  {
+    if (led.getState() == LOW)
+    {
       led.pulse(1000, 250); // 250 milliseconds delay, 1000 milliseconds HIGH pulse
     }
   }

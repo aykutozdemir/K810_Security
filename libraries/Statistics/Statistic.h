@@ -3,18 +3,19 @@
 
 #include <Arduino.h>
 
-class Statistic {
+class Statistic
+{
 public:
   Statistic();
 
-  void setName(const __FlashStringHelper* n);
+  void setName(const __FlashStringHelper *n);
 
   void start();
   void end();
-  void print(Print& print) const;
+  void print(Print &print) const;
 
 private:
-  const __FlashStringHelper* name;
+  const __FlashStringHelper *name;
   unsigned long startTime;
   unsigned long minTime;
   unsigned long maxTime;
@@ -25,4 +26,4 @@ private:
 #define MEASURE_TIME(obj) \
   for (bool _run = (obj.start(), true); _run; obj.end(), _run = false)
 
-#endif  // STATISTIC_H
+#endif // STATISTIC_H

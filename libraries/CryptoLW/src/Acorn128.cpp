@@ -103,7 +103,7 @@ size_t Acorn128::tagSize() const
 
 // maj() and ch() functions for mixing the state.
 #define maj(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
-#define ch(x, y, z)  (((x) & (y)) ^ ((~(x)) & (z)))
+#define ch(x, y, z) (((x) & (y)) ^ ((~(x)) & (z)))
 
 /**
  * \brief Encrypts an 8-bit byte using Acorn128.
@@ -115,28 +115,27 @@ size_t Acorn128::tagSize() const
  *
  * \return The ciphertext byte.
  */
-static uint8_t acornEncrypt8
-    (Acorn128State *state, uint8_t plaintext, uint8_t ca, uint8_t cb)
+static uint8_t acornEncrypt8(Acorn128State *state, uint8_t plaintext, uint8_t ca, uint8_t cb)
 {
-    // Extract out various sub-parts of the state as 8-bit bytes.
-    #define s_extract_8(name, shift) \
-        ((uint8_t)(state->name##_l >> (shift)))
+// Extract out various sub-parts of the state as 8-bit bytes.
+#define s_extract_8(name, shift) \
+    ((uint8_t)(state->name##_l >> (shift)))
     uint8_t s244 = s_extract_8(s6, 14);
     uint8_t s235 = s_extract_8(s6, 5);
     uint8_t s196 = s_extract_8(s5, 3);
     uint8_t s160 = s_extract_8(s4, 6);
     uint8_t s111 = s_extract_8(s3, 4);
-    uint8_t s66  = s_extract_8(s2, 5);
-    uint8_t s23  = s_extract_8(s1, 23);
-    uint8_t s12  = s_extract_8(s1, 12);
+    uint8_t s66 = s_extract_8(s2, 5);
+    uint8_t s23 = s_extract_8(s1, 23);
+    uint8_t s12 = s_extract_8(s1, 12);
 
     // Update the LFSR's.
     uint8_t s7_l = state->s7 ^ s235 ^ state->s6_l;
     state->s6_l ^= s196 ^ ((uint8_t)(state->s5_l));
     state->s5_l ^= s160 ^ ((uint8_t)(state->s4_l));
     state->s4_l ^= s111 ^ ((uint8_t)(state->s3_l));
-    state->s3_l ^= s66  ^ ((uint8_t)(state->s2_l));
-    state->s2_l ^= s23  ^ ((uint8_t)(state->s1_l));
+    state->s3_l ^= s66 ^ ((uint8_t)(state->s2_l));
+    state->s2_l ^= s23 ^ ((uint8_t)(state->s1_l));
 
     // Generate the next 8 keystream bits.
     // k = S[12] ^ S[154] ^ maj(S[235], S[61], S[193])
@@ -153,17 +152,17 @@ static uint8_t acornEncrypt8
                 maj(s244, s23, s160) ^ (ca & s196) ^ (cb & ks);
     f ^= plaintext;
 
-    // Shift the state downwards by 8 bits.
-    #define s_shift_8(name1, name2, shift) \
-        (state->name1##_l = (state->name1##_l >> 8) | \
-                            (((uint32_t)(state->name1##_h)) << 24), \
-         state->name1##_h = (state->name1##_h >> 8) | \
-                            ((state->name2##_l & 0xFF) << ((shift) - 40)))
-    #define s_shift_8_mixed(name1, name2, shift) \
-        (state->name1##_l = (state->name1##_l >> 8) | \
-                            (((uint32_t)(state->name1##_h)) << 24) | \
-                            (state->name2##_l << ((shift) - 8)), \
-         state->name1##_h = ((state->name2##_l & 0xFF) >> (40 - (shift))))
+// Shift the state downwards by 8 bits.
+#define s_shift_8(name1, name2, shift)                          \
+    (state->name1##_l = (state->name1##_l >> 8) |               \
+                        (((uint32_t)(state->name1##_h)) << 24), \
+     state->name1##_h = (state->name1##_h >> 8) |               \
+                        ((state->name2##_l & 0xFF) << ((shift) - 40)))
+#define s_shift_8_mixed(name1, name2, shift)                     \
+    (state->name1##_l = (state->name1##_l >> 8) |                \
+                        (((uint32_t)(state->name1##_h)) << 24) | \
+                        (state->name2##_l << ((shift) - 8)),     \
+     state->name1##_h = ((state->name2##_l & 0xFF) >> (40 - (shift))))
     s7_l ^= (f << 4);
     state->s7 = f >> 4;
     s_shift_8(s1, s2, 61);
@@ -188,29 +187,28 @@ static uint8_t acornEncrypt8
  *
  * \return The ciphertext word.
  */
-static uint32_t acornEncrypt32
-    (Acorn128State *state, uint32_t plaintext, uint32_t ca, uint32_t cb)
+static uint32_t acornEncrypt32(Acorn128State *state, uint32_t plaintext, uint32_t ca, uint32_t cb)
 {
-    // Extract out various sub-parts of the state as 32-bit words.
-    #define s_extract_32(name, shift) \
-        ((state->name##_l >> (shift)) | \
-         (((uint32_t)(state->name##_h)) << (32 - (shift))))
+// Extract out various sub-parts of the state as 32-bit words.
+#define s_extract_32(name, shift)   \
+    ((state->name##_l >> (shift)) | \
+     (((uint32_t)(state->name##_h)) << (32 - (shift))))
     uint32_t s244 = s_extract_32(s6, 14);
     uint32_t s235 = s_extract_32(s6, 5);
     uint32_t s196 = s_extract_32(s5, 3);
     uint32_t s160 = s_extract_32(s4, 6);
     uint32_t s111 = s_extract_32(s3, 4);
-    uint32_t s66  = s_extract_32(s2, 5);
-    uint32_t s23  = s_extract_32(s1, 23);
-    uint32_t s12  = s_extract_32(s1, 12);
+    uint32_t s66 = s_extract_32(s2, 5);
+    uint32_t s23 = s_extract_32(s1, 23);
+    uint32_t s12 = s_extract_32(s1, 12);
 
     // Update the LFSR's.
     uint32_t s7_l = state->s7 ^ s235 ^ state->s6_l;
     state->s6_l ^= s196 ^ state->s5_l;
     state->s5_l ^= s160 ^ state->s4_l;
     state->s4_l ^= s111 ^ state->s3_l;
-    state->s3_l ^= s66  ^ state->s2_l;
-    state->s2_l ^= s23  ^ state->s1_l;
+    state->s3_l ^= s66 ^ state->s2_l;
+    state->s2_l ^= s23 ^ state->s1_l;
 
     // Generate the next 32 keystream bits.
     // k = S[12] ^ S[154] ^ maj(S[235], S[61], S[193])
@@ -227,10 +225,10 @@ static uint32_t acornEncrypt32
                  maj(s244, s23, s160) ^ (ca & s196) ^ (cb & ks);
     f ^= plaintext;
 
-    // Shift the state downwards by 32 bits.
-    #define s_shift_32(name1, name2, shift) \
-        (state->name1##_l = state->name1##_h | (state->name2##_l << (shift)), \
-         state->name1##_h = (state->name2##_l >> (32 - (shift))))
+// Shift the state downwards by 32 bits.
+#define s_shift_32(name1, name2, shift)                                   \
+    (state->name1##_l = state->name1##_h | (state->name2##_l << (shift)), \
+     state->name1##_h = (state->name2##_l >> (32 - (shift))))
     s7_l ^= (f << 4);
     state->s7 = (uint8_t)(f >> 28);
     s_shift_32(s1, s2, 29);
@@ -255,29 +253,28 @@ static uint32_t acornEncrypt32
  *
  * This version assumes that ca = 1 and cb = 0.
  */
-static inline uint32_t acornEncrypt32Fast
-    (Acorn128State *state, uint32_t plaintext)
+static inline uint32_t acornEncrypt32Fast(Acorn128State *state, uint32_t plaintext)
 {
-    // Extract out various sub-parts of the state as 32-bit words.
-    #define s_extract_32(name, shift) \
-        ((state->name##_l >> (shift)) | \
-         (((uint32_t)(state->name##_h)) << (32 - (shift))))
+// Extract out various sub-parts of the state as 32-bit words.
+#define s_extract_32(name, shift)   \
+    ((state->name##_l >> (shift)) | \
+     (((uint32_t)(state->name##_h)) << (32 - (shift))))
     uint32_t s244 = s_extract_32(s6, 14);
     uint32_t s235 = s_extract_32(s6, 5);
     uint32_t s196 = s_extract_32(s5, 3);
     uint32_t s160 = s_extract_32(s4, 6);
     uint32_t s111 = s_extract_32(s3, 4);
-    uint32_t s66  = s_extract_32(s2, 5);
-    uint32_t s23  = s_extract_32(s1, 23);
-    uint32_t s12  = s_extract_32(s1, 12);
+    uint32_t s66 = s_extract_32(s2, 5);
+    uint32_t s23 = s_extract_32(s1, 23);
+    uint32_t s12 = s_extract_32(s1, 12);
 
     // Update the LFSR's.
     uint32_t s7_l = state->s7 ^ s235 ^ state->s6_l;
     state->s6_l ^= s196 ^ state->s5_l;
     state->s5_l ^= s160 ^ state->s4_l;
     state->s4_l ^= s111 ^ state->s3_l;
-    state->s3_l ^= s66  ^ state->s2_l;
-    state->s2_l ^= s23  ^ state->s1_l;
+    state->s3_l ^= s66 ^ state->s2_l;
+    state->s2_l ^= s23 ^ state->s1_l;
 
     // Generate the next 32 keystream bits.
     // k = S[12] ^ S[154] ^ maj(S[235], S[61], S[193])
@@ -294,10 +291,10 @@ static inline uint32_t acornEncrypt32Fast
     uint32_t f = state->s1_l ^ (~state->s3_l) ^ maj(s244, s23, s160) ^ s196;
     f ^= plaintext;
 
-    // Shift the state downwards by 32 bits.
-    #define s_shift_32(name1, name2, shift) \
-        (state->name1##_l = state->name1##_h | (state->name2##_l << (shift)), \
-         state->name1##_h = (state->name2##_l >> (32 - (shift))))
+// Shift the state downwards by 32 bits.
+#define s_shift_32(name1, name2, shift)                                   \
+    (state->name1##_l = state->name1##_h | (state->name2##_l << (shift)), \
+     state->name1##_h = (state->name2##_l >> (32 - (shift))))
     s7_l ^= (f << 4);
     state->s7 = (uint8_t)(f >> 28);
     s_shift_32(s1, s2, 29);
@@ -322,25 +319,25 @@ static inline uint32_t acornEncrypt32Fast
  */
 static inline uint8_t acornDecrypt8(Acorn128State *state, uint8_t ciphertext)
 {
-    // Extract out various sub-parts of the state as 8-bit bytes.
-    #define s_extract_8(name, shift) \
-        ((uint8_t)(state->name##_l >> (shift)))
+// Extract out various sub-parts of the state as 8-bit bytes.
+#define s_extract_8(name, shift) \
+    ((uint8_t)(state->name##_l >> (shift)))
     uint8_t s244 = s_extract_8(s6, 14);
     uint8_t s235 = s_extract_8(s6, 5);
     uint8_t s196 = s_extract_8(s5, 3);
     uint8_t s160 = s_extract_8(s4, 6);
     uint8_t s111 = s_extract_8(s3, 4);
-    uint8_t s66  = s_extract_8(s2, 5);
-    uint8_t s23  = s_extract_8(s1, 23);
-    uint8_t s12  = s_extract_8(s1, 12);
+    uint8_t s66 = s_extract_8(s2, 5);
+    uint8_t s23 = s_extract_8(s1, 23);
+    uint8_t s12 = s_extract_8(s1, 12);
 
     // Update the LFSR's.
     uint8_t s7_l = state->s7 ^ s235 ^ state->s6_l;
     state->s6_l ^= s196 ^ ((uint8_t)(state->s5_l));
     state->s5_l ^= s160 ^ ((uint8_t)(state->s4_l));
     state->s4_l ^= s111 ^ ((uint8_t)(state->s3_l));
-    state->s3_l ^= s66  ^ ((uint8_t)(state->s2_l));
-    state->s2_l ^= s23  ^ ((uint8_t)(state->s1_l));
+    state->s3_l ^= s66 ^ ((uint8_t)(state->s2_l));
+    state->s2_l ^= s23 ^ ((uint8_t)(state->s1_l));
 
     // Generate the next 8 keystream bits and decrypt the ciphertext.
     // k = S[12] ^ S[154] ^ maj(S[235], S[61], S[193])
@@ -358,17 +355,17 @@ static inline uint8_t acornDecrypt8(Acorn128State *state, uint8_t ciphertext)
     uint8_t f = state->s1_l ^ (~state->s3_l) ^ maj(s244, s23, s160) ^ s196;
     f ^= plaintext;
 
-    // Shift the state downwards by 8 bits.
-    #define s_shift_8(name1, name2, shift) \
-        (state->name1##_l = (state->name1##_l >> 8) | \
-                            (((uint32_t)(state->name1##_h)) << 24), \
-         state->name1##_h = (state->name1##_h >> 8) | \
-                            ((state->name2##_l & 0xFF) << ((shift) - 40)))
-    #define s_shift_8_mixed(name1, name2, shift) \
-        (state->name1##_l = (state->name1##_l >> 8) | \
-                            (((uint32_t)(state->name1##_h)) << 24) | \
-                            (state->name2##_l << ((shift) - 8)), \
-         state->name1##_h = ((state->name2##_l & 0xFF) >> (40 - (shift))))
+// Shift the state downwards by 8 bits.
+#define s_shift_8(name1, name2, shift)                          \
+    (state->name1##_l = (state->name1##_l >> 8) |               \
+                        (((uint32_t)(state->name1##_h)) << 24), \
+     state->name1##_h = (state->name1##_h >> 8) |               \
+                        ((state->name2##_l & 0xFF) << ((shift) - 40)))
+#define s_shift_8_mixed(name1, name2, shift)                     \
+    (state->name1##_l = (state->name1##_l >> 8) |                \
+                        (((uint32_t)(state->name1##_h)) << 24) | \
+                        (state->name2##_l << ((shift) - 8)),     \
+     state->name1##_h = ((state->name2##_l & 0xFF) >> (40 - (shift))))
     s7_l ^= (f << 4);
     state->s7 = f >> 4;
     s_shift_8(s1, s2, 61);
@@ -393,26 +390,26 @@ static inline uint8_t acornDecrypt8(Acorn128State *state, uint8_t ciphertext)
  */
 static inline uint32_t acornDecrypt32(Acorn128State *state, uint32_t ciphertext)
 {
-    // Extract out various sub-parts of the state as 32-bit words.
-    #define s_extract_32(name, shift) \
-        ((state->name##_l >> (shift)) | \
-         (((uint32_t)(state->name##_h)) << (32 - (shift))))
+// Extract out various sub-parts of the state as 32-bit words.
+#define s_extract_32(name, shift)   \
+    ((state->name##_l >> (shift)) | \
+     (((uint32_t)(state->name##_h)) << (32 - (shift))))
     uint32_t s244 = s_extract_32(s6, 14);
     uint32_t s235 = s_extract_32(s6, 5);
     uint32_t s196 = s_extract_32(s5, 3);
     uint32_t s160 = s_extract_32(s4, 6);
     uint32_t s111 = s_extract_32(s3, 4);
-    uint32_t s66  = s_extract_32(s2, 5);
-    uint32_t s23  = s_extract_32(s1, 23);
-    uint32_t s12  = s_extract_32(s1, 12);
+    uint32_t s66 = s_extract_32(s2, 5);
+    uint32_t s23 = s_extract_32(s1, 23);
+    uint32_t s12 = s_extract_32(s1, 12);
 
     // Update the LFSR's.
     uint32_t s7_l = state->s7 ^ s235 ^ state->s6_l;
     state->s6_l ^= s196 ^ state->s5_l;
     state->s5_l ^= s160 ^ state->s4_l;
     state->s4_l ^= s111 ^ state->s3_l;
-    state->s3_l ^= s66  ^ state->s2_l;
-    state->s2_l ^= s23  ^ state->s1_l;
+    state->s3_l ^= s66 ^ state->s2_l;
+    state->s2_l ^= s23 ^ state->s1_l;
 
     // Generate the next 32 keystream bits and decrypt the ciphertext.
     // k = S[12] ^ S[154] ^ maj(S[235], S[61], S[193])
@@ -430,10 +427,10 @@ static inline uint32_t acornDecrypt32(Acorn128State *state, uint32_t ciphertext)
     uint32_t f = state->s1_l ^ (~state->s3_l) ^ maj(s244, s23, s160) ^ s196;
     f ^= plaintext;
 
-    // Shift the state downwards by 32 bits.
-    #define s_shift_32(name1, name2, shift) \
-        (state->name1##_l = state->name1##_h | (state->name2##_l << (shift)), \
-         state->name1##_h = (state->name2##_l >> (32 - (shift))))
+// Shift the state downwards by 32 bits.
+#define s_shift_32(name1, name2, shift)                                   \
+    (state->name1##_l = state->name1##_h | (state->name2##_l << (shift)), \
+     state->name1##_h = (state->name2##_l >> (32 - (shift))))
     s7_l ^= (f << 4);
     state->s7 = (uint8_t)(f >> 28);
     s_shift_32(s1, s2, 29);
@@ -451,8 +448,7 @@ static inline uint32_t acornDecrypt32(Acorn128State *state, uint32_t ciphertext)
 #elif defined(CRYPTO_ACORN128_AVR)
 
 // Import definitions from Acorn128AVR.cpp
-extern uint32_t acornEncrypt32
-    (Acorn128State *state, uint32_t plaintext, uint32_t ca, uint32_t cb);
+extern uint32_t acornEncrypt32(Acorn128State *state, uint32_t plaintext, uint32_t ca, uint32_t cb);
 
 #endif // CRYPTO_ACORN128_AVR
 
@@ -478,7 +474,8 @@ bool Acorn128::setKey(const uint8_t *key, size_t len)
 {
     // We cannot initialize the key block until we also have the IV.
     // So we simply validate the length and save the key away for later.
-    if (len == 16) {
+    if (len == 16)
+    {
         memcpy(state.k, key, 16);
 #if !defined(CRYPTO_LITTLE_ENDIAN)
         state.k[0] = le32toh(state.k[0]);
@@ -487,7 +484,9 @@ bool Acorn128::setKey(const uint8_t *key, size_t len)
         state.k[3] = le32toh(state.k[3]);
 #endif
         return true;
-    } else {
+    }
+    else
+    {
         return false;
     }
 }
@@ -537,7 +536,8 @@ bool Acorn128::setIV(const uint8_t *iv, size_t len)
     acornEncrypt32(&state, state.k[1], CA_1, CB_1);
     acornEncrypt32(&state, state.k[2], CA_1, CB_1);
     acornEncrypt32(&state, state.k[3], CA_1, CB_1);
-    for (uint8_t i = 0; i < 11; ++i) {
+    for (uint8_t i = 0; i < 11; ++i)
+    {
         acornEncrypt32(&state, state.k[0], CA_1, CB_1);
         acornEncrypt32(&state, state.k[1], CA_1, CB_1);
         acornEncrypt32(&state, state.k[2], CA_1, CB_1);
@@ -553,15 +553,17 @@ bool Acorn128::setIV(const uint8_t *iv, size_t len)
 
 void Acorn128::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    if (!state.authDone) {
+    if (!state.authDone)
+    {
         acornPad(&state, CB_1);
         state.authDone = 1;
     }
-    while (len >= 4) {
+    while (len >= 4)
+    {
         uint32_t temp = ((uint32_t)input[0]) |
-                       (((uint32_t)input[1]) << 8) |
-                       (((uint32_t)input[2]) << 16) |
-                       (((uint32_t)input[3]) << 24);
+                        (((uint32_t)input[1]) << 8) |
+                        (((uint32_t)input[2]) << 16) |
+                        (((uint32_t)input[3]) << 24);
         temp = acornEncrypt32Fast(&state, temp);
         output[0] = (uint8_t)temp;
         output[1] = (uint8_t)(temp >> 8);
@@ -571,7 +573,8 @@ void Acorn128::encrypt(uint8_t *output, const uint8_t *input, size_t len)
         output += 4;
         len -= 4;
     }
-    while (len > 0) {
+    while (len > 0)
+    {
         *output++ = acornEncrypt8(&state, *input++, CA_1_BYTE, CB_0_BYTE);
         --len;
     }
@@ -579,15 +582,17 @@ void Acorn128::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 
 void Acorn128::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    if (!state.authDone) {
+    if (!state.authDone)
+    {
         acornPad(&state, CB_1);
         state.authDone = 1;
     }
-    while (len >= 4) {
+    while (len >= 4)
+    {
         uint32_t temp = ((uint32_t)input[0]) |
-                       (((uint32_t)input[1]) << 8) |
-                       (((uint32_t)input[2]) << 16) |
-                       (((uint32_t)input[3]) << 24);
+                        (((uint32_t)input[1]) << 8) |
+                        (((uint32_t)input[2]) << 16) |
+                        (((uint32_t)input[3]) << 24);
         temp = acornDecrypt32(&state, temp);
         output[0] = (uint8_t)temp;
         output[1] = (uint8_t)(temp >> 8);
@@ -597,7 +602,8 @@ void Acorn128::decrypt(uint8_t *output, const uint8_t *input, size_t len)
         output += 4;
         len -= 4;
     }
-    while (len > 0) {
+    while (len > 0)
+    {
         *output++ = acornDecrypt8(&state, *input++);
         --len;
     }
@@ -611,16 +617,18 @@ void Acorn128::addAuthData(const void *data, size_t len)
 
     // Encrypt the auth data with ca = 1, cb = 1.
     const uint8_t *input = (const uint8_t *)data;
-    while (len >= 4) {
+    while (len >= 4)
+    {
         uint32_t temp = ((uint32_t)input[0]) |
-                       (((uint32_t)input[1]) << 8) |
-                       (((uint32_t)input[2]) << 16) |
-                       (((uint32_t)input[3]) << 24);
+                        (((uint32_t)input[1]) << 8) |
+                        (((uint32_t)input[2]) << 16) |
+                        (((uint32_t)input[3]) << 24);
         acornEncrypt32(&state, temp, CA_1, CB_1);
         input += 4;
         len -= 4;
     }
-    while (len > 0) {
+    while (len > 0)
+    {
         acornEncrypt8(&state, *input++, CA_1_BYTE, CB_1_BYTE);
         --len;
     }

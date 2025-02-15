@@ -6,21 +6,22 @@
 #include <SimpleTimer.h>
 #include <Statistic.h>
 
-class StatisticController final {
+class StatisticController final
+{
 public:
   void setup();
 
-  void loop(Print& print,
-            const Statistic* statistics[],
+  void loop(Print &print,
+            const Statistic *statistics[],
             const uint8_t statisticSize);
 
-  void printStatisticTable(Print& print,
-                           const Statistic* statistics[],
+  void printStatisticTable(Print &print,
+                           const Statistic *statistics[],
                            const uint8_t statisticSize);
 
-  void printRam(Print& print);
+  void printRam(Print &print);
 
-  void printInterruptTable(Print& print);
-};  // end StatisticController class
+  void printInterruptTable(Print &print);
+}; // end StatisticController class
 
 #endif

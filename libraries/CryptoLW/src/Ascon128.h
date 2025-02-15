@@ -49,7 +49,8 @@ public:
     void clear();
 
 private:
-    struct {
+    struct
+    {
         uint64_t K[2];
         uint64_t S[5];
     } state;

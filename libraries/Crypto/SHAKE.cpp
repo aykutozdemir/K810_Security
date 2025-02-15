@@ -70,7 +70,8 @@ void SHAKE::update(const void *data, size_t len)
 
 void SHAKE::extend(uint8_t *data, size_t len)
 {
-    if (!finalized) {
+    if (!finalized)
+    {
         core.pad(0x1F);
         finalized = true;
     }
@@ -79,7 +80,8 @@ void SHAKE::extend(uint8_t *data, size_t len)
 
 void SHAKE::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    if (!finalized) {
+    if (!finalized)
+    {
         core.pad(0x1F);
         finalized = true;
     }

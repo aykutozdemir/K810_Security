@@ -100,35 +100,34 @@
 // Choose the input capture timer and pin to use for this board.
 #if defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
 // Arduino Mega or Mega 2560 - input capture on TIMER4 and D49/PL0.
-#define RING_TIMER      4
-#define RING_PIN        49
-#define RING_CAPT_vect  TIMER4_CAPT_vect
-#define RING_ICR        ICR4
+#define RING_TIMER 4
+#define RING_PIN 49
+#define RING_CAPT_vect TIMER4_CAPT_vect
+#define RING_ICR ICR4
 #elif defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
 // Arduino Leonardo - input capture on Timer1 and D4/PD4.
-#define RING_TIMER      1
-#define RING_PIN        4
-#define RING_CAPT_vect  TIMER1_CAPT_vect
-#define RING_ICR        ICR1
+#define RING_TIMER 1
+#define RING_PIN 4
+#define RING_CAPT_vect TIMER1_CAPT_vect
+#define RING_ICR ICR1
 #else
 // Assuming Arduino Uno or equivalent - input capture on TIMER1 and D8/PB0.
-#define RING_TIMER      1
-#define RING_PIN        8
-#define RING_CAPT_vect  TIMER1_CAPT_vect
-#define RING_ICR        ICR1
+#define RING_TIMER 1
+#define RING_PIN 8
+#define RING_CAPT_vect TIMER1_CAPT_vect
+#define RING_ICR ICR1
 #endif
 
 // Calibration states.
-#define NOISE_NOT_CALIBRATING   0
-#define NOISE_CALIBRATING       1
+#define NOISE_NOT_CALIBRATING 0
+#define NOISE_CALIBRATING 1
 
 // If there is no capture event for this many milliseconds,
 // then assume that the oscillator is stopped or disconnected.
-#define RING_DISCONNECT_TIME    200
+#define RING_DISCONNECT_TIME 200
 
 RingOscillatorNoiseSource::RingOscillatorNoiseSource()
-    : calState(NOISE_CALIBRATING)
-    , lastSignal(millis())
+    : calState(NOISE_CALIBRATING), lastSignal(millis())
 {
     // Initialize the bit collection routines.
     restart();
@@ -139,23 +138,23 @@ RingOscillatorNoiseSource::RingOscillatorNoiseSource()
 
 #if RING_TIMER == 1
     // Set up TIMER1 to perform input capture on PB8/D8.
-    TCCR1B = 0;                 // Turn off TIMER1.
-    TIMSK1 = 0;                 // Turn off TIMER1 interrupts.
-    TCNT1 = 0;                  // Zero the timer.
-    TCCR1A = 0;                 // Turn off output compare.
-    TCCR1B |= (1 << ICES1);     // Input capture on rising edge.
-    TIMSK1 |= (1 << ICIE1);     // Input capture interrupts enabled.
+    TCCR1B = 0;             // Turn off TIMER1.
+    TIMSK1 = 0;             // Turn off TIMER1 interrupts.
+    TCNT1 = 0;              // Zero the timer.
+    TCCR1A = 0;             // Turn off output compare.
+    TCCR1B |= (1 << ICES1); // Input capture on rising edge.
+    TIMSK1 |= (1 << ICIE1); // Input capture interrupts enabled.
 
     // Start TIMER1 at the highest frequency with no prescaling.
     TCCR1B |= (1 << CS10);
 #elif RING_TIMER == 4
     // Set up TIMER4 to perform input capture on PL0/D49.
-    TCCR4B = 0;                 // Turn off TIMER4.
-    TIMSK4 = 0;                 // Turn off TIMER4 interrupts.
-    TCNT4 = 0;                  // Zero the timer.
-    TCCR4A = 0;                 // Turn off output compare.
-    TCCR4B |= (1 << ICES4);     // Input capture on rising edge.
-    TIMSK4 |= (1 << ICIE4);     // Input capture interrupts enabled.
+    TCCR4B = 0;             // Turn off TIMER4.
+    TIMSK4 = 0;             // Turn off TIMER4 interrupts.
+    TCNT4 = 0;              // Zero the timer.
+    TCCR4A = 0;             // Turn off output compare.
+    TCCR4B |= (1 << ICES4); // Input capture on rising edge.
+    TIMSK4 |= (1 << ICIE4); // Input capture interrupts enabled.
 
     // Start TIMER4 at the highest frequency with no prescaling.
     TCCR4B |= (1 << CS10);
@@ -204,22 +203,27 @@ void RingOscillatorNoiseSource::stir()
     // interrupts while we read the "out" buffer and reset "outBits".
     unsigned long now = millis();
     cli();
-    if (outBits >= 16) {
+    if (outBits >= 16)
+    {
         uint16_t bits = out;
         outBits = 0;
         sei();
-        for (uint8_t index = 0; index < 8; ++index) {
+        for (uint8_t index = 0; index < 8; ++index)
+        {
             // Collect two bits of input and remove bias using the Von Neumann
             // method.  If both bits are the same, then discard both.
             // Otherwise choose one of the bits and output that one.
             // We have to do this carefully so that instruction timing does
             // not reveal the value of the bit that is chosen.
-            if ((bits ^ (bits << 1)) & 0x8000) {
+            if ((bits ^ (bits << 1)) & 0x8000)
+            {
                 // The bits are different: add the top-most to the buffer.
-                if (posn < sizeof(buffer)) {
+                if (posn < sizeof(buffer))
+                {
                     buffer[posn] = (buffer[posn] >> 1) |
                                    (((uint8_t)(bits >> 8)) & (uint8_t)0x80);
-                    if (++bitNum >= 8) {
+                    if (++bitNum >= 8)
+                    {
                         ++posn;
                         bitNum = 0;
                     }
@@ -227,15 +231,19 @@ void RingOscillatorNoiseSource::stir()
             }
             bits = bits << 2;
         }
-    } else {
+    }
+    else
+    {
         // The "out" buffer isn't full yet.  Re-enable interrupts.
         sei();
 
         // If it has been too long since the last useful block,
         // then go back to calibrating.  The oscillator may be
         // stopped or disconnected.
-        if (calState == NOISE_NOT_CALIBRATING) {
-            if ((now - lastSignal) >= RING_DISCONNECT_TIME) {
+        if (calState == NOISE_NOT_CALIBRATING)
+        {
+            if ((now - lastSignal) >= RING_DISCONNECT_TIME)
+            {
                 restart();
                 calState = NOISE_CALIBRATING;
             }
@@ -246,7 +254,8 @@ void RingOscillatorNoiseSource::stir()
     // We credit 1 bit of entropy for every 8 bits of output because
     // ring oscillators aren't quite as good as a true noise source.
     // We have to collect a lot more data to get something random enough.
-    if (posn >= sizeof(buffer)) {
+    if (posn >= sizeof(buffer))
+    {
         output(buffer, posn, posn);
         restart();
         calState = NOISE_NOT_CALIBRATING;

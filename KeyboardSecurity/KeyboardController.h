@@ -6,9 +6,11 @@
 
 #define SEED_LENGTH 16
 
-class KeyboardController final {
+class KeyboardController final
+{
 public:
-  enum State : uint8_t {
+  enum State : uint8_t
+  {
     LOCKED,
     UNLOCKED
   };
@@ -21,7 +23,7 @@ public:
 
   void unlock();
 
-  static void generateSeed(byte* const seedArr,
+  static void generateSeed(byte *const seedArr,
                            const uint8_t arrLength);
 
   static byte generateSalt();
@@ -30,22 +32,22 @@ public:
 
   static void seedChecked();
 
-  static void cypherEncryption(byte* const dataArr,
+  static void cypherEncryption(byte *const dataArr,
                                const uint8_t arrLength,
                                const byte salt);
 
-  static void cypherDecryption(byte* const dataArr,
+  static void cypherDecryption(byte *const dataArr,
                                const uint8_t arrLength,
                                const byte salt);
 
-  static void cypherEncryption(byte* const dataArr,
+  static void cypherEncryption(byte *const dataArr,
                                const uint8_t dataArrLength,
-                               byte* const seedArr,
+                               byte *const seedArr,
                                const uint8_t seedArrLength);
 
-  static void cypherDecryption(byte* const dataArr,
+  static void cypherDecryption(byte *const dataArr,
                                const uint8_t dataArrLength,
-                               byte* const seedArr,
+                               byte *const seedArr,
                                const uint8_t seedArrLength);
 
   void loop();
@@ -54,6 +56,6 @@ private:
   ezOutput m_keyboardPowerOutput;
 
   State m_state;
-};  // end KeyboardController class
+}; // end KeyboardController class
 
 #endif

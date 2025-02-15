@@ -3,7 +3,8 @@
 
 #include <avr/wdt.h>
 
-class WatchdogController final {
+class WatchdogController final
+{
 public:
   WatchdogController();
 
@@ -12,6 +13,6 @@ public:
   void disable();
 
   void loop();
-};  // end WatchdogController class
+}; // end WatchdogController class
 
 #endif

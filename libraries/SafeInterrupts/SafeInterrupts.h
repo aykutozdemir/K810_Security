@@ -11,31 +11,38 @@
 #undef sei
 #endif
 
-class SafeInterrupts final {
+class SafeInterrupts final
+{
 private:
-    static volatile uint8_t interruptDepth;  // Track depth of nested disable calls
+    static volatile uint8_t interruptDepth; // Track depth of nested disable calls
 
 public:
     // Disable global interrupts safely
-    static inline void disable() {
-        if (interruptDepth == 0) {
-            asm volatile("cli");  // Directly disable interrupts
+    static inline void disable()
+    {
+        if (interruptDepth == 0)
+        {
+            asm volatile("cli"); // Directly disable interrupts
         }
         interruptDepth++;
     }
 
     // Enable global interrupts safely
-    static inline void enable() {
-        if (interruptDepth > 0) {
-            interruptDepth--;  // Decrease depth counter
+    static inline void enable()
+    {
+        if (interruptDepth > 0)
+        {
+            interruptDepth--; // Decrease depth counter
         }
-        if (interruptDepth == 0) {
-            asm volatile("sei");  // Only re-enable when all disable calls are cleared
+        if (interruptDepth == 0)
+        {
+            asm volatile("sei"); // Only re-enable when all disable calls are cleared
         }
     }
 
     // Scoped interrupt guard (disables on enter, restores on exit)
-    class ScopedDisable final {
+    class ScopedDisable final
+    {
     public:
         inline ScopedDisable() { SafeInterrupts::disable(); }
         inline ~ScopedDisable() { SafeInterrupts::enable(); }

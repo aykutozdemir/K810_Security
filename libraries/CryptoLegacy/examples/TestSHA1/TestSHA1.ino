@@ -45,32 +45,28 @@ static TestHashVector const testVectorSHA1_1 = {
     "abc",
     {0xA9, 0x99, 0x3E, 0x36, 0x47, 0x06, 0x81, 0x6A,
      0xBA, 0x3E, 0x25, 0x71, 0x78, 0x50, 0xC2, 0x6C,
-     0x9C, 0xD0, 0xD8, 0x9D}
-};
+     0x9C, 0xD0, 0xD8, 0x9D}};
 static TestHashVector const testVectorSHA1_2 = {
     "SHA-1 #2",
     0,
     "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
     {0x84, 0x98, 0x3E, 0x44, 0x1C, 0x3B, 0xD2, 0x6E,
      0xBA, 0xAE, 0x4A, 0xA1, 0xF9, 0x51, 0x29, 0xE5,
-     0xE5, 0x46, 0x70, 0xF1}
-};
+     0xE5, 0x46, 0x70, 0xF1}};
 static TestHashVector const testVectorHMAC_SHA1_1 = {
     "HMAC-SHA-1 #1",
     "",
     "",
     {0xfb, 0xdb, 0x1d, 0x1b, 0x18, 0xaa, 0x6c, 0x08,
      0x32, 0x4b, 0x7d, 0x64, 0xb7, 0x1f, 0xb7, 0x63,
-     0x70, 0x69, 0x0e, 0x1d}
-};
+     0x70, 0x69, 0x0e, 0x1d}};
 static TestHashVector const testVectorHMAC_SHA1_2 = {
     "HMAC-SHA-1 #2",
     "key",
     "The quick brown fox jumps over the lazy dog",
     {0xde, 0x7c, 0x9b, 0x85, 0xb8, 0xb7, 0x8a, 0xa6,
      0xbc, 0x8a, 0x7a, 0x36, 0xf7, 0x0a, 0x90, 0x70,
-     0x1c, 0x9d, 0xb4, 0xd9}
-};
+     0x1c, 0x9d, 0xb4, 0xd9}};
 
 SHA1 sha1;
 
@@ -83,7 +79,8 @@ bool testHash_N(Hash *hash, const struct TestHashVector *test, size_t inc)
     uint8_t value[HASH_SIZE];
 
     hash->reset();
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -103,7 +100,7 @@ void testHash(Hash *hash, const struct TestHashVector *test)
     Serial.print(test->name);
     Serial.print(" ... ");
 
-    ok  = testHash_N(hash, test, strlen(test->data));
+    ok = testHash_N(hash, test, strlen(test->data));
     ok &= testHash_N(hash, test, 1);
     ok &= testHash_N(hash, test, 2);
     ok &= testHash_N(hash, test, 5);
@@ -126,21 +123,26 @@ void hashKey(Hash *hash, const uint8_t *key, size_t keyLen, uint8_t pad)
     size_t posn;
     uint8_t buf;
     uint8_t result[HASH_SIZE];
-    if (keyLen <= BLOCK_SIZE) {
+    if (keyLen <= BLOCK_SIZE)
+    {
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < keyLen)
                 buf = key[posn] ^ pad;
             else
                 buf = pad;
             hash->update(&buf, 1);
         }
-    } else {
+    }
+    else
+    {
         hash->reset();
         hash->update(key, keyLen);
         hash->finalize(result, HASH_SIZE);
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < HASH_SIZE)
                 buf = result[posn] ^ pad;
             else
@@ -213,7 +215,8 @@ void perfHash(Hash *hash)
 
     hash->reset();
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->update(buffer, sizeof(buffer));
     }
     elapsed = micros() - start;
@@ -235,7 +238,8 @@ void perfFinalize(Hash *hash)
     hash->reset();
     hash->update("abc", 3);
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->finalize(buffer, hash->hashSize());
     }
     elapsed = micros() - start;
@@ -258,7 +262,8 @@ void perfHMAC(Hash *hash)
         buffer[posn] = (uint8_t)posn;
 
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->resetHMAC(buffer, hash->hashSize());
     }
     elapsed = micros() - start;
@@ -273,7 +278,8 @@ void perfHMAC(Hash *hash)
     hash->resetHMAC(buffer, hash->hashSize());
     hash->update("abc", 3);
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->finalizeHMAC(buffer, hash->hashSize(), buffer, hash->hashSize());
     }
     elapsed = micros() - start;

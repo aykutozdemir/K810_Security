@@ -30,7 +30,6 @@ class Hash;
 class P521
 {
 public:
-
     static bool eval(uint8_t result[132], const uint8_t f[66], const uint8_t point[132]);
 
     static void dh1(uint8_t k[132], uint8_t f[66]);

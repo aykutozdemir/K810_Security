@@ -57,7 +57,8 @@ protected:
     }
 
 private:
-    struct {
+    struct
+    {
         uint8_t counter[16];
         uint8_t stream[16];
         uint8_t tag[16];

@@ -94,7 +94,8 @@ void SHA256::update(const void *data, size_t len)
 
     // Break the input up into 512-bit chunks and process each in turn.
     const uint8_t *d = (const uint8_t *)data;
-    while (len > 0) {
+    while (len > 0)
+    {
         uint8_t size = 64 - state.chunkSize;
         if (size > len)
             size = len;
@@ -102,7 +103,8 @@ void SHA256::update(const void *data, size_t len)
         state.chunkSize += size;
         len -= size;
         d += size;
-        if (state.chunkSize == 64) {
+        if (state.chunkSize == 64)
+        {
             processChunk();
             state.chunkSize = 0;
         }
@@ -114,13 +116,16 @@ void SHA256::finalize(void *hash, size_t len)
     // Pad the last chunk.  We may need two padding chunks if there
     // isn't enough room in the first for the padding and length.
     uint8_t *wbytes = (uint8_t *)state.w;
-    if (state.chunkSize <= (64 - 9)) {
+    if (state.chunkSize <= (64 - 9))
+    {
         wbytes[state.chunkSize] = 0x80;
         memset(wbytes + state.chunkSize + 1, 0x00, 64 - 8 - (state.chunkSize + 1));
         state.w[14] = htobe32((uint32_t)(state.length >> 32));
         state.w[15] = htobe32((uint32_t)state.length);
         processChunk();
-    } else {
+    }
+    else
+    {
         wbytes[state.chunkSize] = 0x80;
         memset(wbytes + state.chunkSize + 1, 0x00, 64 - (state.chunkSize + 1));
         processChunk();
@@ -190,8 +195,7 @@ void SHA256::processChunk()
         0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
         0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
         0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-    };
+        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
     // Convert the first 16 words from big endian to host byte order.
     uint8_t index;
@@ -210,7 +214,8 @@ void SHA256::processChunk()
 
     // Perform the first 16 rounds of the compression function main loop.
     uint32_t temp1, temp2;
-    for (index = 0; index < 16; ++index) {
+    for (index = 0; index < 16; ++index)
+    {
         temp1 = h + pgm_read_dword(k + index) + state.w[index] +
                 (rightRotate6(e) ^ rightRotate11(e) ^ rightRotate25(e)) +
                 ((e & f) ^ ((~e) & g));
@@ -229,14 +234,15 @@ void SHA256::processChunk()
     // Perform the 48 remaining rounds.  We expand the first 16 words to
     // 64 in-place in the "w" array.  This saves 192 bytes of memory
     // that would have otherwise need to be allocated to the "w" array.
-    for (; index < 64; ++index) {
+    for (; index < 64; ++index)
+    {
         // Expand the next word.
         temp1 = state.w[(index - 15) & 0x0F];
         temp2 = state.w[(index - 2) & 0x0F];
         temp1 = state.w[index & 0x0F] =
             state.w[(index - 16) & 0x0F] + state.w[(index - 7) & 0x0F] +
-                (rightRotate7(temp1) ^ rightRotate18(temp1) ^ (temp1 >> 3)) +
-                (rightRotate17(temp2) ^ rightRotate19(temp2) ^ (temp2 >> 10));
+            (rightRotate7(temp1) ^ rightRotate18(temp1) ^ (temp1 >> 3)) +
+            (rightRotate17(temp2) ^ rightRotate19(temp2) ^ (temp2 >> 10));
 
         // Perform the round.
         temp1 = h + pgm_read_dword(k + index) + temp1 +

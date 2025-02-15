@@ -56,7 +56,8 @@ protected:
 private:
     BlockCipher *blockCipher;
     GHASH ghash;
-    struct {
+    struct
+    {
         uint8_t counter[16];
         uint8_t stream[16];
         uint8_t nonce[16];

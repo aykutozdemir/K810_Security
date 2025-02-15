@@ -86,7 +86,8 @@ void GHASH::update(const void *data, size_t len)
 {
     // XOR the input with state.Y in 128-bit chunks and process them.
     const uint8_t *d = (const uint8_t *)data;
-    while (len > 0) {
+    while (len > 0)
+    {
         uint8_t size = 16 - state.posn;
         if (size > len)
             size = len;
@@ -96,7 +97,8 @@ void GHASH::update(const void *data, size_t len)
         state.posn += size;
         len -= size;
         d += size;
-        if (state.posn == 16) {
+        if (state.posn == 16)
+        {
             GF128::mul(state.Y, state.H);
             state.posn = 0;
         }
@@ -136,7 +138,8 @@ void GHASH::finalize(void *token, size_t len)
  */
 void GHASH::pad()
 {
-    if (state.posn != 0) {
+    if (state.posn != 0)
+    {
         // Padding involves XOR'ing the rest of state.Y with zeroes,
         // which does nothing.  Immediately process the next chunk.
         GF128::mul(state.Y, state.H);

@@ -11,17 +11,19 @@
 #include <ezOutput.h> // ezOutput library
 
 const int BUTTON_PIN = 7;
-ezOutput led(9);  // create ezOutput object that attach to pin 9;
+ezOutput led(9); // create ezOutput object that attach to pin 9;
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
-void loop() {
+void loop()
+{
   int buttonState = digitalRead(BUTTON_PIN);
 
-  if(buttonState == HIGH)
+  if (buttonState == HIGH)
     led.high();
   else
     led.low();

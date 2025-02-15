@@ -21,12 +21,13 @@
 #define PIN_LED_3 9
 
 ezLED ledArray[NUM_LED] = {
-  ezLED(PIN_LED_1),  // create ezLED object that attach to pin PIN_LED_1
-  ezLED(PIN_LED_2),  // create ezLED object that attach to pin PIN_LED_2
-  ezLED(PIN_LED_3)   // create ezLED object that attach to pin PIN_LED_3
+    ezLED(PIN_LED_1), // create ezLED object that attach to pin PIN_LED_1
+    ezLED(PIN_LED_2), // create ezLED object that attach to pin PIN_LED_2
+    ezLED(PIN_LED_3)  // create ezLED object that attach to pin PIN_LED_3
 };
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
 
   ledArray[0].blink(500, 500);                  // 500ms ON, 500ms OFF, blink immediately
@@ -34,12 +35,14 @@ void setup() {
   ledArray[2].blinkNumberOfTimes(250, 750, 10); // 250ms ON, 750ms OFF, repeat 10 times, blink immediately
 }
 
-void loop() {
+void loop()
+{
   for (int i = 0; i < NUM_LED; i++)
     ledArray[i].loop(); // MUST call the led.loop() function in loop()
 
   // print the operation state
-  for (int i = 0; i < NUM_LED; i++) {
+  for (int i = 0; i < NUM_LED; i++)
+  {
     Serial.print("LED ");
     Serial.print(i + 1);
 

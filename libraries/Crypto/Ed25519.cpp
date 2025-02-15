@@ -78,38 +78,31 @@
 // 37095705934669439343138083508754565189542113879843219016388785533085940283555
 static limb_t const numD[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0x135978A3, 0x75EB4DCA), LIMB_PAIR(0x4141D8AB, 0x00700A4D),
-    LIMB_PAIR(0x7779E898, 0x8CC74079), LIMB_PAIR(0x2B6FFE73, 0x52036CEE)
-};
+    LIMB_PAIR(0x7779E898, 0x8CC74079), LIMB_PAIR(0x2B6FFE73, 0x52036CEE)};
 
 // d * 2
 static limb_t const numDx2[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0x26B2F159, 0xEBD69B94), LIMB_PAIR(0x8283B156, 0x00E0149A),
-    LIMB_PAIR(0xEEF3D130, 0x198E80F2), LIMB_PAIR(0x56DFFCE7, 0x2406D9DC)
-};
+    LIMB_PAIR(0xEEF3D130, 0x198E80F2), LIMB_PAIR(0x56DFFCE7, 0x2406D9DC)};
 
 // Extended homogenous co-ordinates for the base point.
 static limb_t const numBx[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0x8F25D51A, 0xC9562D60), LIMB_PAIR(0x9525A7B2, 0x692CC760),
-    LIMB_PAIR(0xFDD6DC5C, 0xC0A4E231), LIMB_PAIR(0xCD6E53FE, 0x216936D3)
-};
+    LIMB_PAIR(0xFDD6DC5C, 0xC0A4E231), LIMB_PAIR(0xCD6E53FE, 0x216936D3)};
 static limb_t const numBy[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0x66666658, 0x66666666), LIMB_PAIR(0x66666666, 0x66666666),
-    LIMB_PAIR(0x66666666, 0x66666666), LIMB_PAIR(0x66666666, 0x66666666)
-};
+    LIMB_PAIR(0x66666666, 0x66666666), LIMB_PAIR(0x66666666, 0x66666666)};
 static limb_t const numBz[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0x00000001, 0x00000000), LIMB_PAIR(0x00000000, 0x00000000),
-    LIMB_PAIR(0x00000000, 0x00000000), LIMB_PAIR(0x00000000, 0x00000000)
-};
+    LIMB_PAIR(0x00000000, 0x00000000), LIMB_PAIR(0x00000000, 0x00000000)};
 static limb_t const numBt[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0xA5B7DDA3, 0x6DDE8AB3), LIMB_PAIR(0x775152F5, 0x20F09F80),
-    LIMB_PAIR(0x64ABE37D, 0x66EA4E8E), LIMB_PAIR(0xD78B7665, 0x67875F0F)
-};
+    LIMB_PAIR(0x64ABE37D, 0x66EA4E8E), LIMB_PAIR(0xD78B7665, 0x67875F0F)};
 
 // 2^252 + 27742317777372353535851937790883648493
 static limb_t const numQ[NUM_LIMBS_256BIT] PROGMEM = {
     LIMB_PAIR(0x5CF5D3ED, 0x5812631A), LIMB_PAIR(0xA2F79CD6, 0x14DEF9DE),
-    LIMB_PAIR(0x00000000, 0x00000000), LIMB_PAIR(0x00000000, 0x10000000)
-};
+    LIMB_PAIR(0x00000000, 0x00000000), LIMB_PAIR(0x00000000, 0x10000000)};
 
 /** @endcond */
 
@@ -198,7 +191,8 @@ bool Ed25519::verify(const uint8_t signature[64], const uint8_t publicKey[32],
     bool result = false;
 
     // Decode the public key and the R component of the signature.
-    if (decodePoint(A, publicKey) && decodePoint(R, signature)) {
+    if (decodePoint(A, publicKey) && decodePoint(R, signature))
+    {
         // Reconstruct the k value from the signing step.
         hash.reset();
         hash.update(signature, 32);
@@ -318,8 +312,7 @@ void Ed25519::reduceQ(limb_t *result, limb_t *r)
     static limb_t const numM[NUM_LIMBS_256BIT + 1] PROGMEM = {
         LIMB_PAIR(0x0A2C131B, 0xED9CE5A3), LIMB_PAIR(0x086329A7, 0x2106215D),
         LIMB_PAIR(0xFFFFFFEB, 0xFFFFFFFF), LIMB_PAIR(0xFFFFFFFF, 0xFFFFFFFF),
-        0x0F
-    };
+        0x0F};
     limb_t temp[NUM_LIMBS_512BIT + NUM_LIMBS_256BIT + 1];
 
     // Multiply r by m.
@@ -367,12 +360,14 @@ void Ed25519::mul(Point &result, const limb_t *s, Point &p, bool constTime)
     // Iterate over the 255 bits of "s" to calculate "s * p".
     mask = 1;
     sposn = 0;
-    for (t = 255; t > 0; --t) {
+    for (t = 255; t > 0; --t)
+    {
         // Add p to the result to produce q.  The specification refers
         // to temporary variables A to H.  We can dispense with E to H
         // by using B, D, q.z, and q.t to hold those values temporarily.
         select = s[sposn] & mask;
-        if (constTime || select) {
+        if (constTime || select)
+        {
             Curve25519::sub(A, result.y, result.x);
             Curve25519::sub(C, p.y, p.x);
             Curve25519::mul(A, A, C);
@@ -383,28 +378,31 @@ void Ed25519::mul(Point &result, const limb_t *s, Point &p, bool constTime)
             Curve25519::mul_P(C, C, numDx2);
             Curve25519::mul(D, result.z, p.z);
             Curve25519::add(D, D, D);
-            Curve25519::sub(q.t, B, A);             // E = B - A
-            Curve25519::sub(q.z, D, C);             // F = D - C
-            Curve25519::add(D, D, C);               // G = D + C
-            Curve25519::add(B, B, A);               // H = B + A
-            if (constTime) {
+            Curve25519::sub(q.t, B, A); // E = B - A
+            Curve25519::sub(q.z, D, C); // F = D - C
+            Curve25519::add(D, D, C);   // G = D + C
+            Curve25519::add(B, B, A);   // H = B + A
+            if (constTime)
+            {
                 // Put the intermediate value into q.
-                Curve25519::mul(q.x, q.t, q.z);         // q.x = E * F
-                Curve25519::mul(q.y, D, B);             // q.y = G * H
-                Curve25519::mul(q.z, q.z, D);           // q.z = F * G
-                Curve25519::mul(q.t, q.t, B);           // q.t = E * H
+                Curve25519::mul(q.x, q.t, q.z); // q.x = E * F
+                Curve25519::mul(q.y, D, B);     // q.y = G * H
+                Curve25519::mul(q.z, q.z, D);   // q.z = F * G
+                Curve25519::mul(q.t, q.t, B);   // q.t = E * H
 
                 // Copy q into the result if the current bit of s is 1.
                 Curve25519::cmove(select, result.x, q.x);
                 Curve25519::cmove(select, result.y, q.y);
                 Curve25519::cmove(select, result.z, q.z);
                 Curve25519::cmove(select, result.t, q.t);
-            } else {
+            }
+            else
+            {
                 // Put the intermediate value directly into the result.
-                Curve25519::mul(result.x, q.t, q.z);     // q.x = E * F
-                Curve25519::mul(result.y, D, B);         // q.y = G * H
-                Curve25519::mul(result.z, q.z, D);       // q.z = F * G
-                Curve25519::mul(result.t, q.t, B);       // q.t = E * H
+                Curve25519::mul(result.x, q.t, q.z); // q.x = E * F
+                Curve25519::mul(result.y, D, B);     // q.y = G * H
+                Curve25519::mul(result.z, q.z, D);   // q.z = F * G
+                Curve25519::mul(result.t, q.t, B);   // q.t = E * H
             }
         }
 
@@ -417,19 +415,22 @@ void Ed25519::mul(Point &result, const limb_t *s, Point &p, bool constTime)
         Curve25519::mul_P(C, C, numDx2);
         Curve25519::square(D, p.z);
         Curve25519::add(D, D, D);
-        Curve25519::sub(p.t, B, A);             // E = B - A
-        Curve25519::sub(p.z, D, C);             // F = D - C
-        Curve25519::add(D, D, C);               // G = D + C
-        Curve25519::add(B, B, A);               // H = B + A
-        Curve25519::mul(p.x, p.t, p.z);         // p.x = E * F
-        Curve25519::mul(p.y, D, B);             // p.y = G * H
-        Curve25519::mul(p.z, p.z, D);           // p.z = F * G
-        Curve25519::mul(p.t, p.t, B);           // p.t = E * H
+        Curve25519::sub(p.t, B, A);     // E = B - A
+        Curve25519::sub(p.z, D, C);     // F = D - C
+        Curve25519::add(D, D, C);       // G = D + C
+        Curve25519::add(B, B, A);       // H = B + A
+        Curve25519::mul(p.x, p.t, p.z); // p.x = E * F
+        Curve25519::mul(p.y, D, B);     // p.y = G * H
+        Curve25519::mul(p.z, p.z, D);   // p.z = F * G
+        Curve25519::mul(p.t, p.t, B);   // p.t = E * H
 
         // Move onto the next bit of s from lowest to highest.
-        if (mask != (((limb_t)1) << (LIMB_BITS - 1))) {
+        if (mask != (((limb_t)1) << (LIMB_BITS - 1)))
+        {
             mask <<= 1;
-        } else {
+        }
+        else
+        {
             ++sposn;
             mask = 1;
         }
@@ -485,14 +486,14 @@ void Ed25519::add(Point &p, const Point &q)
     Curve25519::mul_P(C, C, numDx2);
     Curve25519::mul(D, p.z, q.z);
     Curve25519::add(D, D, D);
-    Curve25519::sub(p.t, B, A);             // E = B - A
-    Curve25519::sub(p.z, D, C);             // F = D - C
-    Curve25519::add(D, D, C);               // G = D + C
-    Curve25519::add(B, B, A);               // H = B + A
-    Curve25519::mul(p.x, p.t, p.z);         // p.x = E * F
-    Curve25519::mul(p.y, D, B);             // p.y = G * H
-    Curve25519::mul(p.z, p.z, D);           // p.z = F * G
-    Curve25519::mul(p.t, p.t, B);           // p.t = E * H
+    Curve25519::sub(p.t, B, A);     // E = B - A
+    Curve25519::sub(p.z, D, C);     // F = D - C
+    Curve25519::add(D, D, C);       // G = D + C
+    Curve25519::add(B, B, A);       // H = B + A
+    Curve25519::mul(p.x, p.t, p.z); // p.x = E * F
+    Curve25519::mul(p.y, D, B);     // p.y = G * H
+    Curve25519::mul(p.z, p.z, D);   // p.z = F * G
+    Curve25519::mul(p.t, p.t, B);   // p.t = E * H
 
     clean(A);
     clean(B);
@@ -593,7 +594,8 @@ bool Ed25519::decodePoint(Point &point, const uint8_t *buf)
     limb_t check = point.t[0];
     for (uint8_t posn = 1; posn < NUM_LIMBS_256BIT; ++posn)
         check |= point.t[posn];
-    if (!check) {
+    if (!check)
+    {
         // If the sign bit is set, then decoding has failed.
         // Otherwise x is zero and we're done.
         if (sign)
@@ -605,7 +607,8 @@ bool Ed25519::decodePoint(Point &point, const uint8_t *buf)
     // Recover x by taking the sqrt of t and flipping the sign if necessary.
     if (!Curve25519::sqrt(point.x, point.t))
         return false;
-    if (sign != (point.x[0] & ((limb_t)1))) {
+    if (sign != (point.x[0] & ((limb_t)1)))
+    {
         // The signs are different so we want the other square root.
         memset(point.t, 0, sizeof(point.t));
         Curve25519::sub(point.x, point.t, point.x);
@@ -633,7 +636,7 @@ void Ed25519::deriveKeys(SHA512 *hash, limb_t *a, const uint8_t privateKey[32])
     hash->reset();
     hash->update(privateKey, 32);
     hash->finalize(buf, 0);
-    buf[0]  &= 0xF8;
+    buf[0] &= 0xF8;
     buf[31] &= 0x7F;
     buf[31] |= 0x40;
 

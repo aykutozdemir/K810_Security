@@ -72,8 +72,10 @@ bool AES192::setKey(const uint8_t *key, size_t len)
     uint8_t iteration = 1;
     uint8_t n = 24;
     uint8_t w = 6;
-    while (n < 208) {
-        if (w == 6) {
+    while (n < 208)
+    {
+        if (w == 6)
+        {
             // Every 24 bytes (6 words) we need to apply the key schedule core.
             keyScheduleCore(schedule + 24, schedule + 20, iteration);
             schedule[24] ^= schedule[0];
@@ -82,7 +84,9 @@ bool AES192::setKey(const uint8_t *key, size_t len)
             schedule[27] ^= schedule[3];
             ++iteration;
             w = 0;
-        } else {
+        }
+        else
+        {
             // Otherwise just XOR the word with the one 24 bytes previous.
             schedule[24] = schedule[20] ^ schedule[0];
             schedule[25] = schedule[21] ^ schedule[1];

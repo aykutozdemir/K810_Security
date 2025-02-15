@@ -15,7 +15,8 @@ public:
 protected:
     void output(const uint8_t *data, size_t len, unsigned int credit)
     {
-        for (size_t posn = 0; posn < len; ++posn) {
+        for (size_t posn = 0; posn < len; ++posn)
+        {
             uint8_t value = data[posn];
             Serial.print(hexchars[(value >> 4) & 0x0F]);
             Serial.print(hexchars[value & 0x0F]);
@@ -27,16 +28,19 @@ protected:
 RawNoiseSource noise(A1);
 bool calibrating = true;
 
-void setup() {
+void setup()
+{
     Serial.begin(9600);
     Serial.println();
     Serial.println("calibrating");
 }
 
-void loop() {
+void loop()
+{
     noise.stir();
     bool nowCalibrating = noise.calibrating();
-    if (nowCalibrating != calibrating) {
+    if (nowCalibrating != calibrating)
+    {
         calibrating = nowCalibrating;
         if (calibrating)
             Serial.println("calibrating");

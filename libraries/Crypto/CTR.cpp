@@ -40,9 +40,7 @@
  * This constructor should be followed by a call to setBlockCipher().
  */
 CTRCommon::CTRCommon()
-    : blockCipher(0)
-    , posn(16)
-    , counterStart(0)
+    : blockCipher(0), posn(16), counterStart(0)
 {
 }
 
@@ -127,8 +125,10 @@ bool CTRCommon::setIV(const uint8_t *iv, size_t len)
 
 void CTRCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    while (len > 0) {
-        if (posn >= 16) {
+    while (len > 0)
+    {
+        if (posn >= 16)
+        {
             // Generate a new encrypted counter block.
             blockCipher->encryptBlock(state, counter);
             posn = 0;
@@ -139,7 +139,8 @@ void CTRCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
             // if we could stop earlier because a byte is non-zero.
             uint16_t temp = 1;
             uint8_t index = 16;
-            while (index > counterStart) {
+            while (index > counterStart)
+            {
                 --index;
                 temp += counter[index];
                 counter[index] = (uint8_t)temp;
@@ -150,7 +151,8 @@ void CTRCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
         if (templen > len)
             templen = len;
         len -= templen;
-        while (templen > 0) {
+        while (templen > 0)
+        {
             *output++ = *input++ ^ state[posn++];
             --templen;
         }

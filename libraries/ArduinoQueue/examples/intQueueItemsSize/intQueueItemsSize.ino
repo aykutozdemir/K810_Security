@@ -17,7 +17,8 @@
 // Queue creation:
 ArduinoQueue<int> intQueue(QUEUE_SIZE_ITEMS);
 
-void printQueueStats() {
+void printQueueStats()
+{
   Serial.println("");
   Serial.printf("Size of each element:    %u bytes\r\n", intQueue.item_size());
   Serial.printf("Items in queue now:      %u items\r\n", intQueue.item_count());
@@ -28,7 +29,8 @@ void printQueueStats() {
   Serial.println("");
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   Serial.println("");
   Serial.println("========== Queue example ==========");
@@ -36,15 +38,20 @@ void setup() {
   Serial.println("===================================");
 }
 
-void loop() {
+void loop()
+{
   printQueueStats();
 
   // Add elements: (add more than the queue size for demo purposes)
-  for (int n = 1; n < QUEUE_SIZE_ITEMS + 5; n++) {
-    if (!intQueue.isFull()) {
+  for (int n = 1; n < QUEUE_SIZE_ITEMS + 5; n++)
+  {
+    if (!intQueue.isFull())
+    {
       Serial.printf("Adding value: %i\r\n", n);
       intQueue.enqueue(n);
-    } else {
+    }
+    else
+    {
       Serial.println("Queue is full!");
     }
   }
@@ -52,11 +59,15 @@ void loop() {
   printQueueStats();
 
   // Remove elements: (remove more than the queue size for demo purposes)
-  for (int n = 1; n < QUEUE_SIZE_ITEMS + 5; n++) {
-    if (!intQueue.isEmpty()) {
+  for (int n = 1; n < QUEUE_SIZE_ITEMS + 5; n++)
+  {
+    if (!intQueue.isEmpty())
+    {
       int value = intQueue.dequeue();
       Serial.printf("Removed value: %i\r\n", value);
-    } else {
+    }
+    else
+    {
       Serial.println("Queue is empty!");
     }
   }
@@ -64,7 +75,8 @@ void loop() {
   printQueueStats();
 
   // Loop forever
-  while (true) {
+  while (true)
+  {
 #ifdef ESP8266
     ESP.wdtFeed();
 #endif

@@ -45,8 +45,7 @@
  * \param numRounds Number of encryption rounds to use; usually 8, 12, or 20.
  */
 ChaCha::ChaCha(uint8_t numRounds)
-    : rounds(numRounds)
-    , posn(64)
+    : rounds(numRounds), posn(64)
 {
 }
 
@@ -88,15 +87,19 @@ bool ChaCha::setKey(const uint8_t *key, size_t len)
 {
     static const char tag128[] PROGMEM = "expand 16-byte k";
     static const char tag256[] PROGMEM = "expand 32-byte k";
-    if (len <= 16) {
+    if (len <= 16)
+    {
         memcpy_P(block, tag128, 16);
         memcpy(block + 16, key, len);
         memcpy(block + 32, key, len);
-        if (len < 16) {
+        if (len < 16)
+        {
             memset(block + 16 + len, 0, 16 - len);
             memset(block + 32 + len, 0, 16 - len);
         }
-    } else {
+    }
+    else
+    {
         if (len > 32)
             len = 32;
         memcpy_P(block, tag256, 16);
@@ -113,17 +116,22 @@ bool ChaCha::setIV(const uint8_t *iv, size_t len)
     // From draft-nir-cfrg-chacha20-poly1305-10.txt, we can use either
     // 64-bit or 96-bit nonces.  The 96-bit nonce consists of the high
     // word of the counter prepended to a regular 64-bit nonce for ChaCha.
-    if (len == 8) {
+    if (len == 8)
+    {
         memset(block + 48, 0, 8);
         memcpy(block + 56, iv, len);
         posn = 64;
         return true;
-    } else if (len == 12) {
+    }
+    else if (len == 12)
+    {
         memset(block + 48, 0, 4);
         memcpy(block + 52, iv, len);
         posn = 64;
         return true;
-    } else {
+    }
+    else
+    {
         return false;
     }
 }
@@ -146,19 +154,24 @@ bool ChaCha::setCounter(const uint8_t *counter, size_t len)
 {
     // Normally both the IV and the counter are 8 bytes in length.
     // However, if the IV was 12 bytes, then a 4 byte counter can be used.
-    if (len == 4 || len == 8) {
+    if (len == 4 || len == 8)
+    {
         memcpy(block + 48, counter, len);
         posn = 64;
         return true;
-    } else {
+    }
+    else
+    {
         return false;
     }
 }
 
 void ChaCha::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
-    while (len > 0) {
-        if (posn >= 64) {
+    while (len > 0)
+    {
+        if (posn >= 64)
+        {
             // Generate a new encrypted counter block.
             hashCore((uint32_t *)stream, (const uint32_t *)block, rounds);
             posn = 0;
@@ -169,7 +182,8 @@ void ChaCha::encrypt(uint8_t *output, const uint8_t *input, size_t len)
             // if we could stop earlier because a byte is non-zero.
             uint16_t temp = 1;
             uint8_t index = 48;
-            while (index < 56) {
+            while (index < 56)
+            {
                 temp += block[index];
                 block[index] = (uint8_t)temp;
                 temp >>= 8;
@@ -180,7 +194,8 @@ void ChaCha::encrypt(uint8_t *output, const uint8_t *input, size_t len)
         if (templen > len)
             templen = len;
         len -= templen;
-        while (templen > 0) {
+        while (templen > 0)
+        {
             *output++ = *input++ ^ stream[posn++];
             --templen;
         }
@@ -223,19 +238,20 @@ void ChaCha::clear()
 }
 
 // Perform a ChaCha quarter round operation.
-#define quarterRound(a, b, c, d)    \
-    do { \
-        uint32_t _b = (b); \
-        uint32_t _a = (a) + _b; \
+#define quarterRound(a, b, c, d)                \
+    do                                          \
+    {                                           \
+        uint32_t _b = (b);                      \
+        uint32_t _a = (a) + _b;                 \
         uint32_t _d = leftRotate((d) ^ _a, 16); \
-        uint32_t _c = (c) + _d; \
-        _b = leftRotate12(_b ^ _c); \
-        _a += _b; \
-        (d) = _d = leftRotate(_d ^ _a, 8); \
-        _c += _d; \
-        (a) = _a; \
-        (b) = leftRotate7(_b ^ _c); \
-        (c) = _c; \
+        uint32_t _c = (c) + _d;                 \
+        _b = leftRotate12(_b ^ _c);             \
+        _a += _b;                               \
+        (d) = _d = leftRotate(_d ^ _a, 8);      \
+        _c += _d;                               \
+        (a) = _a;                               \
+        (b) = leftRotate7(_b ^ _c);             \
+        (c) = _c;                               \
     } while (0)
 
 /**
@@ -260,18 +276,19 @@ void ChaCha::hashCore(uint32_t *output, const uint32_t *input, uint8_t rounds)
         output[posn] = le32toh(input[posn]);
 
     // Perform the ChaCha rounds in sets of two.
-    for (; rounds >= 2; rounds -= 2) {
+    for (; rounds >= 2; rounds -= 2)
+    {
         // Column round.
-        quarterRound(output[0], output[4], output[8],  output[12]);
-        quarterRound(output[1], output[5], output[9],  output[13]);
+        quarterRound(output[0], output[4], output[8], output[12]);
+        quarterRound(output[1], output[5], output[9], output[13]);
         quarterRound(output[2], output[6], output[10], output[14]);
         quarterRound(output[3], output[7], output[11], output[15]);
 
         // Diagonal round.
         quarterRound(output[0], output[5], output[10], output[15]);
         quarterRound(output[1], output[6], output[11], output[12]);
-        quarterRound(output[2], output[7], output[8],  output[13]);
-        quarterRound(output[3], output[4], output[9],  output[14]);
+        quarterRound(output[2], output[7], output[8], output[13]);
+        quarterRound(output[3], output[4], output[9], output[14]);
     }
 
     // Add the original input to the final output, convert back to

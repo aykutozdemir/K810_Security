@@ -46,8 +46,7 @@ static TestHashVector const testVectorSHA224_1 = {
     {0x23, 0x09, 0x7d, 0x22, 0x34, 0x05, 0xd8, 0x22,
      0x86, 0x42, 0xa4, 0x77, 0xbd, 0xa2, 0x55, 0xb3,
      0x2a, 0xad, 0xbc, 0xe4, 0xbd, 0xa0, 0xb3, 0xf7,
-     0xe3, 0x6c, 0x9d, 0xa7}
-};
+     0xe3, 0x6c, 0x9d, 0xa7}};
 static TestHashVector const testVectorSHA224_2 = {
     "SHA-224 #2",
     0,
@@ -55,8 +54,7 @@ static TestHashVector const testVectorSHA224_2 = {
     {0x75, 0x38, 0x8b, 0x16, 0x51, 0x27, 0x76, 0xcc,
      0x5d, 0xba, 0x5d, 0xa1, 0xfd, 0x89, 0x01, 0x50,
      0xb0, 0xc6, 0x45, 0x5c, 0xb4, 0xf5, 0x8b, 0x19,
-     0x52, 0x52, 0x25, 0x25}
-};
+     0x52, 0x52, 0x25, 0x25}};
 static TestHashVector const testVectorHMAC_SHA224_1 = {
     "HMAC-SHA-224 #1",
     "",
@@ -64,8 +62,7 @@ static TestHashVector const testVectorHMAC_SHA224_1 = {
     {0x5c, 0xe1, 0x4f, 0x72, 0x89, 0x46, 0x62, 0x21,
      0x3e, 0x27, 0x48, 0xd2, 0xa6, 0xba, 0x23, 0x4b,
      0x74, 0x26, 0x39, 0x10, 0xce, 0xdd, 0xe2, 0xf5,
-     0xa9, 0x27, 0x15, 0x24}
-};
+     0xa9, 0x27, 0x15, 0x24}};
 static TestHashVector const testVectorHMAC_SHA224_2 = {
     "HMAC-SHA-224 #2",
     "key",
@@ -73,8 +70,7 @@ static TestHashVector const testVectorHMAC_SHA224_2 = {
     {0x88, 0xff, 0x8b, 0x54, 0x67, 0x5d, 0x39, 0xb8,
      0xf7, 0x23, 0x22, 0xe6, 0x5f, 0xf9, 0x45, 0xc5,
      0x2d, 0x96, 0x37, 0x99, 0x88, 0xad, 0xa2, 0x56,
-     0x39, 0x74, 0x7e, 0x69}
-};
+     0x39, 0x74, 0x7e, 0x69}};
 
 SHA224 sha224;
 
@@ -87,7 +83,8 @@ bool testHash_N(Hash *hash, const struct TestHashVector *test, size_t inc)
     uint8_t value[HASH_SIZE];
 
     hash->reset();
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -107,7 +104,7 @@ void testHash(Hash *hash, const struct TestHashVector *test)
     Serial.print(test->name);
     Serial.print(" ... ");
 
-    ok  = testHash_N(hash, test, strlen(test->data));
+    ok = testHash_N(hash, test, strlen(test->data));
     ok &= testHash_N(hash, test, 1);
     ok &= testHash_N(hash, test, 2);
     ok &= testHash_N(hash, test, 5);
@@ -130,21 +127,26 @@ void hashKey(Hash *hash, const uint8_t *key, size_t keyLen, uint8_t pad)
     size_t posn;
     uint8_t buf;
     uint8_t result[HASH_SIZE];
-    if (keyLen <= BLOCK_SIZE) {
+    if (keyLen <= BLOCK_SIZE)
+    {
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < keyLen)
                 buf = key[posn] ^ pad;
             else
                 buf = pad;
             hash->update(&buf, 1);
         }
-    } else {
+    }
+    else
+    {
         hash->reset();
         hash->update(key, keyLen);
         hash->finalize(result, HASH_SIZE);
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < HASH_SIZE)
                 buf = result[posn] ^ pad;
             else
@@ -217,7 +219,8 @@ void perfHash(Hash *hash)
 
     hash->reset();
     start = micros();
-    for (count = 0; count < 500; ++count) {
+    for (count = 0; count < 500; ++count)
+    {
         hash->update(buffer, sizeof(buffer));
     }
     elapsed = micros() - start;
@@ -239,7 +242,8 @@ void perfFinalize(Hash *hash)
     hash->reset();
     hash->update("abc", 3);
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->finalize(buffer, hash->hashSize());
     }
     elapsed = micros() - start;
@@ -262,7 +266,8 @@ void perfHMAC(Hash *hash)
         buffer[posn] = (uint8_t)posn;
 
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->resetHMAC(buffer, hash->hashSize());
     }
     elapsed = micros() - start;
@@ -277,7 +282,8 @@ void perfHMAC(Hash *hash)
     hash->resetHMAC(buffer, hash->hashSize());
     hash->update("abc", 3);
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->finalizeHMAC(buffer, hash->hashSize(), buffer, hash->hashSize());
     }
     elapsed = micros() - start;

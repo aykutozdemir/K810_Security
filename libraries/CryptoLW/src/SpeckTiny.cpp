@@ -95,58 +95,73 @@ size_t SpeckTiny::keySize() const
 }
 
 // Pack/unpack byte-aligned big-endian 64-bit quantities.
-#define pack64(data, value) \
-    do { \
-        uint64_t v = htobe64((value)); \
+#define pack64(data, value)                   \
+    do                                        \
+    {                                         \
+        uint64_t v = htobe64((value));        \
         memcpy((data), &v, sizeof(uint64_t)); \
     } while (0)
-#define unpack64(value, data) \
-    do { \
+#define unpack64(value, data)                       \
+    do                                              \
+    {                                               \
         memcpy(&(value), (data), sizeof(uint64_t)); \
-        (value) = be64toh((value)); \
+        (value) = be64toh((value));                 \
     } while (0)
 
 bool SpeckTiny::setKey(const uint8_t *key, size_t len)
 {
 #if USE_AVR_INLINE_ASM
     // Determine the number of rounds to use and validate the key length.
-    if (len == 32) {
+    if (len == 32)
+    {
         rounds = 34;
-    } else if (len == 24) {
+    }
+    else if (len == 24)
+    {
         rounds = 33;
-    } else if (len == 16) {
+    }
+    else if (len == 16)
+    {
         rounds = 32;
-    } else {
+    }
+    else
+    {
         return false;
     }
 
     // Copy the bytes of the key into the "k" array in reverse order to
     // convert big endian into little-endian.
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "1:\n"
         "ld __tmp_reg__,-Z\n"
         "st X+,__tmp_reg__\n"
         "dec %2\n"
         "brne 1b\n"
-        : : "x"(k), "z"(key + len), "r"(len)
-    );
+        : : "x"(k), "z"(key + len), "r"(len));
 #else
-    if (len == 32) {
+    if (len == 32)
+    {
         rounds = 34;
         unpack64(k[3], key);
         unpack64(k[2], key + 8);
         unpack64(k[1], key + 16);
         unpack64(k[0], key + 24);
-    } else if (len == 24) {
+    }
+    else if (len == 24)
+    {
         rounds = 33;
         unpack64(k[2], key);
         unpack64(k[1], key + 8);
         unpack64(k[0], key + 16);
-    } else if (len == 16) {
+    }
+    else if (len == 16)
+    {
         rounds = 32;
         unpack64(k[1], key);
         unpack64(k[0], key + 8);
-    } else {
+    }
+    else
+    {
         return false;
     }
 #endif
@@ -160,7 +175,7 @@ void SpeckTiny::encryptBlock(uint8_t *output, const uint8_t *input)
     uint64_t l[5];
     uint8_t r = rounds;
     uint8_t mb = (r - 31) * 8;
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "movw r8,r30\n"
         "ldd r16,%4\n"
         "ldi r24,8\n"
@@ -405,9 +420,7 @@ void SpeckTiny::encryptBlock(uint8_t *output, const uint8_t *input)
         "st X,r16\n"
         : : "x"(k), "z"(l), "r"(input), "Q"(output), "Q"(mb), "Q"(r)
         : "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
-          "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23", "memory"
-        , "r24", "r25"
-    );
+          "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23", "memory", "r24", "r25");
 #else
     uint64_t l[4];
     uint64_t x, y, s;
@@ -425,7 +438,8 @@ void SpeckTiny::encryptBlock(uint8_t *output, const uint8_t *input)
     s = k[0];
 
     // Perform all encryption rounds except the last.
-    for (round = rounds - 1; round > 0; --round, ++i) {
+    for (round = rounds - 1; round > 0; --round, ++i)
+    {
         // Perform the round with the current key schedule word.
         x = (rightRotate8_64(x) + y) ^ s;
         y = leftRotate3_64(y) ^ x;

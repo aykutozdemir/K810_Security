@@ -89,7 +89,8 @@ void SHA1::update(const void *data, size_t len)
 
     // Break the input up into 512-bit chunks and process each in turn.
     const uint8_t *d = (const uint8_t *)data;
-    while (len > 0) {
+    while (len > 0)
+    {
         uint8_t size = 64 - state.chunkSize;
         if (size > len)
             size = len;
@@ -97,7 +98,8 @@ void SHA1::update(const void *data, size_t len)
         state.chunkSize += size;
         len -= size;
         d += size;
-        if (state.chunkSize == 64) {
+        if (state.chunkSize == 64)
+        {
             processChunk();
             state.chunkSize = 0;
         }
@@ -109,13 +111,16 @@ void SHA1::finalize(void *hash, size_t len)
     // Pad the last chunk.  We may need two padding chunks if there
     // isn't enough room in the first for the padding and length.
     uint8_t *wbytes = (uint8_t *)state.w;
-    if (state.chunkSize <= (64 - 9)) {
+    if (state.chunkSize <= (64 - 9))
+    {
         wbytes[state.chunkSize] = 0x80;
         memset(wbytes + state.chunkSize + 1, 0x00, 64 - 8 - (state.chunkSize + 1));
         state.w[14] = htobe32((uint32_t)(state.length >> 32));
         state.w[15] = htobe32((uint32_t)state.length);
         processChunk();
-    } else {
+    }
+    else
+    {
         wbytes[state.chunkSize] = 0x80;
         memset(wbytes + state.chunkSize + 1, 0x00, 64 - (state.chunkSize + 1));
         processChunk();
@@ -182,7 +187,8 @@ void SHA1::processChunk()
 
     // Perform the first 16 rounds of the compression function main loop.
     uint32_t temp;
-    for (index = 0; index < 16; ++index) {
+    for (index = 0; index < 16; ++index)
+    {
         temp = leftRotate5(a) + ((b & c) | ((~b) & d)) + e + 0x5A827999 + state.w[index];
         e = d;
         d = c;
@@ -194,10 +200,10 @@ void SHA1::processChunk()
     // Perform the 64 remaining rounds.  We expand the first 16 words to
     // 80 in-place in the "w" array.  This saves 256 bytes of memory
     // that would have otherwise need to be allocated to the "w" array.
-    for (; index < 20; ++index) {
-        temp = state.w[index & 0x0F] = leftRotate1
-            (state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
-             state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
+    for (; index < 20; ++index)
+    {
+        temp = state.w[index & 0x0F] = leftRotate1(state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
+                                                   state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
         temp = leftRotate5(a) + ((b & c) | ((~b) & d)) + e + 0x5A827999 + temp;
         e = d;
         d = c;
@@ -205,10 +211,10 @@ void SHA1::processChunk()
         b = a;
         a = temp;
     }
-    for (; index < 40; ++index) {
-        temp = state.w[index & 0x0F] = leftRotate1
-            (state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
-             state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
+    for (; index < 40; ++index)
+    {
+        temp = state.w[index & 0x0F] = leftRotate1(state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
+                                                   state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
         temp = leftRotate5(a) + (b ^ c ^ d) + e + 0x6ED9EBA1 + temp;
         e = d;
         d = c;
@@ -216,10 +222,10 @@ void SHA1::processChunk()
         b = a;
         a = temp;
     }
-    for (; index < 60; ++index) {
-        temp = state.w[index & 0x0F] = leftRotate1
-            (state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
-             state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
+    for (; index < 60; ++index)
+    {
+        temp = state.w[index & 0x0F] = leftRotate1(state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
+                                                   state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
         temp = leftRotate5(a) + ((b & c) | (b & d) | (c & d)) + e + 0x8F1BBCDC + temp;
         e = d;
         d = c;
@@ -227,10 +233,10 @@ void SHA1::processChunk()
         b = a;
         a = temp;
     }
-    for (; index < 80; ++index) {
-        temp = state.w[index & 0x0F] = leftRotate1
-            (state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
-             state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
+    for (; index < 80; ++index)
+    {
+        temp = state.w[index & 0x0F] = leftRotate1(state.w[(index - 3) & 0x0F] ^ state.w[(index - 8) & 0x0F] ^
+                                                   state.w[(index - 14) & 0x0F] ^ state.w[(index - 16) & 0x0F]);
         temp = leftRotate5(a) + (b ^ c ^ d) + e + 0xCA62C1D6 + temp;
         e = d;
         d = c;

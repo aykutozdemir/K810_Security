@@ -48,8 +48,7 @@ static TestHashVector const testVectorSHA512_1 = {
      0x47, 0xd0, 0xd1, 0x3c, 0x5d, 0x85, 0xf2, 0xb0,
      0xff, 0x83, 0x18, 0xd2, 0x87, 0x7e, 0xec, 0x2f,
      0x63, 0xb9, 0x31, 0xbd, 0x47, 0x41, 0x7a, 0x81,
-     0xa5, 0x38, 0x32, 0x7a, 0xf9, 0x27, 0xda, 0x3e}
-};
+     0xa5, 0x38, 0x32, 0x7a, 0xf9, 0x27, 0xda, 0x3e}};
 static TestHashVector const testVectorSHA512_2 = {
     "SHA-512 #2",
     "abc",
@@ -60,8 +59,7 @@ static TestHashVector const testVectorSHA512_2 = {
      0x21, 0x92, 0x99, 0x2a, 0x27, 0x4f, 0xc1, 0xa8,
      0x36, 0xba, 0x3c, 0x23, 0xa3, 0xfe, 0xeb, 0xbd,
      0x45, 0x4d, 0x44, 0x23, 0x64, 0x3c, 0xe8, 0x0e,
-     0x2a, 0x9a, 0xc9, 0x4f, 0xa5, 0x4c, 0xa4, 0x9f}
-};
+     0x2a, 0x9a, 0xc9, 0x4f, 0xa5, 0x4c, 0xa4, 0x9f}};
 static TestHashVector const testVectorSHA512_3 = {
     "SHA-512 #3",
     "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
@@ -73,8 +71,7 @@ static TestHashVector const testVectorSHA512_3 = {
      0x50, 0x1d, 0x28, 0x9e, 0x49, 0x00, 0xf7, 0xe4,
      0x33, 0x1b, 0x99, 0xde, 0xc4, 0xb5, 0x43, 0x3a,
      0xc7, 0xd3, 0x29, 0xee, 0xb6, 0xdd, 0x26, 0x54,
-     0x5e, 0x96, 0xe5, 0x5b, 0x87, 0x4b, 0xe9, 0x09}
-};
+     0x5e, 0x96, 0xe5, 0x5b, 0x87, 0x4b, 0xe9, 0x09}};
 
 SHA512 sha512;
 
@@ -87,7 +84,8 @@ bool testHash_N(Hash *hash, const struct TestHashVector *test, size_t inc)
     uint8_t value[HASH_SIZE];
 
     hash->reset();
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -107,7 +105,7 @@ void testHash(Hash *hash, const struct TestHashVector *test)
     Serial.print(test->name);
     Serial.print(" ... ");
 
-    ok  = testHash_N(hash, test, strlen(test->data));
+    ok = testHash_N(hash, test, strlen(test->data));
     ok &= testHash_N(hash, test, 1);
     ok &= testHash_N(hash, test, 2);
     ok &= testHash_N(hash, test, 5);
@@ -137,7 +135,8 @@ void perfHash(Hash *hash)
 
     hash->reset();
     start = micros();
-    for (count = 0; count < 250; ++count) {
+    for (count = 0; count < 250; ++count)
+    {
         hash->update(buffer, sizeof(buffer));
     }
     elapsed = micros() - start;
@@ -154,21 +153,26 @@ void hashKey(Hash *hash, const uint8_t *key, size_t keyLen, uint8_t pad)
     size_t posn;
     uint8_t buf;
     uint8_t result[HASH_SIZE];
-    if (keyLen <= BLOCK_SIZE) {
+    if (keyLen <= BLOCK_SIZE)
+    {
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < keyLen)
                 buf = key[posn] ^ pad;
             else
                 buf = pad;
             hash->update(&buf, 1);
         }
-    } else {
+    }
+    else
+    {
         hash->reset();
         hash->update(key, keyLen);
         hash->finalize(result, HASH_SIZE);
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < HASH_SIZE)
                 buf = result[posn] ^ pad;
             else
@@ -222,7 +226,8 @@ void perfFinalize(Hash *hash)
     hash->reset();
     hash->update("abc", 3);
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->finalize(buffer, hash->hashSize());
     }
     elapsed = micros() - start;

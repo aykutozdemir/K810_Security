@@ -3,9 +3,11 @@
 
 #include <ezLED.h>
 
-class LEDController final {
+class LEDController final
+{
 public:
-  enum State : uint8_t {
+  enum State : uint8_t
+  {
     LOCKED,
     FORMATTING,
     CONNECTING,
@@ -28,6 +30,6 @@ private:
   ezLED m_redLED;
 
   State m_state;
-};  // end LEDController class
+}; // end LEDController class
 
 #endif

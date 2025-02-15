@@ -64,9 +64,9 @@ private:
     uint8_t buffer[T::HASH_SIZE * 2];
 };
 
-template <typename T> void hkdf
-    (void *out, size_t outLen, const void *key, size_t keyLen,
-     const void *salt, size_t saltLen, const void *info, size_t infoLen)
+template <typename T>
+void hkdf(void *out, size_t outLen, const void *key, size_t keyLen,
+          const void *salt, size_t saltLen, const void *info, size_t infoLen)
 {
     HKDF<T> context;
     context.setKey(key, keyLen, salt, saltLen);

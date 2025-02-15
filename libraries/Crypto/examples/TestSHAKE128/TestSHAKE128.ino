@@ -32,11 +32,11 @@ correct behaviour.
 #include <avr/pgmspace.h>
 #else
 #define PROGMEM
-#define memcpy_P(d, s, l)   memcpy((d), (s), (l))
+#define memcpy_P(d, s, l) memcpy((d), (s), (l))
 #endif
 
-#define MAX_HASH_DATA_SIZE  167
-#define MAX_SHAKE_OUTPUT    256
+#define MAX_HASH_DATA_SIZE 167
+#define MAX_SHAKE_OUTPUT 256
 
 struct TestHashVectorSHAKE
 {
@@ -82,8 +82,7 @@ static TestHashVectorSHAKE const testVectorSHAKE128_1 PROGMEM = {
      0x22, 0xA9, 0x61, 0x88, 0xD0, 0x32, 0x67, 0x5C,
      0x8A, 0xC8, 0x50, 0x93, 0x3C, 0x7A, 0xFF, 0x15,
      0x33, 0xB9, 0x4C, 0x83, 0x4A, 0xDB, 0xB6, 0x9C,
-     0x61, 0x15, 0xBA, 0xD4, 0x69, 0x2D, 0x86, 0x19}
-};
+     0x61, 0x15, 0xBA, 0xD4, 0x69, 0x2D, 0x86, 0x19}};
 static TestHashVectorSHAKE const testVectorSHAKE128_2 PROGMEM = {
     "SHAKE128 #2",
     {0x1F, 0x87, 0x7C},
@@ -119,8 +118,7 @@ static TestHashVectorSHAKE const testVectorSHAKE128_2 PROGMEM = {
      0xB4, 0xF7, 0x2A, 0xE1, 0x30, 0xC5, 0x05, 0x90,
      0xF8, 0xB9, 0x1C, 0x52, 0x95, 0x7B, 0x79, 0x5D,
      0x12, 0xDA, 0x09, 0xBD, 0xD4, 0x0D, 0x41, 0xE3,
-     0xCD, 0x48, 0xE3, 0x0E, 0x37, 0xFE, 0x5F, 0xD0}
-};
+     0xCD, 0x48, 0xE3, 0x0E, 0x37, 0xFE, 0x5F, 0xD0}};
 static TestHashVectorSHAKE const testVectorSHAKE128_3 PROGMEM = {
     "SHAKE128 #3",
     {0x0D, 0x8D, 0x09, 0xAE, 0xD1, 0x9F, 0x10, 0x13,
@@ -176,8 +174,7 @@ static TestHashVectorSHAKE const testVectorSHAKE128_3 PROGMEM = {
      0xAA, 0xC2, 0xC0, 0xA3, 0x9C, 0x88, 0x5C, 0x7E,
      0x44, 0xF2, 0x04, 0xCB, 0x82, 0x1C, 0x0D, 0x37,
      0xA2, 0x2D, 0xE3, 0xA7, 0x1F, 0x3A, 0x19, 0x09,
-     0xB1, 0x1B, 0x71, 0x81, 0xC4, 0x2B, 0xE9, 0xB7}
-};
+     0xB1, 0x1B, 0x71, 0x81, 0xC4, 0x2B, 0xE9, 0xB7}};
 
 SHAKE128 shake128;
 TestHashVectorSHAKE tst;
@@ -193,7 +190,8 @@ bool testSHAKE_N(SHAKE *shake, const struct TestHashVectorSHAKE *test, size_t in
     test = &tst;
 
     // Print the test name if necessary.
-    if (printName) {
+    if (printName)
+    {
         Serial.print(test->name);
         Serial.print(" ... ");
     }
@@ -203,7 +201,8 @@ bool testSHAKE_N(SHAKE *shake, const struct TestHashVectorSHAKE *test, size_t in
         inc = 1;
     size = test->dataLen;
     shake->reset();
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -212,7 +211,8 @@ bool testSHAKE_N(SHAKE *shake, const struct TestHashVectorSHAKE *test, size_t in
 
     // Generate data using extend() and check it.
     size = MAX_SHAKE_OUTPUT;
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -226,7 +226,8 @@ bool testSHAKE_N(SHAKE *shake, const struct TestHashVectorSHAKE *test, size_t in
     shake->update(test->data, test->dataLen);
     for (posn = 0; posn < size; ++posn)
         output[posn] = (uint8_t)(posn + 0xAA);
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -247,7 +248,7 @@ void testSHAKE(SHAKE *shake, const struct TestHashVectorSHAKE *test)
 
     memcpy_P(&dataLen, &(test->dataLen), sizeof(size_t));
 
-    ok  = testSHAKE_N(shake, test, dataLen, true);
+    ok = testSHAKE_N(shake, test, dataLen, true);
     ok &= testSHAKE_N(shake, test, 1);
     ok &= testSHAKE_N(shake, test, 2);
     ok &= testSHAKE_N(shake, test, 5);
@@ -277,10 +278,11 @@ void perfUpdate(SHAKE *shake)
 
     shake->reset();
     start = micros();
-    for (count = 0; count < 300; ++count) {
+    for (count = 0; count < 300; ++count)
+    {
         shake->update(output, MAX_SHAKE_OUTPUT);
     }
-    shake->extend(output, 0);   // Force a finalize after the update.
+    shake->extend(output, 0); // Force a finalize after the update.
     elapsed = micros() - start;
 
     Serial.print(elapsed / (MAX_SHAKE_OUTPUT * 300.0));
@@ -302,9 +304,10 @@ void perfExtend(SHAKE *shake)
 
     shake->reset();
     shake->update(output, MAX_SHAKE_OUTPUT);
-    shake->extend(output, 0);   // Force a finalize after the update.
+    shake->extend(output, 0); // Force a finalize after the update.
     start = micros();
-    for (count = 0; count < 300; ++count) {
+    for (count = 0; count < 300; ++count)
+    {
         shake->extend(output, MAX_SHAKE_OUTPUT);
     }
     elapsed = micros() - start;
@@ -328,9 +331,10 @@ void perfEncrypt(SHAKE *shake)
 
     shake->reset();
     shake->update(output, MAX_SHAKE_OUTPUT);
-    shake->extend(output, 0);   // Force a finalize after the update.
+    shake->extend(output, 0); // Force a finalize after the update.
     start = micros();
-    for (count = 0; count < 300; ++count) {
+    for (count = 0; count < 300; ++count)
+    {
         shake->encrypt(output, output, MAX_SHAKE_OUTPUT);
     }
     elapsed = micros() - start;

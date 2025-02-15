@@ -30,19 +30,19 @@
 #if defined(__AVR__) || defined(ESP8266)
 // 16-bit limbs seem to give the best performance on 8-bit AVR micros.
 // They also seem to give better performance on ESP8266 as well.
-#define BIGNUMBER_LIMB_8BIT  0
+#define BIGNUMBER_LIMB_8BIT 0
 #define BIGNUMBER_LIMB_16BIT 1
 #define BIGNUMBER_LIMB_32BIT 0
 #define BIGNUMBER_LIMB_64BIT 0
 #elif defined(__GNUC__) && __WORDSIZE == 64
 // 64-bit system with 128-bit double limbs.
-#define BIGNUMBER_LIMB_8BIT  0
+#define BIGNUMBER_LIMB_8BIT 0
 #define BIGNUMBER_LIMB_16BIT 0
 #define BIGNUMBER_LIMB_32BIT 0
 #define BIGNUMBER_LIMB_64BIT 1
 #else
 // On all other platforms, assume 32-bit is best.
-#define BIGNUMBER_LIMB_8BIT  0
+#define BIGNUMBER_LIMB_8BIT 0
 #define BIGNUMBER_LIMB_16BIT 0
 #define BIGNUMBER_LIMB_32BIT 1
 #define BIGNUMBER_LIMB_64BIT 0

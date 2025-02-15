@@ -37,21 +37,21 @@
 // should be efficient on 8-bit and 32-bit microcontrollers.
 typedef struct
 {
-    uint32_t k[4];      // Cached copy of the key for multiple requests.
-    uint32_t s1_l;      // LFSR1, 61 bits, 0..60, low word
-    uint32_t s1_h;      // LFSR1, high word
-    uint32_t s2_l;      // LFSR2, 46 bits, 61..106, low word
-    uint16_t s2_h;      // LFSR2, high word
-    uint16_t s3_h;      // LFSR3, 47 bits, 107..153, high word
-    uint32_t s3_l;      // LFSR3, low word
-    uint32_t s4_l;      // LFSR4, 39 bits, 154..192, low word
-    uint16_t s4_h;      // LFSR4, high word
-    uint16_t s5_h;      // LFSR5, 37 bits, 193..229, high word
-    uint32_t s5_l;      // LFSR5, low word
-    uint32_t s6_l;      // LFSR6, 59 bits, 230..288, low word
-    uint32_t s6_h;      // LFSR6, high word
-    uint8_t s7;         // Top most 4 bits, 289..292
-    uint8_t authDone;   // Non-zero once authentication is done.
+    uint32_t k[4];    // Cached copy of the key for multiple requests.
+    uint32_t s1_l;    // LFSR1, 61 bits, 0..60, low word
+    uint32_t s1_h;    // LFSR1, high word
+    uint32_t s2_l;    // LFSR2, 46 bits, 61..106, low word
+    uint16_t s2_h;    // LFSR2, high word
+    uint16_t s3_h;    // LFSR3, 47 bits, 107..153, high word
+    uint32_t s3_l;    // LFSR3, low word
+    uint32_t s4_l;    // LFSR4, 39 bits, 154..192, low word
+    uint16_t s4_h;    // LFSR4, high word
+    uint16_t s5_h;    // LFSR5, 37 bits, 193..229, high word
+    uint32_t s5_l;    // LFSR5, low word
+    uint32_t s6_l;    // LFSR6, 59 bits, 230..288, low word
+    uint32_t s6_h;    // LFSR6, high word
+    uint8_t s7;       // Top most 4 bits, 289..292
+    uint8_t authDone; // Non-zero once authentication is done.
 
 } Acorn128State;
 

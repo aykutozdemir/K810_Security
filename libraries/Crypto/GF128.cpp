@@ -90,8 +90,8 @@ void GF128::mulInit(uint32_t H[4], const void *key)
 void GF128::mul(uint32_t Y[4], const uint32_t H[4])
 {
 #if defined(__AVR__)
-    uint32_t Z[4] = {0, 0, 0, 0};   // Z = 0
-    uint32_t V0 = H[0];             // V = H
+    uint32_t Z[4] = {0, 0, 0, 0}; // Z = 0
+    uint32_t V0 = H[0];           // V = H
     uint32_t V1 = H[1];
     uint32_t V2 = H[2];
     uint32_t V3 = H[3];
@@ -99,10 +99,12 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
     // Multiply Z by V for the set bits in Y, starting at the top.
     // This is a very simple bit by bit version that may not be very
     // fast but it should be resistant to cache timing attacks.
-    for (uint8_t posn = 0; posn < 16; ++posn) {
+    for (uint8_t posn = 0; posn < 16; ++posn)
+    {
         uint8_t value = ((const uint8_t *)Y)[posn];
-        for (uint8_t bit = 0; bit < 8; ++bit) {
-            __asm__ __volatile__ (
+        for (uint8_t bit = 0; bit < 8; ++bit)
+        {
+            __asm__ __volatile__(
                 // Extract the high bit of "value" and turn it into a mask.
                 "ldd r24,%8\n"
                 "lsl r24\n"
@@ -111,7 +113,7 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
                 "sbc __tmp_reg__,__zero_reg__\n"
 
                 // XOR V with Z if the bit is 1.
-                "mov r24,%D0\n"         // Z0 ^= (V0 & mask)
+                "mov r24,%D0\n" // Z0 ^= (V0 & mask)
                 "and r24,__tmp_reg__\n"
                 "ldd r25,%D4\n"
                 "eor r25,r24\n"
@@ -131,7 +133,7 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
                 "ldd r25,%A4\n"
                 "eor r25,r24\n"
                 "std %A4,r25\n"
-                "mov r24,%D1\n"         // Z1 ^= (V1 & mask)
+                "mov r24,%D1\n" // Z1 ^= (V1 & mask)
                 "and r24,__tmp_reg__\n"
                 "ldd r25,%D5\n"
                 "eor r25,r24\n"
@@ -151,7 +153,7 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
                 "ldd r25,%A5\n"
                 "eor r25,r24\n"
                 "std %A5,r25\n"
-                "mov r24,%D2\n"         // Z2 ^= (V2 & mask)
+                "mov r24,%D2\n" // Z2 ^= (V2 & mask)
                 "and r24,__tmp_reg__\n"
                 "ldd r25,%D6\n"
                 "eor r25,r24\n"
@@ -171,7 +173,7 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
                 "ldd r25,%A6\n"
                 "eor r25,r24\n"
                 "std %A6,r25\n"
-                "mov r24,%D3\n"         // Z3 ^= (V3 & mask)
+                "mov r24,%D3\n" // Z3 ^= (V3 & mask)
                 "and r24,__tmp_reg__\n"
                 "ldd r25,%D7\n"
                 "eor r25,r24\n"
@@ -215,13 +217,12 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
                 "eor %A0,r24\n"
                 : "+r"(V0), "+r"(V1), "+r"(V2), "+r"(V3)
                 : "Q"(Z[0]), "Q"(Z[1]), "Q"(Z[2]), "Q"(Z[3]), "Q"(value)
-                : "r24", "r25"
-            );
+                : "r24", "r25");
         }
     }
 
     // We have finished the block so copy Z into Y and byte-swap.
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "ldd __tmp_reg__,%A0\n"
         "st X+,__tmp_reg__\n"
         "ldd __tmp_reg__,%B0\n"
@@ -254,14 +255,13 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
         "st X+,__tmp_reg__\n"
         "ldd __tmp_reg__,%D3\n"
         "st X,__tmp_reg__\n"
-        : : "Q"(Z[0]), "Q"(Z[1]), "Q"(Z[2]), "Q"(Z[3]), "x"(Y)
-    );
-#else // !__AVR__
-    uint32_t Z0 = 0;        // Z = 0
+        : : "Q"(Z[0]), "Q"(Z[1]), "Q"(Z[2]), "Q"(Z[3]), "x"(Y));
+#else  // !__AVR__
+    uint32_t Z0 = 0; // Z = 0
     uint32_t Z1 = 0;
     uint32_t Z2 = 0;
     uint32_t Z3 = 0;
-    uint32_t V0 = H[0];     // V = H
+    uint32_t V0 = H[0]; // V = H
     uint32_t V1 = H[1];
     uint32_t V2 = H[2];
     uint32_t V3 = H[3];
@@ -269,9 +269,11 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
     // Multiply Z by V for the set bits in Y, starting at the top.
     // This is a very simple bit by bit version that may not be very
     // fast but it should be resistant to cache timing attacks.
-    for (uint8_t posn = 0; posn < 16; ++posn) {
+    for (uint8_t posn = 0; posn < 16; ++posn)
+    {
         uint8_t value = ((const uint8_t *)Y)[posn];
-        for (uint8_t bit = 0; bit < 8; ++bit, value <<= 1) {
+        for (uint8_t bit = 0; bit < 8; ++bit, value <<= 1)
+        {
             // Extract the high bit of "value" and turn it into a mask.
             uint32_t mask = (~((uint32_t)(value >> 7))) + 1;
 
@@ -314,7 +316,7 @@ void GF128::mul(uint32_t Y[4], const uint32_t H[4])
 void GF128::dbl(uint32_t V[4])
 {
 #if defined(__AVR__)
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "ld r16,Z\n"
         "ldd r17,Z+1\n"
         "ldd r18,Z+2\n"
@@ -368,8 +370,7 @@ void GF128::dbl(uint32_t V[4])
         "eor r16,r17\n"
         "st Z,r16\n"
         : : "z"(V)
-        : "r16", "r17", "r18", "r19", "r20"
-    );
+        : "r16", "r17", "r18", "r19", "r20");
 #else
     uint32_t V0 = be32toh(V[0]);
     uint32_t V1 = be32toh(V[1]);
@@ -406,7 +407,7 @@ void GF128::dbl(uint32_t V[4])
 void GF128::dblEAX(uint32_t V[4])
 {
 #if defined(__AVR__)
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "ldd r16,Z+15\n"
         "ldd r17,Z+14\n"
         "ldd r18,Z+13\n"
@@ -460,8 +461,7 @@ void GF128::dblEAX(uint32_t V[4])
         "eor r16,r17\n"
         "std Z+15,r16\n"
         : : "z"(V)
-        : "r16", "r17", "r18", "r19", "r20"
-    );
+        : "r16", "r17", "r18", "r19", "r20");
 #else
     uint32_t V0 = be32toh(V[0]);
     uint32_t V1 = be32toh(V[1]);
@@ -497,7 +497,7 @@ void GF128::dblEAX(uint32_t V[4])
 void GF128::dblXTS(uint32_t V[4])
 {
 #if defined(__AVR__)
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "ld r16,Z\n"
         "ldd r17,Z+1\n"
         "ldd r18,Z+2\n"
@@ -551,8 +551,7 @@ void GF128::dblXTS(uint32_t V[4])
         "eor r16,r17\n"
         "st Z,r16\n"
         : : "z"(V)
-        : "r16", "r17", "r18", "r19", "r20"
-    );
+        : "r16", "r17", "r18", "r19", "r20");
 #else
     uint32_t V0 = le32toh(V[0]);
     uint32_t V1 = le32toh(V[1]);

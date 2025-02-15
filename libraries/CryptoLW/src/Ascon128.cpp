@@ -47,11 +47,9 @@
  */
 Ascon128::Ascon128()
 #if defined(CRYPTO_LITTLE_ENDIAN)
-    : posn(7)
-    , authMode(1)
+    : posn(7), authMode(1)
 #else
-    : posn(0)
-    , authMode(1)
+    : posn(0), authMode(1)
 #endif
 {
 }
@@ -145,7 +143,8 @@ void Ascon128::encrypt(uint8_t *output, const uint8_t *input, size_t len)
         endAuth();
     const uint8_t *in = (const uint8_t *)input;
     uint8_t *out = (uint8_t *)output;
-    while (len > 0) {
+    while (len > 0)
+    {
         // Encrypt the next byte using the first 64-bit word in the state.
         ((uint8_t *)(state.S))[posn] ^= *in++;
         *out++ = ((const uint8_t *)(state.S))[posn];
@@ -153,14 +152,18 @@ void Ascon128::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 
         // Permute the state for b = 6 rounds at the end of each block.
 #if defined(CRYPTO_LITTLE_ENDIAN)
-        if (posn > 0) {
+        if (posn > 0)
+        {
             --posn;
-        } else {
+        }
+        else
+        {
             permute(6);
             posn = 7;
         }
 #else
-        if ((++posn) == 8) {
+        if ((++posn) == 8)
+        {
             permute(6);
             posn = 0;
         }
@@ -174,7 +177,8 @@ void Ascon128::decrypt(uint8_t *output, const uint8_t *input, size_t len)
         endAuth();
     const uint8_t *in = (const uint8_t *)input;
     uint8_t *out = (uint8_t *)output;
-    while (len > 0) {
+    while (len > 0)
+    {
         // Decrypt the next byte using the first 64-bit word in the state.
         *out++ = ((const uint8_t *)(state.S))[posn] ^ *in;
         ((uint8_t *)(state.S))[posn] = *in++;
@@ -182,14 +186,18 @@ void Ascon128::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 
         // Permute the state for b = 6 rounds at the end of each block.
 #if defined(CRYPTO_LITTLE_ENDIAN)
-        if (posn > 0) {
+        if (posn > 0)
+        {
             --posn;
-        } else {
+        }
+        else
+        {
             permute(6);
             posn = 7;
         }
 #else
-        if ((++posn) == 8) {
+        if ((++posn) == 8)
+        {
             permute(6);
             posn = 0;
         }
@@ -202,21 +210,26 @@ void Ascon128::addAuthData(const void *data, size_t len)
     if (!authMode)
         return;
     const uint8_t *in = (const uint8_t *)data;
-    while (len > 0) {
+    while (len > 0)
+    {
         // Incorporate the next byte of auth data into the internal state.
         ((uint8_t *)(state.S))[posn] ^= *in++;
         --len;
 
         // Permute the state for b = 6 rounds at the end of each block.
 #if defined(CRYPTO_LITTLE_ENDIAN)
-        if (posn > 0) {
+        if (posn > 0)
+        {
             --posn;
-        } else {
+        }
+        else
+        {
             permute(6);
             posn = 7;
         }
 #else
-        if ((++posn) == 8) {
+        if ((++posn) == 8)
+        {
             permute(6);
             posn = 0;
         }
@@ -299,38 +312,56 @@ void Ascon128::clear()
 void Ascon128::permute(uint8_t first)
 {
     uint64_t t0, t1, t2, t3, t4;
-    #define x0 state.S[0]
-    #define x1 state.S[1]
-    #define x2 state.S[2]
-    #define x3 state.S[3]
-    #define x4 state.S[4]
-    while (first < 12) {
+#define x0 state.S[0]
+#define x1 state.S[1]
+#define x2 state.S[2]
+#define x3 state.S[3]
+#define x4 state.S[4]
+    while (first < 12)
+    {
         // Add the round constant to the state.
         x2 ^= ((0x0F - first) << 4) | first;
 
         // Substitution layer - apply the s-box using bit-slicing
         // according to the algorithm recommended in the specification.
-        x0 ^= x4;   x4 ^= x3;   x2 ^= x1;
-        t0 = ~x0;   t1 = ~x1;   t2 = ~x2;   t3 = ~x3;   t4 = ~x4;
-        t0 &= x1;   t1 &= x2;   t2 &= x3;   t3 &= x4;   t4 &= x0;
-        x0 ^= t1;   x1 ^= t2;   x2 ^= t3;   x3 ^= t4;   x4 ^= t0;
-        x1 ^= x0;   x0 ^= x4;   x3 ^= x2;   x2 = ~x2;
+        x0 ^= x4;
+        x4 ^= x3;
+        x2 ^= x1;
+        t0 = ~x0;
+        t1 = ~x1;
+        t2 = ~x2;
+        t3 = ~x3;
+        t4 = ~x4;
+        t0 &= x1;
+        t1 &= x2;
+        t2 &= x3;
+        t3 &= x4;
+        t4 &= x0;
+        x0 ^= t1;
+        x1 ^= t2;
+        x2 ^= t3;
+        x3 ^= t4;
+        x4 ^= t0;
+        x1 ^= x0;
+        x0 ^= x4;
+        x3 ^= x2;
+        x2 = ~x2;
 
         // Linear diffusion layer.
         x0 ^= rightRotate19_64(x0) ^ rightRotate28_64(x0);
         x1 ^= rightRotate61_64(x1) ^ rightRotate39_64(x1);
-        x2 ^= rightRotate1_64(x2)  ^ rightRotate6_64(x2);
+        x2 ^= rightRotate1_64(x2) ^ rightRotate6_64(x2);
         x3 ^= rightRotate10_64(x3) ^ rightRotate17_64(x3);
-        x4 ^= rightRotate7_64(x4)  ^ rightRotate41_64(x4);
+        x4 ^= rightRotate7_64(x4) ^ rightRotate41_64(x4);
 
         // Move onto the next round.
         ++first;
     }
-    #undef x0
-    #undef x1
-    #undef x2
-    #undef x3
-    #undef x4
+#undef x0
+#undef x1
+#undef x2
+#undef x3
+#undef x4
 }
 
 #endif // !__AVR__
@@ -340,7 +371,8 @@ void Ascon128::permute(uint8_t first)
  */
 void Ascon128::endAuth()
 {
-    if (authMode == 2) {
+    if (authMode == 2)
+    {
         // We had some auth data, so we need to pad and permute the last block.
         // There is no need to do this if there were zero bytes of auth data.
         ((uint8_t *)(state.S))[posn] ^= 0x80;

@@ -3,15 +3,17 @@
 
 #include <Wire.h>
 
-class EEPROMController final {
+class EEPROMController final
+{
 public:
-  enum State : uint8_t {
+  enum State : uint8_t
+  {
     IDLE,
     FORMATTING_EXTERNAL,
     FORMATTING_INTERNAL
   };
 
-  explicit EEPROMController(TwoWire& wire);
+  explicit EEPROMController(TwoWire &wire);
 
   State state() const;
 
@@ -22,11 +24,11 @@ public:
 private:
   bool checkWriteComplete();
 
-  TwoWire& m_wire;
+  TwoWire &m_wire;
 
   State m_state;
 
   uint16_t m_currentCounter;
-};  // end KeyboardController class
+}; // end KeyboardController class
 
 #endif

@@ -65,15 +65,17 @@
 #endif
 
 // Pack/unpack byte-aligned big-endian 64-bit quantities.
-#define pack64(data, value) \
-    do { \
-        uint64_t v = htobe64((value)); \
+#define pack64(data, value)                   \
+    do                                        \
+    {                                         \
+        uint64_t v = htobe64((value));        \
         memcpy((data), &v, sizeof(uint64_t)); \
     } while (0)
-#define unpack64(value, data) \
-    do { \
+#define unpack64(value, data)                       \
+    do                                              \
+    {                                               \
         memcpy(&(value), (data), sizeof(uint64_t)); \
-        (value) = be64toh((value)); \
+        (value) = be64toh((value));                 \
     } while (0)
 
 /**
@@ -101,31 +103,31 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
     // Expand the key schedule to get the l and s values at the end
     // of the schedule, which will allow us to reverse it later.
     uint8_t mb = (rounds - 31) * 8;
-    __asm__ __volatile__ (
-        "ld r16,Z+\n"               // s = k[0]
-        "ld r17,Z+\n" 
-        "ld r18,Z+\n" 
-        "ld r19,Z+\n" 
-        "ld r20,Z+\n" 
-        "ld r21,Z+\n" 
-        "ld r22,Z+\n" 
-        "ld r23,Z+\n" 
+    __asm__ __volatile__(
+        "ld r16,Z+\n" // s = k[0]
+        "ld r17,Z+\n"
+        "ld r18,Z+\n"
+        "ld r19,Z+\n"
+        "ld r20,Z+\n"
+        "ld r21,Z+\n"
+        "ld r22,Z+\n"
+        "ld r23,Z+\n"
 
-        "mov r24,%3\n"              // memcpy(l, k + 1, mb)
+        "mov r24,%3\n" // memcpy(l, k + 1, mb)
         "3:\n"
         "ld __tmp_reg__,Z+\n"
         "st X+,__tmp_reg__\n"
         "dec r24\n"
         "brne 3b\n"
-        "sub %A1,%3\n"              // return X to its initial value
+        "sub %A1,%3\n" // return X to its initial value
         "sbc %B1,__zero_reg__\n"
 
         "1:\n"
 
         // l[li_out] = (s + rightRotate8_64(l[li_in])) ^ i;
-        "add %A1,%2\n"              // X = &(l[li_in])
+        "add %A1,%2\n" // X = &(l[li_in])
         "adc %B1,__zero_reg__\n"
-        "ld r15,X+\n"               // x = rightRotate8_64(l[li_in])
+        "ld r15,X+\n" // x = rightRotate8_64(l[li_in])
         "ld r8,X+\n"
         "ld r9,X+\n"
         "ld r10,X+\n"
@@ -134,7 +136,7 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "ld r13,X+\n"
         "ld r14,X+\n"
 
-        "add r8,r16\n"              // x += s
+        "add r8,r16\n" // x += s
         "adc r9,r17\n"
         "adc r10,r18\n"
         "adc r11,r19\n"
@@ -143,19 +145,19 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "adc r14,r22\n"
         "adc r15,r23\n"
 
-        "eor r8,%4\n"               // x ^= i
+        "eor r8,%4\n" // x ^= i
 
         // X = X - li_in + li_out
-        "ldi r24,8\n"               // li_in = li_in + 1
+        "ldi r24,8\n" // li_in = li_in + 1
         "add %2,r24\n"
-        "sub %A1,%2\n"              // return X to its initial value
+        "sub %A1,%2\n" // return X to its initial value
         "sbc %B1,__zero_reg__\n"
         "ldi r25,0x1f\n"
-        "and %2,r25\n"              // li_in = li_in % 4
-        "add %A1,%3\n"              // X = &(l[li_out])
+        "and %2,r25\n" // li_in = li_in % 4
+        "add %A1,%3\n" // X = &(l[li_out])
         "adc %B1,__zero_reg__\n"
 
-        "st X+,r8\n"                // l[li_out] = x
+        "st X+,r8\n" // l[li_out] = x
         "st X+,r9\n"
         "st X+,r10\n"
         "st X+,r11\n"
@@ -164,13 +166,13 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "st X+,r14\n"
         "st X+,r15\n"
 
-        "add %3,r24\n"              // li_out = li_out + 1
-        "sub %A1,%3\n"              // return X to its initial value
+        "add %3,r24\n" // li_out = li_out + 1
+        "sub %A1,%3\n" // return X to its initial value
         "sbc %B1,__zero_reg__\n"
-        "and %3,r25\n"              // li_out = li_out % 4
+        "and %3,r25\n" // li_out = li_out % 4
 
         // s = leftRotate3_64(s) ^ l[li_out];
-        "lsl r16\n"                 // s = leftRotate1_64(s)
+        "lsl r16\n" // s = leftRotate1_64(s)
         "rol r17\n"
         "rol r18\n"
         "rol r19\n"
@@ -180,7 +182,7 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "rol r23\n"
         "adc r16,__zero_reg__\n"
 
-        "lsl r16\n"                 // s = leftRotate1_64(s)
+        "lsl r16\n" // s = leftRotate1_64(s)
         "rol r17\n"
         "rol r18\n"
         "rol r19\n"
@@ -190,7 +192,7 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "rol r23\n"
         "adc r16,__zero_reg__\n"
 
-        "lsl r16\n"                 // s = leftRotate1_64(s)
+        "lsl r16\n" // s = leftRotate1_64(s)
         "rol r17\n"
         "rol r18\n"
         "rol r19\n"
@@ -200,7 +202,7 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "rol r23\n"
         "adc r16,__zero_reg__\n"
 
-        "eor r16,r8\n"              // s ^= x
+        "eor r16,r8\n" // s ^= x
         "eor r17,r9\n"
         "eor r18,r10\n"
         "eor r19,r11\n"
@@ -210,15 +212,15 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "eor r23,r15\n"
 
         // Loop
-        "inc %4\n"                  // ++i
-        "dec %5\n"                  // --rounds
+        "inc %4\n" // ++i
+        "dec %5\n" // --rounds
         "breq 2f\n"
         "rjmp 1b\n"
         "2:\n"
 
-        "add %A1,%3\n"              // X = &(l[li_out])
+        "add %A1,%3\n" // X = &(l[li_out])
         "adc %B1,__zero_reg__\n"
-        "st X+,r16\n"               // l[li_out] = s
+        "st X+,r16\n" // l[li_out] = s
         "st X+,r17\n"
         "st X+,r18\n"
         "st X+,r19\n"
@@ -228,14 +230,13 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
         "st X+,r23\n"
 
         : : "z"(k), "x"(l),
-            "r"((uint8_t)0),                // initial value of li_in
-            "r"((uint8_t)mb),               // initial value of li_out
-            "r"(0),                         // initial value of i
+            "r"((uint8_t)0),  // initial value of li_in
+            "r"((uint8_t)mb), // initial value of li_out
+            "r"(0),           // initial value of i
             "r"(rounds - 1)
-        :  "r8",  "r9", "r10", "r11", "r12", "r13", "r14", "r15",
+        : "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
           "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-          "r24", "r25"
-    );
+          "r24", "r25");
     return true;
 #else
     // Expand the key schedule to get the l and s values at the end
@@ -245,7 +246,8 @@ bool SpeckSmall::setKey(const uint8_t *key, size_t len)
     uint8_t li_out = m - 1;
     uint64_t s = k[0];
     memcpy(l, k + 1, (m - 1) * sizeof(uint64_t));
-    for (uint8_t i = 0; i < (rounds - 1); ++i) {
+    for (uint8_t i = 0; i < (rounds - 1); ++i)
+    {
         l[li_out] = (s + rightRotate8_64(l[li_in])) ^ i;
         s = leftRotate3_64(s) ^ l[li_out];
         li_in = (li_in + 1) & 0x03;
@@ -266,7 +268,7 @@ void SpeckSmall::decryptBlock(uint8_t *output, const uint8_t *input)
     uint8_t r = rounds;
     uint8_t li_in = ((r + 3) & 0x03) * 8;
     uint8_t li_out = ((((r - 31) & 0x03) * 8) + li_in) & 0x1F;
-    __asm__ __volatile__ (
+    __asm__ __volatile__(
         "ldd r25,%4\n"
         "ldi r24,32\n"
         "1:\n"
@@ -536,9 +538,7 @@ void SpeckSmall::decryptBlock(uint8_t *output, const uint8_t *input)
         "st X,r16\n"
         : : "x"(this->l), "z"(l), "r"(input), "Q"(output), "Q"(li_out), "Q"(r), "Q"(li_in)
         : "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15",
-          "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23", "memory"
-        , "r24", "r25"
-    );
+          "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23", "memory", "r24", "r25");
 #else
     uint64_t l[4];
     uint64_t x, y, s;
@@ -557,7 +557,8 @@ void SpeckSmall::decryptBlock(uint8_t *output, const uint8_t *input)
 
     // Perform all decryption rounds except the last while
     // expanding the decryption schedule on the fly.
-    for (uint8_t round = rounds - 1; round > 0; --round) {
+    for (uint8_t round = rounds - 1; round > 0; --round)
+    {
         // Decrypt using the current round key.
         y = rightRotate3_64(x ^ y);
         x = leftRotate8_64((x ^ s) - y);

@@ -4,7 +4,7 @@
 #include <Crypto.h>
 #include <RNG.h>
 #include <TransistorNoiseSource.h>
-//#include <RingOscillatorNoiseSource.h>
+// #include <RingOscillatorNoiseSource.h>
 
 // Change "MyApp 1.0" to some other tag for your application
 // so that different applications will generate different results
@@ -13,14 +13,15 @@
 
 // Noise source to seed the random number generator.
 TransistorNoiseSource noise(A1);
-//RingOscillatorNoiseSource noise;
+// RingOscillatorNoiseSource noise;
 
 bool calibrating = false;
 byte data[32];
 unsigned long startTime;
 size_t length = 48; // First block should wait for the pool to fill up.
 
-void setup() {
+void setup()
+{
     Serial.begin(9600);
     Serial.println("start");
 
@@ -41,7 +42,8 @@ void printHex(const byte *data, unsigned len)
     Serial.print('.');
     Serial.print((time / 100) % 10);
     Serial.print(": ");
-    while (len > 0) {
+    while (len > 0)
+    {
         int b = *data++;
         Serial.print(hexchars[(b >> 4) & 0x0F]);
         Serial.print(hexchars[b & 0x0F]);
@@ -50,10 +52,12 @@ void printHex(const byte *data, unsigned len)
     Serial.println();
 }
 
-void loop() {
+void loop()
+{
     // Track changes to the calibration state on the noise source.
     bool newCalibrating = noise.calibrating();
-    if (newCalibrating != calibrating) {
+    if (newCalibrating != calibrating)
+    {
         calibrating = newCalibrating;
         if (calibrating)
             Serial.println("calibrating");
@@ -64,7 +68,8 @@ void loop() {
 
     // Generate output whenever 32 bytes of entropy have been accumulated.
     // The first time through, we wait for 48 bytes for a full entropy pool.
-    if (RNG.available(length)) {
+    if (RNG.available(length))
+    {
         RNG.rand(data, sizeof(data));
         printHex(data, sizeof(data));
         length = 32;

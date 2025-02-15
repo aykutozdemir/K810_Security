@@ -46,11 +46,12 @@ public:
     void resetHMAC(const void *key, size_t keyLen);
     void finalizeHMAC(const void *key, size_t keyLen, void *hash, size_t hashLen);
 
-    static const size_t HASH_SIZE  = 64;
+    static const size_t HASH_SIZE = 64;
     static const size_t BLOCK_SIZE = 128;
 
 private:
-    struct {
+    struct
+    {
         uint64_t h[8];
         uint64_t m[16];
         uint64_t lengthLow;

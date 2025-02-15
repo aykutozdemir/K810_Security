@@ -34,8 +34,8 @@ of the full curve operation itself.
 #include <string.h>
 
 // Copy some definitions from the P521 class for convenience.
-#define NUM_LIMBS   ((66 + sizeof(limb_t) - 1) / sizeof(limb_t))
-#define LIMB_BITS   (8 * sizeof(limb_t))
+#define NUM_LIMBS ((66 + sizeof(limb_t) - 1) / sizeof(limb_t))
+#define LIMB_BITS (8 * sizeof(limb_t))
 #define INVERSE_LIMB (~((limb_t)0))
 
 // For simpleMod() below we need a type that is 4 times the size of limb_t.
@@ -58,11 +58,14 @@ void fromString(limb_t *x, uint8_t size, const char *str)
 {
     uint8_t ch, posn;
     memset(x, 0, sizeof(limb_t) * size);
-    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0') {
-        if (ch >= '0' && ch <= '9') {
+    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0')
+    {
+        if (ch >= '0' && ch <= '9')
+        {
             // Quick and simple method to multiply by 10 and add the new digit.
             dlimb_t carry = ch - '0';
-            for (posn = 0; posn < size; ++posn) {
+            for (posn = 0; posn < size; ++posn)
+            {
                 carry += ((dlimb_t)x[posn]) * 10U;
                 x[posn] = (limb_t)carry;
                 carry >>= LIMB_BITS;
@@ -75,7 +78,8 @@ void fromString(limb_t *x, uint8_t size, const char *str)
 // Compare two numbers of NUM_LIMBS in length.  Returns -1, 0, or 1.
 int compare(const limb_t *x, const limb_t *y)
 {
-    for (uint8_t posn = NUM_LIMBS; posn > 0; --posn) {
+    for (uint8_t posn = NUM_LIMBS; posn > 0; --posn)
+    {
         limb_t a = x[posn - 1];
         limb_t b = y[posn - 1];
         if (a < b)
@@ -99,8 +103,10 @@ void printNumber(const char *name, const limb_t *x)
     static const char hexchars[] = "0123456789ABCDEF";
     Serial.print(name);
     Serial.print(" = ");
-    for (uint8_t posn = NUM_LIMBS; posn > 0; --posn) {
-        for (uint8_t bit = LIMB_BITS; bit > 0; ) {
+    for (uint8_t posn = NUM_LIMBS; posn > 0; --posn)
+    {
+        for (uint8_t bit = LIMB_BITS; bit > 0;)
+        {
             bit -= 4;
             Serial.print(hexchars[(x[posn - 1] >> bit) & 0x0F]);
         }
@@ -117,20 +123,20 @@ char const num_4[] PROGMEM = "4";
 char const num_5[] PROGMEM = "5";
 char const num_128[] PROGMEM = "128";
 char const num_256[] PROGMEM = "256";
-char const num_2_64_m7[] PROGMEM = "18446744073709551609"; // 2^64 - 7
-char const num_2_129_m5[] PROGMEM = "680564733841876926926749214863536422907"; // 2^129 - 5
-char const num_pi[] PROGMEM = "31415926535897932384626433832795028841971693993751058209749445923078164062862"; // 77 digits of pi
-char const num_2_255_m253[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819715"; // 2^255 - 253
-char const num_2_255_m20[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819948"; // 2^255 - 20
-char const num_2_255_m19[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // 2^255 - 19
-char const num_2_255_m19_x2[] PROGMEM = "115792089237316195423570985008687907853269984665640564039457584007913129639898"; // (2^255 - 19) * 2
-char const num_2_521_m1[] PROGMEM = "6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151"; // 2^521 - 1
-char const num_2_521_m2[] PROGMEM = "6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057150"; // 2^521 - 2
+char const num_2_64_m7[] PROGMEM = "18446744073709551609";                                                                                                                                            // 2^64 - 7
+char const num_2_129_m5[] PROGMEM = "680564733841876926926749214863536422907";                                                                                                                        // 2^129 - 5
+char const num_pi[] PROGMEM = "31415926535897932384626433832795028841971693993751058209749445923078164062862";                                                                                        // 77 digits of pi
+char const num_2_255_m253[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819715";                                                                                // 2^255 - 253
+char const num_2_255_m20[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819948";                                                                                 // 2^255 - 20
+char const num_2_255_m19[] PROGMEM = "57896044618658097711785492504343953926634992332820282019728792003956564819949";                                                                                 // 2^255 - 19
+char const num_2_255_m19_x2[] PROGMEM = "115792089237316195423570985008687907853269984665640564039457584007913129639898";                                                                             // (2^255 - 19) * 2
+char const num_2_521_m1[] PROGMEM = "6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151";  // 2^521 - 1
+char const num_2_521_m2[] PROGMEM = "6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057150";  // 2^521 - 2
 char const num_2_521_m20[] PROGMEM = "6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057132"; // 2^521 - 20
-char const num_pi_big[] PROGMEM = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117"; // 157 digits of pi
+char const num_pi_big[] PROGMEM = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117";    // 157 digits of pi
 
 // Table of useful numbers less than 2^521 - 1.
-const char * const numbers[] = {
+const char *const numbers[] = {
     num_0,
     num_1,
     num_2,
@@ -147,19 +153,19 @@ const char * const numbers[] = {
     num_pi_big,
     num_2_521_m2,
     num_2_521_m20,
-    0
-};
-#define numbers_count   ((sizeof(numbers) / sizeof(numbers[0])) - 1)
+    0};
+#define numbers_count ((sizeof(numbers) / sizeof(numbers[0])) - 1)
 
-#define foreach_number(var) \
-    const char *var = numbers[0]; \
+#define foreach_number(var)                                   \
+    const char *var = numbers[0];                             \
     for (unsigned index##var = 0; index##var < numbers_count; \
          ++index##var, var = numbers[index##var])
 
 void printProgMem(const char *str)
 {
     uint8_t ch;
-    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0') {
+    while ((ch = pgm_read_byte((uint8_t *)str)) != '\0')
+    {
         Serial.print((char)ch);
         ++str;
     }
@@ -170,17 +176,20 @@ void simpleAdd(limb_t *result, const limb_t *x, const limb_t *y)
 {
     uint8_t posn;
     dlimb_t carry = 0;
-    for (posn = 0; posn < NUM_LIMBS; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS; ++posn)
+    {
         carry += x[posn];
         carry += y[posn];
         result[posn] = (limb_t)carry;
         carry >>= LIMB_BITS;
     }
-    if (compare(result, num_2_521_m1) >= 0) {
+    if (compare(result, num_2_521_m1) >= 0)
+    {
         // Subtract 2^521 - 1 to get the final result.
         // Same as add 1 and then subtract 2^521.
         carry = 1;
-        for (posn = 0; posn < NUM_LIMBS; ++posn) {
+        for (posn = 0; posn < NUM_LIMBS; ++posn)
+        {
             carry += result[posn];
             result[posn] = (limb_t)carry;
             carry >>= LIMB_BITS;
@@ -200,7 +209,8 @@ void simpleSub(limb_t *result, const limb_t *x, const limb_t *y)
 {
     uint8_t posn;
     dlimb_t borrow = 0;
-    for (posn = 0; posn < NUM_LIMBS; ++posn) {
+    for (posn = 0; posn < NUM_LIMBS; ++posn)
+    {
         borrow = ((dlimb_t)x[posn]) - y[posn] - borrow;
         result[posn] = (limb_t)borrow;
         borrow = (borrow >> LIMB_BITS) != 0;
@@ -213,15 +223,18 @@ void simpleSub(limb_t *result, const limb_t *x, const limb_t *y)
 void simpleMul(limb_t *result, const limb_t *x, const limb_t *y)
 {
     memset(result, 0, NUM_LIMBS * 2 * sizeof(limb_t));
-    for (uint8_t i = 0; i < NUM_LIMBS; ++i) {
-        for (uint8_t j = 0; j < NUM_LIMBS; ++j) {
+    for (uint8_t i = 0; i < NUM_LIMBS; ++i)
+    {
+        for (uint8_t j = 0; j < NUM_LIMBS; ++j)
+        {
             uint8_t n = i + j;
             dlimb_t carry =
                 ((dlimb_t)x[i]) * y[j] + result[n];
             result[n] = (limb_t)carry;
             carry >>= LIMB_BITS;
             ++n;
-            while (carry != 0 && n < (NUM_LIMBS * 2)) {
+            while (carry != 0 && n < (NUM_LIMBS * 2))
+            {
                 carry += result[n];
                 result[n] = (limb_t)carry;
                 carry >>= LIMB_BITS;
@@ -234,8 +247,7 @@ void simpleMul(limb_t *result, const limb_t *x, const limb_t *y)
 #if defined(BIGNUMBER_NO_QLIMB)
 
 // Quick check to correct the estimate on a quotient word.
-static inline limb_t correctEstimate
-    (limb_t q, limb_t y1, limb_t y2, dlimb_t x01, limb_t x2)
+static inline limb_t correctEstimate(limb_t q, limb_t y1, limb_t y2, dlimb_t x01, limb_t x2)
 {
     // Algorithm D from section 4.3.1 of "The Art Of Computer Programming",
     // D. Knuth, Volume 2, "Seminumerical Algorithms", Second Edition, 1981.
@@ -270,7 +282,7 @@ static inline limb_t correctEstimate
     --q;
 
     // Now repeat the check to correct for q values that are off by 2.
-    r += y1;    // r' = (x01 - y1 * (q - 1)) = (x01 - y1 * q + y2) = r + y1
+    r += y1; // r' = (x01 - y1 * (q - 1)) = (x01 - y1 * q + y2) = r + y1
     if (r & (((dlimb_t)INVERSE_LIMB) << LIMB_BITS))
         return q;
     // y2q' = (y2 * (q - 1)) = (y2 * q - y2) = y2q - y2
@@ -287,7 +299,8 @@ static inline limb_t correctEstimate
 void shiftLeft(limb_t *x, size_t size, uint8_t shift)
 {
     dlimb_t carry = 0;
-    while (size > 0) {
+    while (size > 0)
+    {
         carry += ((dlimb_t)(*x)) << shift;
         *x++ = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -300,7 +313,8 @@ void shiftRight(limb_t *x, size_t size, uint8_t shift)
 {
     limb_t carry = 0;
     limb_t word;
-    while (size > 0) {
+    while (size > 0)
+    {
         --size;
         word = x[size];
         x[size] = (word >> shift) | carry;
@@ -334,7 +348,8 @@ void simpleMod(limb_t *x)
     shiftLeft(x, NUM_LIMBS * 2 + 1, shift);
 
     // Step D2/D7. Loop on j
-    for (j = 0; j <= NUM_LIMBS; ++j) {
+    for (j = 0; j <= NUM_LIMBS; ++j)
+    {
         // Step D3. Calculate an estimate of the top-most quotient word.
         limb_t *u = x + NUM_LIMBS * 2 - 2 - j;
         limb_t *v = divisor + NUM_LIMBS - 2;
@@ -351,7 +366,8 @@ void simpleMod(limb_t *x)
         // double-word plus a carry bit.  So we need to use qlimb_t for this.
 #if !defined(BIGNUMBER_NO_QLIMB)
         qlimb_t test = ((((qlimb_t)uword) - ((dlimb_t)q) * v[1]) << LIMB_BITS) + u[0];
-        if ((((dlimb_t)q) * v[0]) > test) {
+        if ((((dlimb_t)q) * v[0]) > test)
+        {
             --q;
             test = ((((qlimb_t)uword) - ((dlimb_t)q) * v[1]) << LIMB_BITS) + u[0];
             if ((((dlimb_t)q) * v[0]) > test)
@@ -368,7 +384,8 @@ void simpleMod(limb_t *x)
         v = divisor;
         dlimb_t carry = 0;
         dlimb_t borrow = 0;
-        for (k = 0; k < NUM_LIMBS; ++k) {
+        for (k = 0; k < NUM_LIMBS; ++k)
+        {
             carry += ((dlimb_t)v[k]) * q;
             borrow = ((dlimb_t)u[k]) - ((limb_t)carry) - borrow;
             u[k] = (dlimb_t)borrow;
@@ -384,7 +401,8 @@ void simpleMod(limb_t *x)
 
         // Step D6. Borrow occurred: add back.
         carry = 0;
-        for (k = 0; k < NUM_LIMBS; ++k) {
+        for (k = 0; k < NUM_LIMBS; ++k)
+        {
             carry += u[k];
             carry += v[k];
             u[k] = (limb_t)carry;
@@ -412,9 +430,12 @@ void testAdd(const char *x, const char *y)
 
     simpleAdd(result2, arg1, arg2);
 
-    if (compare(result, result2) == 0) {
+    if (compare(result, result2) == 0)
+    {
         Serial.println("ok");
-    } else {
+    }
+    else
+    {
         Serial.println("failed");
         printNumber("actual  ", result);
         printNumber("expected", result2);
@@ -424,8 +445,10 @@ void testAdd(const char *x, const char *y)
 void testAdd()
 {
     Serial.println("Addition:");
-    foreach_number (x) {
-        foreach_number (y) {
+    foreach_number(x)
+    {
+        foreach_number(y)
+        {
             testAdd(x, y);
         }
     }
@@ -444,10 +467,13 @@ void testSub(const char *x, const char *y)
     fromString(arg2, NUM_LIMBS, y);
     P521::sub(result, arg1, arg2);
 
-    if (compare(arg1, arg2) >= 0) {
+    if (compare(arg1, arg2) >= 0)
+    {
         // First argument is larger than the second.
         simpleSub(result2, arg1, arg2);
-    } else {
+    }
+    else
+    {
         // First argument is smaller than the second.
         // Compute arg1 + (2^521 - 1 - arg2).
         fromString(temp, NUM_LIMBS, num_2_521_m1);
@@ -455,9 +481,12 @@ void testSub(const char *x, const char *y)
         simpleAdd(result2, arg1, result2);
     }
 
-    if (compare(result, result2) == 0) {
+    if (compare(result, result2) == 0)
+    {
         Serial.println("ok");
-    } else {
+    }
+    else
+    {
         Serial.println("failed");
         printNumber("actual  ", result);
         printNumber("expected", result2);
@@ -467,8 +496,10 @@ void testSub(const char *x, const char *y)
 void testSub()
 {
     Serial.println("Subtraction:");
-    foreach_number (x) {
-        foreach_number (y) {
+    foreach_number(x)
+    {
+        foreach_number(y)
+        {
             testSub(x, y);
         }
     }
@@ -494,9 +525,12 @@ void testMul(const char *x, const char *y)
     simpleMul(result2, arg1, arg2);
     simpleMod(result2);
 
-    if (compare(result, result2) == 0) {
+    if (compare(result, result2) == 0)
+    {
         Serial.println("ok");
-    } else {
+    }
+    else
+    {
         Serial.println("failed");
         printNumber("actual  ", result);
         printNumber("expected", result2);
@@ -506,8 +540,10 @@ void testMul(const char *x, const char *y)
 void testMul()
 {
     Serial.println("Multiplication:");
-    foreach_number (x) {
-        foreach_number (y) {
+    foreach_number(x)
+    {
+        foreach_number(y)
+        {
             testMul(x, y);
         }
     }
@@ -539,9 +575,12 @@ void testMove(const char *x, const char *y, uint8_t select)
     if (ok)
         ok = compare(result, arg1) == 0;
 
-    if (ok) {
+    if (ok)
+    {
         Serial.println("ok");
-    } else {
+    }
+    else
+    {
         Serial.println("failed");
     }
 }
@@ -550,8 +589,10 @@ void testMove()
 {
     Serial.println("Move:");
     uint8_t bit = 0;
-    foreach_number (x) {
-        foreach_number (y) {
+    foreach_number(x)
+    {
+        foreach_number(y)
+        {
             testMove(x, y, ((uint8_t)1) << bit);
             bit = (bit + 1) % 8;
         }
@@ -570,18 +611,24 @@ void testRecip(const char *x)
     P521::recip(result, arg1);
 
     bool ok;
-    if (compare(arg1, num_0) == 0) {
+    if (compare(arg1, num_0) == 0)
+    {
         // 0^-1 = 0
         ok = (compare(result, num_0) == 0);
-    } else {
+    }
+    else
+    {
         // Multiply the result with arg1 - we expect 1 as the result.
         P521::mul(result2, result, arg1);
         ok = (compare(result2, num_1) == 0);
     }
 
-    if (ok) {
+    if (ok)
+    {
         Serial.println("ok");
-    } else {
+    }
+    else
+    {
         Serial.println("failed");
         printNumber("actual", result);
     }
@@ -590,7 +637,8 @@ void testRecip(const char *x)
 void testRecip()
 {
     Serial.println("Reciprocal:");
-    foreach_number (x) {
+    foreach_number(x)
+    {
         testRecip(x);
     }
     Serial.println();

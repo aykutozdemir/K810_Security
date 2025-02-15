@@ -46,8 +46,7 @@
  * to specify the block cipher to use.
  */
 OMAC::OMAC()
-    : _blockCipher(0)
-    , posn(0)
+    : _blockCipher(0), posn(0)
 {
 }
 
@@ -142,9 +141,11 @@ void OMAC::initNext(uint8_t omac[16], uint8_t tag)
  */
 void OMAC::update(uint8_t omac[16], const uint8_t *data, size_t size)
 {
-    while (size > 0) {
+    while (size > 0)
+    {
         // Encrypt the current block if it is already full.
-        if (posn == 16) {
+        if (posn == 16)
+        {
             _blockCipher->encryptBlock(omac, omac);
             posn = 0;
         }
@@ -172,7 +173,8 @@ void OMAC::update(uint8_t omac[16], const uint8_t *data, size_t size)
 void OMAC::finalize(uint8_t omac[16])
 {
     // Apply padding if necessary.
-    if (posn != 16) {
+    if (posn != 16)
+    {
         // Need padding: XOR with P = 2 * B.
         uint32_t p[4];
         memcpy(p, b, 16);
@@ -181,7 +183,9 @@ void OMAC::finalize(uint8_t omac[16])
         for (uint8_t index = 0; index < 16; ++index)
             omac[index] ^= ((const uint8_t *)p)[index];
         clean(p);
-    } else {
+    }
+    else
+    {
         // No padding necessary: XOR with B.
         for (uint8_t index = 0; index < 16; ++index)
             omac[index] ^= ((const uint8_t *)b)[index];

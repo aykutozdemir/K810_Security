@@ -40,8 +40,7 @@
  * This constructor should be followed by a call to setBlockCipher().
  */
 CBCCommon::CBCCommon()
-    : blockCipher(0)
-    , posn(16)
+    : blockCipher(0), posn(16)
 {
 }
 
@@ -86,7 +85,8 @@ bool CBCCommon::setIV(const uint8_t *iv, size_t len)
 void CBCCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
     uint8_t posn;
-    while (len >= 16) {
+    while (len >= 16)
+    {
         for (posn = 0; posn < 16; ++posn)
             iv[posn] ^= *input++;
         blockCipher->encryptBlock(iv, iv);
@@ -99,9 +99,11 @@ void CBCCommon::encrypt(uint8_t *output, const uint8_t *input, size_t len)
 void CBCCommon::decrypt(uint8_t *output, const uint8_t *input, size_t len)
 {
     uint8_t posn;
-    while (len >= 16) {
+    while (len >= 16)
+    {
         blockCipher->decryptBlock(temp, input);
-        for (posn = 0; posn < 16; ++posn) {
+        for (posn = 0; posn < 16; ++posn)
+        {
             uint8_t in = *input++;
             *output++ = temp[posn] ^ iv[posn];
             iv[posn] = in;

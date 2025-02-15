@@ -60,29 +60,34 @@
  */
 
 // Limb array with enough space for 130 bits.
-#define NUM_LIMBS_130BIT    (NUM_LIMBS_128BIT + 1)
+#define NUM_LIMBS_130BIT (NUM_LIMBS_128BIT + 1)
 
 // Endian helper macros for limbs and arrays of limbs.
 #if BIGNUMBER_LIMB_8BIT
-#define lelimbtoh(x)        (x)
-#define htolelimb(x)        (x)
+#define lelimbtoh(x) (x)
+#define htolelimb(x) (x)
 #elif BIGNUMBER_LIMB_16BIT
-#define lelimbtoh(x)        (le16toh((x)))
-#define htolelimb(x)        (htole16((x)))
+#define lelimbtoh(x) (le16toh((x)))
+#define htolelimb(x) (htole16((x)))
 #elif BIGNUMBER_LIMB_32BIT
-#define lelimbtoh(x)        (le32toh((x)))
-#define htolelimb(x)        (htole32((x)))
+#define lelimbtoh(x) (le32toh((x)))
+#define htolelimb(x) (htole32((x)))
 #elif BIGNUMBER_LIMB_64BIT
-#define lelimbtoh(x)        (le64toh((x)))
-#define htolelimb(x)        (htole64((x)))
+#define lelimbtoh(x) (le64toh((x)))
+#define htolelimb(x) (htole64((x)))
 #endif
 #if defined(CRYPTO_LITTLE_ENDIAN)
-#define littleToHost(r,size)    do { ; } while (0)
+#define littleToHost(r, size) \
+    do                        \
+    {                         \
+        ;                     \
+    } while (0)
 #else
-#define littleToHost(r,size)   \
-    do { \
+#define littleToHost(r, size)                \
+    do                                       \
+    {                                        \
         for (uint8_t i = 0; i < (size); ++i) \
-            (r)[i] = lelimbtoh((r)[i]); \
+            (r)[i] = lelimbtoh((r)[i]);      \
     } while (0)
 #endif
 
@@ -146,7 +151,8 @@ void Poly1305::update(const void *data, size_t len)
 {
     // Break the input up into 128-bit chunks and process each in turn.
     const uint8_t *d = (const uint8_t *)data;
-    while (len > 0) {
+    while (len > 0)
+    {
         uint8_t size = 16 - state.chunkSize;
         if (size > len)
             size = len;
@@ -154,7 +160,8 @@ void Poly1305::update(const void *data, size_t len)
         state.chunkSize += size;
         len -= size;
         d += size;
-        if (state.chunkSize == 16) {
+        if (state.chunkSize == 16)
+        {
             littleToHost(state.c, NUM_LIMBS_128BIT);
             state.c[NUM_LIMBS_128BIT] = 1;
             processChunk();
@@ -186,7 +193,8 @@ void Poly1305::finalize(const void *nonce, void *token, size_t len)
     limb_t t[NUM_LIMBS_256BIT + 1];
 
     // Pad and flush the final chunk.
-    if (state.chunkSize > 0) {
+    if (state.chunkSize > 0)
+    {
         uint8_t *c = (uint8_t *)state.c;
         c[state.chunkSize] = 1;
         memset(c + state.chunkSize + 1, 0, 16 - state.chunkSize - 1);
@@ -203,7 +211,8 @@ void Poly1305::finalize(const void *nonce, void *token, size_t len)
     carry = (dlimb_t)((state.h[NUM_LIMBS_128BIT] >> 2) +
                       (state.h[NUM_LIMBS_128BIT] & ~((limb_t)3)));
     state.h[NUM_LIMBS_128BIT] &= 0x0003;
-    for (i = 0; i < NUM_LIMBS_128BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_128BIT; ++i)
+    {
         carry += state.h[i];
         state.h[i] = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -213,7 +222,8 @@ void Poly1305::finalize(const void *nonce, void *token, size_t len)
     // Subtract (2^130 - 5) from h by computing t = h + 5 - 2^130.
     // The "minus 2^130" step is implicit.
     carry = 5;
-    for (i = 0; i < NUM_LIMBS_130BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_130BIT; ++i)
+    {
         carry += state.h[i];
         t[i] = (limb_t)carry;
         carry >>= LIMB_BITS;
@@ -227,7 +237,8 @@ void Poly1305::finalize(const void *nonce, void *token, size_t len)
     // about the value of h in the instruction timing.
     limb_t mask = (~((t[NUM_LIMBS_128BIT] >> 2) & 1)) + 1;
     limb_t nmask = ~mask;
-    for (i = 0; i < NUM_LIMBS_128BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_128BIT; ++i)
+    {
         state.h[i] = (state.h[i] & nmask) | (t[i] & mask);
     }
 
@@ -235,7 +246,8 @@ void Poly1305::finalize(const void *nonce, void *token, size_t len)
     memcpy(state.c, nonce, 16);
     littleToHost(state.c, NUM_LIMBS_128BIT);
     carry = 0;
-    for (i = 0; i < NUM_LIMBS_128BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_128BIT; ++i)
+    {
         carry += state.h[i];
         carry += state.c[i];
         state.h[i] = htolelimb((limb_t)carry);
@@ -253,7 +265,8 @@ void Poly1305::finalize(const void *nonce, void *token, size_t len)
  */
 void Poly1305::pad()
 {
-    if (state.chunkSize != 0) {
+    if (state.chunkSize != 0)
+    {
         memset(((uint8_t *)state.c) + state.chunkSize, 0, 16 - state.chunkSize);
         littleToHost(state.c, NUM_LIMBS_128BIT);
         state.c[NUM_LIMBS_128BIT] = 1;
@@ -283,7 +296,8 @@ void Poly1305::processChunk()
     // and that c is less than 2^129, so the result will be less than 2^133.
     dlimb_t carry = 0;
     uint8_t i, j;
-    for (i = 0; i < NUM_LIMBS_130BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_130BIT; ++i)
+    {
         carry += state.h[i];
         carry += state.c[i];
         state.h[i] = (limb_t)carry;
@@ -296,16 +310,19 @@ void Poly1305::processChunk()
     // the modulo reduction step that follows.
     carry = 0;
     limb_t word = state.r[0];
-    for (i = 0; i < NUM_LIMBS_130BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_130BIT; ++i)
+    {
         carry += ((dlimb_t)(state.h[i])) * word;
         t[i] = (limb_t)carry;
         carry >>= LIMB_BITS;
     }
     t[NUM_LIMBS_130BIT] = (limb_t)carry;
-    for (i = 1; i < NUM_LIMBS_128BIT; ++i) {
+    for (i = 1; i < NUM_LIMBS_128BIT; ++i)
+    {
         word = state.r[i];
         carry = 0;
-        for (j = 0; j < NUM_LIMBS_130BIT; ++j) {
+        for (j = 0; j < NUM_LIMBS_130BIT; ++j)
+        {
             carry += ((dlimb_t)(state.h[j])) * word;
             carry += t[i + j];
             t[i + j] = (limb_t)carry;
@@ -318,9 +335,10 @@ void Poly1305::processChunk()
     // and adding them to the low 130 bits.  See the explaination in the
     // comments for Curve25519::reduce() for a description of how this works.
     carry = ((dlimb_t)(t[NUM_LIMBS_128BIT] >> 2)) +
-                      (t[NUM_LIMBS_128BIT] & ~((limb_t)3));
+            (t[NUM_LIMBS_128BIT] & ~((limb_t)3));
     t[NUM_LIMBS_128BIT] &= 0x0003;
-    for (i = 0; i < NUM_LIMBS_128BIT; ++i) {
+    for (i = 0; i < NUM_LIMBS_128BIT; ++i)
+    {
         // Shift the next word of t up by (LIMB_BITS - 2) bits and then
         // multiply it by 5.  Breaking it down, we can add the results
         // of shifting up by LIMB_BITS and shifting up by (LIMB_BITS - 2).

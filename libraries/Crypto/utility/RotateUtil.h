@@ -43,45 +43,45 @@
 // Rotation macros for 32-bit arguments.
 
 // Generic left rotate - best performance when "bits" is 1 or a multiple of 8.
-#define leftRotate(a, bits) \
-    (__extension__ ({ \
-        uint32_t _temp = (a); \
+#define leftRotate(a, bits)                           \
+    (__extension__({                                  \
+        uint32_t _temp = (a);                         \
         (_temp << (bits)) | (_temp >> (32 - (bits))); \
     }))
 
 // Generic right rotate - best performance when "bits" is 1 or a multiple of 8.
-#define rightRotate(a, bits) \
-    (__extension__ ({ \
-        uint32_t _temp = (a); \
+#define rightRotate(a, bits)                          \
+    (__extension__({                                  \
+        uint32_t _temp = (a);                         \
         (_temp >> (bits)) | (_temp << (32 - (bits))); \
     }))
 
 // Left rotate by 1.
-#define leftRotate1(a)  (leftRotate((a), 1))
+#define leftRotate1(a) (leftRotate((a), 1))
 
 // Left rotate by 2.
-#define leftRotate2(a)  (leftRotate(leftRotate((a), 1), 1))
+#define leftRotate2(a) (leftRotate(leftRotate((a), 1), 1))
 
 // Left rotate by 3.
-#define leftRotate3(a)  (leftRotate(leftRotate(leftRotate((a), 1), 1), 1))
+#define leftRotate3(a) (leftRotate(leftRotate(leftRotate((a), 1), 1), 1))
 
 // Left rotate by 4.
-#define leftRotate4(a)  (leftRotate(leftRotate(leftRotate(leftRotate((a), 1), 1), 1), 1))
+#define leftRotate4(a) (leftRotate(leftRotate(leftRotate(leftRotate((a), 1), 1), 1), 1))
 
 // Left rotate by 5: Rotate left by 8, then right by 3.
-#define leftRotate5(a)  (rightRotate(rightRotate(rightRotate(leftRotate((a), 8), 1), 1), 1))
+#define leftRotate5(a) (rightRotate(rightRotate(rightRotate(leftRotate((a), 8), 1), 1), 1))
 
 // Left rotate by 6: Rotate left by 8, then right by 2.
-#define leftRotate6(a)  (rightRotate(rightRotate(leftRotate((a), 8), 1), 1))
+#define leftRotate6(a) (rightRotate(rightRotate(leftRotate((a), 8), 1), 1))
 
 // Left rotate by 7: Rotate left by 8, then right by 1.
-#define leftRotate7(a)  (rightRotate(leftRotate((a), 8), 1))
+#define leftRotate7(a) (rightRotate(leftRotate((a), 8), 1))
 
 // Left rotate by 8.
-#define leftRotate8(a)  (leftRotate((a), 8))
+#define leftRotate8(a) (leftRotate((a), 8))
 
 // Left rotate by 9: Rotate left by 8, then left by 1.
-#define leftRotate9(a)  (leftRotate(leftRotate((a), 8), 1))
+#define leftRotate9(a) (leftRotate(leftRotate((a), 8), 1))
 
 // Left rotate by 10: Rotate left by 8, then left by 2.
 #define leftRotate10(a) (leftRotate(leftRotate(leftRotate((a), 8), 1), 1))
@@ -150,15 +150,15 @@
 #define leftRotate31(a) (rightRotate((a), 1))
 
 // Define the 32-bit right rotations in terms of left rotations.
-#define rightRotate1(a)  (leftRotate31((a)))
-#define rightRotate2(a)  (leftRotate30((a)))
-#define rightRotate3(a)  (leftRotate29((a)))
-#define rightRotate4(a)  (leftRotate28((a)))
-#define rightRotate5(a)  (leftRotate27((a)))
-#define rightRotate6(a)  (leftRotate26((a)))
-#define rightRotate7(a)  (leftRotate25((a)))
-#define rightRotate8(a)  (leftRotate24((a)))
-#define rightRotate9(a)  (leftRotate23((a)))
+#define rightRotate1(a) (leftRotate31((a)))
+#define rightRotate2(a) (leftRotate30((a)))
+#define rightRotate3(a) (leftRotate29((a)))
+#define rightRotate4(a) (leftRotate28((a)))
+#define rightRotate5(a) (leftRotate27((a)))
+#define rightRotate6(a) (leftRotate26((a)))
+#define rightRotate7(a) (leftRotate25((a)))
+#define rightRotate8(a) (leftRotate24((a)))
+#define rightRotate9(a) (leftRotate23((a)))
 #define rightRotate10(a) (leftRotate22((a)))
 #define rightRotate11(a) (leftRotate21((a)))
 #define rightRotate12(a) (leftRotate20((a)))
@@ -190,29 +190,29 @@
 // Rotation macros for 32-bit arguments.
 
 // Generic left rotate.
-#define leftRotate(a, bits) \
-    (__extension__ ({ \
-        uint32_t _temp = (a); \
+#define leftRotate(a, bits)                           \
+    (__extension__({                                  \
+        uint32_t _temp = (a);                         \
         (_temp << (bits)) | (_temp >> (32 - (bits))); \
     }))
 
 // Generic right rotate.
-#define rightRotate(a, bits) \
-    (__extension__ ({ \
-        uint32_t _temp = (a); \
+#define rightRotate(a, bits)                          \
+    (__extension__({                                  \
+        uint32_t _temp = (a);                         \
         (_temp >> (bits)) | (_temp << (32 - (bits))); \
     }))
 
 // Left rotate by a specific number of bits.
-#define leftRotate1(a)  (leftRotate((a), 1))
-#define leftRotate2(a)  (leftRotate((a), 2))
-#define leftRotate3(a)  (leftRotate((a), 3))
-#define leftRotate4(a)  (leftRotate((a), 4))
-#define leftRotate5(a)  (leftRotate((a), 5))
-#define leftRotate6(a)  (leftRotate((a), 6))
-#define leftRotate7(a)  (leftRotate((a), 7))
-#define leftRotate8(a)  (leftRotate((a), 8))
-#define leftRotate9(a)  (leftRotate((a), 9))
+#define leftRotate1(a) (leftRotate((a), 1))
+#define leftRotate2(a) (leftRotate((a), 2))
+#define leftRotate3(a) (leftRotate((a), 3))
+#define leftRotate4(a) (leftRotate((a), 4))
+#define leftRotate5(a) (leftRotate((a), 5))
+#define leftRotate6(a) (leftRotate((a), 6))
+#define leftRotate7(a) (leftRotate((a), 7))
+#define leftRotate8(a) (leftRotate((a), 8))
+#define leftRotate9(a) (leftRotate((a), 9))
 #define leftRotate10(a) (leftRotate((a), 10))
 #define leftRotate11(a) (leftRotate((a), 11))
 #define leftRotate12(a) (leftRotate((a), 12))
@@ -237,15 +237,15 @@
 #define leftRotate31(a) (leftRotate((a), 31))
 
 // Right rotate by a specific number of bits.
-#define rightRotate1(a)  (rightRotate((a), 1))
-#define rightRotate2(a)  (rightRotate((a), 2))
-#define rightRotate3(a)  (rightRotate((a), 3))
-#define rightRotate4(a)  (rightRotate((a), 4))
-#define rightRotate5(a)  (rightRotate((a), 5))
-#define rightRotate6(a)  (rightRotate((a), 6))
-#define rightRotate7(a)  (rightRotate((a), 7))
-#define rightRotate8(a)  (rightRotate((a), 8))
-#define rightRotate9(a)  (rightRotate((a), 9))
+#define rightRotate1(a) (rightRotate((a), 1))
+#define rightRotate2(a) (rightRotate((a), 2))
+#define rightRotate3(a) (rightRotate((a), 3))
+#define rightRotate4(a) (rightRotate((a), 4))
+#define rightRotate5(a) (rightRotate((a), 5))
+#define rightRotate6(a) (rightRotate((a), 6))
+#define rightRotate7(a) (rightRotate((a), 7))
+#define rightRotate8(a) (rightRotate((a), 8))
+#define rightRotate9(a) (rightRotate((a), 9))
 #define rightRotate10(a) (rightRotate((a), 10))
 #define rightRotate11(a) (rightRotate((a), 11))
 #define rightRotate12(a) (rightRotate((a), 12))
@@ -276,45 +276,45 @@
 // Rotation macros for 64-bit arguments.
 
 // Generic left rotate - best performance when "bits" is 1 or a multiple of 8.
-#define leftRotate_64(a, bits) \
-    (__extension__ ({ \
-        uint64_t _temp = (a); \
+#define leftRotate_64(a, bits)                        \
+    (__extension__({                                  \
+        uint64_t _temp = (a);                         \
         (_temp << (bits)) | (_temp >> (64 - (bits))); \
     }))
 
 // Generic right rotate - best performance when "bits" is 1 or a multiple of 8.
-#define rightRotate_64(a, bits) \
-    (__extension__ ({ \
-        uint64_t _temp = (a); \
+#define rightRotate_64(a, bits)                       \
+    (__extension__({                                  \
+        uint64_t _temp = (a);                         \
         (_temp >> (bits)) | (_temp << (64 - (bits))); \
     }))
 
 // Left rotate by 1.
-#define leftRotate1_64(a)  (leftRotate_64((a), 1))
+#define leftRotate1_64(a) (leftRotate_64((a), 1))
 
 // Left rotate by 2.
-#define leftRotate2_64(a)  (leftRotate_64(leftRotate_64((a), 1), 1))
+#define leftRotate2_64(a) (leftRotate_64(leftRotate_64((a), 1), 1))
 
 // Left rotate by 3.
-#define leftRotate3_64(a)  (leftRotate_64(leftRotate_64(leftRotate_64((a), 1), 1), 1))
+#define leftRotate3_64(a) (leftRotate_64(leftRotate_64(leftRotate_64((a), 1), 1), 1))
 
 // Left rotate by 4.
-#define leftRotate4_64(a)  (leftRotate_64(leftRotate_64(leftRotate_64(leftRotate_64((a), 1), 1), 1), 1))
+#define leftRotate4_64(a) (leftRotate_64(leftRotate_64(leftRotate_64(leftRotate_64((a), 1), 1), 1), 1))
 
 // Left rotate by 5: Rotate left by 8, then right by 3.
-#define leftRotate5_64(a)  (rightRotate_64(rightRotate_64(rightRotate_64(leftRotate_64((a), 8), 1), 1), 1))
+#define leftRotate5_64(a) (rightRotate_64(rightRotate_64(rightRotate_64(leftRotate_64((a), 8), 1), 1), 1))
 
 // Left rotate by 6: Rotate left by 8, then right by 2.
-#define leftRotate6_64(a)  (rightRotate_64(rightRotate_64(leftRotate_64((a), 8), 1), 1))
+#define leftRotate6_64(a) (rightRotate_64(rightRotate_64(leftRotate_64((a), 8), 1), 1))
 
 // Left rotate by 7: Rotate left by 8, then right by 1.
-#define leftRotate7_64(a)  (rightRotate_64(leftRotate_64((a), 8), 1))
+#define leftRotate7_64(a) (rightRotate_64(leftRotate_64((a), 8), 1))
 
 // Left rotate by 8.
-#define leftRotate8_64(a)  (leftRotate_64((a), 8))
+#define leftRotate8_64(a) (leftRotate_64((a), 8))
 
 // Left rotate by 9: Rotate left by 8, then left by 1.
-#define leftRotate9_64(a)  (leftRotate_64(leftRotate_64((a), 8), 1))
+#define leftRotate9_64(a) (leftRotate_64(leftRotate_64((a), 8), 1))
 
 // Left rotate by 10: Rotate left by 8, then left by 2.
 #define leftRotate10_64(a) (leftRotate_64(leftRotate_64(leftRotate_64((a), 8), 1), 1))
@@ -479,15 +479,15 @@
 #define leftRotate63_64(a) (rightRotate_64((a), 1))
 
 // Define the 64-bit right rotations in terms of left rotations.
-#define rightRotate1_64(a)  (leftRotate63_64((a)))
-#define rightRotate2_64(a)  (leftRotate62_64((a)))
-#define rightRotate3_64(a)  (leftRotate61_64((a)))
-#define rightRotate4_64(a)  (leftRotate60_64((a)))
-#define rightRotate5_64(a)  (leftRotate59_64((a)))
-#define rightRotate6_64(a)  (leftRotate58_64((a)))
-#define rightRotate7_64(a)  (leftRotate57_64((a)))
-#define rightRotate8_64(a)  (leftRotate56_64((a)))
-#define rightRotate9_64(a)  (leftRotate55_64((a)))
+#define rightRotate1_64(a) (leftRotate63_64((a)))
+#define rightRotate2_64(a) (leftRotate62_64((a)))
+#define rightRotate3_64(a) (leftRotate61_64((a)))
+#define rightRotate4_64(a) (leftRotate60_64((a)))
+#define rightRotate5_64(a) (leftRotate59_64((a)))
+#define rightRotate6_64(a) (leftRotate58_64((a)))
+#define rightRotate7_64(a) (leftRotate57_64((a)))
+#define rightRotate8_64(a) (leftRotate56_64((a)))
+#define rightRotate9_64(a) (leftRotate55_64((a)))
 #define rightRotate10_64(a) (leftRotate54_64((a)))
 #define rightRotate11_64(a) (leftRotate53_64((a)))
 #define rightRotate12_64(a) (leftRotate52_64((a)))
@@ -548,29 +548,29 @@
 // Rotation macros for 64-bit arguments.
 
 // Generic left rotate.
-#define leftRotate_64(a, bits) \
-    (__extension__ ({ \
-        uint64_t _temp = (a); \
+#define leftRotate_64(a, bits)                        \
+    (__extension__({                                  \
+        uint64_t _temp = (a);                         \
         (_temp << (bits)) | (_temp >> (64 - (bits))); \
     }))
 
 // Generic right rotate.
-#define rightRotate_64(a, bits) \
-    (__extension__ ({ \
-        uint64_t _temp = (a); \
+#define rightRotate_64(a, bits)                       \
+    (__extension__({                                  \
+        uint64_t _temp = (a);                         \
         (_temp >> (bits)) | (_temp << (64 - (bits))); \
     }))
 
 // Left rotate by a specific number of bits.
-#define leftRotate1_64(a)  (leftRotate_64((a), 1))
-#define leftRotate2_64(a)  (leftRotate_64((a), 2))
-#define leftRotate3_64(a)  (leftRotate_64((a), 3))
-#define leftRotate4_64(a)  (leftRotate_64((a), 4))
-#define leftRotate5_64(a)  (leftRotate_64((a), 5))
-#define leftRotate6_64(a)  (leftRotate_64((a), 6))
-#define leftRotate7_64(a)  (leftRotate_64((a), 7))
-#define leftRotate8_64(a)  (leftRotate_64((a), 8))
-#define leftRotate9_64(a)  (leftRotate_64((a), 9))
+#define leftRotate1_64(a) (leftRotate_64((a), 1))
+#define leftRotate2_64(a) (leftRotate_64((a), 2))
+#define leftRotate3_64(a) (leftRotate_64((a), 3))
+#define leftRotate4_64(a) (leftRotate_64((a), 4))
+#define leftRotate5_64(a) (leftRotate_64((a), 5))
+#define leftRotate6_64(a) (leftRotate_64((a), 6))
+#define leftRotate7_64(a) (leftRotate_64((a), 7))
+#define leftRotate8_64(a) (leftRotate_64((a), 8))
+#define leftRotate9_64(a) (leftRotate_64((a), 9))
 #define leftRotate10_64(a) (leftRotate_64((a), 10))
 #define leftRotate11_64(a) (leftRotate_64((a), 11))
 #define leftRotate12_64(a) (leftRotate_64((a), 12))
@@ -627,15 +627,15 @@
 #define leftRotate63_64(a) (leftRotate_64((a), 63))
 
 // Right rotate by a specific number of bits.
-#define rightRotate1_64(a)  (rightRotate_64((a), 1))
-#define rightRotate2_64(a)  (rightRotate_64((a), 2))
-#define rightRotate3_64(a)  (rightRotate_64((a), 3))
-#define rightRotate4_64(a)  (rightRotate_64((a), 4))
-#define rightRotate5_64(a)  (rightRotate_64((a), 5))
-#define rightRotate6_64(a)  (rightRotate_64((a), 6))
-#define rightRotate7_64(a)  (rightRotate_64((a), 7))
-#define rightRotate8_64(a)  (rightRotate_64((a), 8))
-#define rightRotate9_64(a)  (rightRotate_64((a), 9))
+#define rightRotate1_64(a) (rightRotate_64((a), 1))
+#define rightRotate2_64(a) (rightRotate_64((a), 2))
+#define rightRotate3_64(a) (rightRotate_64((a), 3))
+#define rightRotate4_64(a) (rightRotate_64((a), 4))
+#define rightRotate5_64(a) (rightRotate_64((a), 5))
+#define rightRotate6_64(a) (rightRotate_64((a), 6))
+#define rightRotate7_64(a) (rightRotate_64((a), 7))
+#define rightRotate8_64(a) (rightRotate_64((a), 8))
+#define rightRotate9_64(a) (rightRotate_64((a), 9))
 #define rightRotate10_64(a) (rightRotate_64((a), 10))
 #define rightRotate11_64(a) (rightRotate_64((a), 11))
 #define rightRotate12_64(a) (rightRotate_64((a), 12))

@@ -37,7 +37,8 @@ void clean(void *dest, size_t size)
     // Otherwise the compiler might optimise the entire contents of this
     // function away, which will not be secure.
     volatile uint8_t *d = (volatile uint8_t *)dest;
-    while (size > 0) {
+    while (size > 0)
+    {
         *d++ = 0;
         --size;
     }
@@ -71,7 +72,8 @@ bool secure_compare(const void *data1, const void *data2, size_t len)
     uint8_t result = 0;
     const uint8_t *d1 = (const uint8_t *)data1;
     const uint8_t *d2 = (const uint8_t *)data2;
-    while (len > 0) {
+    while (len > 0)
+    {
         result |= (*d1++ ^ *d2++);
         --len;
     }
@@ -98,9 +100,11 @@ uint8_t crypto_crc8(uint8_t tag, const void *data, unsigned size)
     const uint8_t *d = (const uint8_t *)data;
     uint8_t crc = 0xFF ^ tag;
     uint8_t bit;
-    while (size > 0) {
+    while (size > 0)
+    {
         crc ^= *d++;
-        for (bit = 0; bit < 8; ++bit) {
+        for (bit = 0; bit < 8; ++bit)
+        {
             // if (crc & 0x80)
             //     crc = (crc << 1) ^ 0x1D;
             // else

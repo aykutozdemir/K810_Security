@@ -9,23 +9,26 @@
 */
 
 #include <ezButton.h> // ezButton library https://arduinogetstarted.com/tutorials/arduino-button-library
-#include <ezLED.h> // ezLED library
+#include <ezLED.h>    // ezLED library
 
 ezButton button(7); // create a button object that attach to pin 7
 ezLED led(3);       // create a LED object that attach to pin 3
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   button.setDebounceTime(50); // set debounce time to 50ms
 }
 
-void loop() {
+void loop()
+{
   button.loop(); // MUST call the loop() function first
-  led.loop(); // MUST call the loop() function first
+  led.loop();    // MUST call the loop() function first
 
-  if (button.isPressed()) {
+  if (button.isPressed())
+  {
     led.toggle(); // toggle immediately
-    //led.toggle(1000); // toggle after 1 second
+    // led.toggle(1000); // toggle after 1 second
   }
 
   if (led.getOnOff() == LED_ON)

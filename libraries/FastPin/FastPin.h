@@ -3,31 +3,40 @@
 
 #include <Arduino.h>
 
-class FastPin {
+class FastPin
+{
 public:
   FastPin(const uint8_t pin, const bool isOutput, const bool pullup = false);
 
-  inline void high() {
+  inline void high()
+  {
     *port |= bitMask;
   }
 
-  inline void low() {
+  inline void low()
+  {
     *port &= ~bitMask;
   }
 
-  inline void toggle() {
+  inline void toggle()
+  {
     *port ^= bitMask;
   }
 
-  inline void set(const uint8_t value) {
-    if (value) {
+  inline void set(const uint8_t value)
+  {
+    if (value)
+    {
       high();
-    } else {
+    }
+    else
+    {
       low();
     }
   }
 
-  inline uint8_t read() {
+  inline uint8_t read()
+  {
     return (*pinReg & bitMask) ? 1 : 0;
   }
 
@@ -37,4 +46,4 @@ private:
   uint8_t bitMask;
 };
 
-#endif  // FASTPIN_H
+#endif // FASTPIN_H

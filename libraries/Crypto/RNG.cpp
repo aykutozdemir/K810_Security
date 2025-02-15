@@ -26,7 +26,7 @@
 #include "Crypto.h"
 #include <Arduino.h>
 #include "utility/ProgMemUtil.h"
-#if defined (__arm__) && defined (__SAM3X8E__)
+#if defined(__arm__) && defined(__SAM3X8E__)
 // The Arduino Due does not have any EEPROM natively on the main chip.
 // However, it does have a TRNG and flash memory.
 #define RNG_DUE_TRNG 1
@@ -34,7 +34,7 @@
 #include <avr/eeprom.h>
 #include <avr/wdt.h>
 #include <avr/io.h>
-#define RNG_EEPROM 1        // Use EEPROM to save the seed.
+#define RNG_EEPROM 1                          // Use EEPROM to save the seed.
 #if defined(MEGATINYCORE) || defined(LOGIC_H) // If device is Modern AVR with CCL
 /* This is a highly unconventional use of Configurable Custom Logic to
  * create an incredibly unstable clock. The speed that this clock runs
@@ -47,9 +47,9 @@
  * Thanks to Spence Konde for the design of the unstable CCL Clock and
  * Brad Bock for implementing it for random number generation.
  */
-#define RNG_CCL 1           // Harvest entropy from Configurable Custom Logic.
+#define RNG_CCL 1                             // Harvest entropy from Configurable Custom Logic.
 #elif defined(TCNT1L) || defined(TCNT0L) || defined(TCNT0)
-#define RNG_WATCHDOG 1      // Harvest entropy from watchdog jitter.
+#define RNG_WATCHDOG 1 // Harvest entropy from watchdog jitter.
 #endif
 
 #define RNG_EEPROM_ADDRESS (E2END + 1 - RNGClass::SEED_SIZE)
@@ -73,8 +73,8 @@
 //    1. Edit RNG.cpp to add your platform's hardware TRNG.
 //    2. Provide a proper noise source like TransistorNoiseSource
 //       in your sketch and then comment out the #warning line below.
-#if !defined(RNG_DUE_TRNG) && \
-    !defined(RNG_WATCHDOG) && \
+#if !defined(RNG_DUE_TRNG) &&  \
+    !defined(RNG_WATCHDOG) &&  \
     !defined(RNG_WORD_TRNG) && \
     !defined(RNG_CCL)
 #warning "no hardware random number source detected for this platform"
@@ -186,13 +186,13 @@ RNGClass RNG;
  */
 
 // Number of ChaCha hash rounds to use for random number generation.
-#define RNG_ROUNDS          20
+#define RNG_ROUNDS 20
 
 // Force a rekey after this many blocks of random data.
-#define RNG_REKEY_BLOCKS    16
+#define RNG_REKEY_BLOCKS 16
 
 // Maximum entropy credit that can be contained in the pool.
-#define RNG_MAX_CREDITS     384u
+#define RNG_MAX_CREDITS 384u
 
 /** @cond */
 
@@ -203,8 +203,7 @@ extern uint8_t crypto_crc8(uint8_t tag, const void *data, unsigned size);
 // first 16 bytes of the block.  The remaining 48 bytes are the seed.
 static const char tagRNG[16] PROGMEM = {
     'e', 'x', 'p', 'a', 'n', 'd', ' ', '3',
-    '2', '-', 'b', 'y', 't', 'e', ' ', 'k'
-};
+    '2', '-', 'b', 'y', 't', 'e', ' ', 'k'};
 
 // Initialization seed.  This is the ChaCha20 output of hashing
 // "expand 32-byte k" followed by 48 bytes set to the numbers 1 to 48.
@@ -218,8 +217,7 @@ static const uint8_t initRNG[48] PROGMEM = {
     0x0C, 0xE8, 0x1F, 0x0D, 0xA3, 0xA0, 0xAA, 0x1E,
     0xB0, 0xBD, 0x72, 0x6B, 0x2B, 0x4C, 0x8A, 0x7E,
     0x34, 0xFC, 0x37, 0x60, 0xF4, 0x1E, 0x22, 0xA0,
-    0x0B, 0xFB, 0x18, 0x84, 0x60, 0xA5, 0x77, 0x72
-};
+    0x0B, 0xFB, 0x18, 0x84, 0x60, 0xA5, 0x77, 0x72};
 
 #if defined(RNG_WATCHDOG)
 
@@ -233,10 +231,10 @@ static const uint8_t initRNG[48] PROGMEM = {
 // entropy source but a real noise source is definitely recommended.
 
 // Helper macros for specific 32-bit shift counts.
-#define leftShift3(value)   ((value) << 3)
-#define leftShift10(value)  ((value) << 10)
-#define leftShift15(value)  ((value) << 15)
-#define rightShift6(value)  ((value) >> 6)
+#define leftShift3(value) ((value) << 3)
+#define leftShift10(value) ((value) << 10)
+#define leftShift15(value) ((value) << 15)
+#define rightShift6(value) ((value) >> 6)
 #define rightShift11(value) ((value) >> 11)
 
 static uint32_t volatile hash = 0;
@@ -268,10 +266,10 @@ ISR(WDT_vect)
 #elif defined(RNG_CCL)
 
 // Helper macros for specific 32-bit shift counts.
-#define leftShift3(value)   ((value) << 3)
-#define leftShift10(value)  ((value) << 10)
-#define leftShift15(value)  ((value) << 15)
-#define rightShift6(value)  ((value) >> 6)
+#define leftShift3(value) ((value) << 3)
+#define leftShift10(value) ((value) << 10)
+#define leftShift15(value) ((value) << 15)
+#define rightShift6(value) ((value) >> 6)
 #define rightShift11(value) ((value) >> 11)
 
 static uint32_t volatile hash = 0;
@@ -281,16 +279,17 @@ static uint8_t volatile outBits = 0;
 ISR(TCB0_INT_vect)
 {
     uint8_t temp = TCB0.INTFLAGS;
-    if (temp & 1) {
+    if (temp & 1)
+    {
         VPORTA.IN |= 2;
     }
-    TCB0.INTFLAGS=temp;
+    TCB0.INTFLAGS = temp;
 }
 
 // Overflow Interrupt from the stable Real Time Counter
 ISR(RTC_CNT_vect)
 {
-    RTC_INTFLAGS = RTC_OVF_bm; // Clear the flag
+    RTC_INTFLAGS = RTC_OVF_bm;        // Clear the flag
     unsigned char value = (TCB0.CNT); // Value of CCL Counter
     hash += value;
     hash += leftShift10(hash);
@@ -311,14 +310,9 @@ ISR(RTC_CNT_vect)
  * \sa begin()
  */
 RNGClass::RNGClass()
-    : credits(0)
-    , firstSave(1)
-    , initialized(0)
-    , trngPending(0)
-    , timer(0)
-    , timeout(3600000UL)    // 1 hour in milliseconds
-    , count(0)
-    , trngPosn(0)
+    : credits(0), firstSave(1), initialized(0), trngPending(0), timer(0), timeout(3600000UL) // 1 hour in milliseconds
+      ,
+      count(0), trngPosn(0)
 {
 }
 
@@ -358,20 +352,20 @@ RNGClass::~RNGClass()
 // Find the flash memory of interest.  Allow for the possibility
 // of other SAM-based Arduino variants in the future.
 #if defined(IFLASH1_ADDR)
-#define RNG_FLASH_ADDR      IFLASH1_ADDR
-#define RNG_FLASH_SIZE      IFLASH1_SIZE
+#define RNG_FLASH_ADDR IFLASH1_ADDR
+#define RNG_FLASH_SIZE IFLASH1_SIZE
 #define RNG_FLASH_PAGE_SIZE IFLASH1_PAGE_SIZE
-#define RNG_EFC             EFC1
+#define RNG_EFC EFC1
 #elif defined(IFLASH0_ADDR)
-#define RNG_FLASH_ADDR      IFLASH0_ADDR
-#define RNG_FLASH_SIZE      IFLASH0_SIZE
+#define RNG_FLASH_ADDR IFLASH0_ADDR
+#define RNG_FLASH_SIZE IFLASH0_SIZE
 #define RNG_FLASH_PAGE_SIZE IFLASH0_PAGE_SIZE
-#define RNG_EFC             EFC0
+#define RNG_EFC EFC0
 #else
-#define RNG_FLASH_ADDR      IFLASH_ADDR
-#define RNG_FLASH_SIZE      IFLASH_SIZE
+#define RNG_FLASH_ADDR IFLASH_ADDR
+#define RNG_FLASH_SIZE IFLASH_SIZE
 #define RNG_FLASH_PAGE_SIZE IFLASH_PAGE_SIZE
-#define RNG_EFC             EFC
+#define RNG_EFC EFC
 #endif
 
 // Address of the flash page to use for saving the seed on the Due.
@@ -384,15 +378,14 @@ RNGClass::~RNGClass()
 // This function must be in RAM because programs running out of
 // flash memory are not allowed to access the unique identifier.
 // Info from: http://forum.arduino.cc/index.php?topic=289190.0
-__attribute__((section(".ramfunc")))
-static void stirUniqueIdentifier(void)
+__attribute__((section(".ramfunc"))) static void stirUniqueIdentifier(void)
 {
     uint32_t id[4];
 
     // Start Read Unique Identifier.
     RNG_EFC->EEFC_FCR = (0x5A << 24) | EFC_FCMD_STUI;
     while ((RNG_EFC->EEFC_FSR & EEFC_FSR_FRDY) != 0)
-        ;   // do nothing until FRDY falls.
+        ; // do nothing until FRDY falls.
 
     // Read the identifier.
     id[0] = *((const uint32_t *)RNG_FLASH_ADDR);
@@ -403,7 +396,7 @@ static void stirUniqueIdentifier(void)
     // Stop Read Unique Identifier.
     RNG_EFC->EEFC_FCR = (0x5A << 24) | EFC_FCMD_SPUI;
     while ((RNG_EFC->EEFC_FSR & EEFC_FSR_FRDY) == 0)
-        ;   // do nothing until FRDY rises.
+        ; // do nothing until FRDY rises.
 
     // Stir the unique identifier into the entropy pool.
     RNG.stir((uint8_t *)id, sizeof(id));
@@ -411,15 +404,14 @@ static void stirUniqueIdentifier(void)
 
 // Erases the flash page containing the seed and then writes the new seed.
 // It is assumed the seed has already been loaded into the latch registers.
-__attribute__((section(".ramfunc")))
-static void eraseAndWriteSeed()
+__attribute__((section(".ramfunc"))) static void eraseAndWriteSeed()
 {
     // Execute the "Erase and Write Page" command.
     RNG_EFC->EEFC_FCR = (0x5A << 24) | (RNG_SEED_PAGE << 8) | EFC_FCMD_EWP;
 
     // Wait for the FRDY bit to be raised.
     while ((RNG_EFC->EEFC_FSR & EEFC_FSR_FRDY) == 0)
-        ;   // do nothing until FRDY rises.
+        ; // do nothing until FRDY rises.
 }
 
 #endif
@@ -450,7 +442,8 @@ void RNGClass::begin(const char *tag)
     int address = RNG_EEPROM_ADDRESS;
     eeprom_read_block(stream, (const void *)address, SEED_SIZE);
     if (crypto_crc8('S', stream, SEED_SIZE - 1) ==
-            ((const uint8_t *)stream)[SEED_SIZE - 1]) {
+        ((const uint8_t *)stream)[SEED_SIZE - 1])
+    {
         // We have a saved seed: XOR it with the initialization block.
         // Note: the CRC-8 value is included.  No point throwing it away.
         for (int posn = 0; posn < 12; ++posn)
@@ -458,8 +451,8 @@ void RNGClass::begin(const char *tag)
     }
 #elif defined(RNG_DUE_TRNG)
     // Do we have a seed saved in the last page of flash memory on the Due?
-    if (crypto_crc8('S', ((const uint32_t *)RNG_SEED_ADDR) + 1, SEED_SIZE)
-            == ((const uint32_t *)RNG_SEED_ADDR)[0]) {
+    if (crypto_crc8('S', ((const uint32_t *)RNG_SEED_ADDR) + 1, SEED_SIZE) == ((const uint32_t *)RNG_SEED_ADDR)[0])
+    {
         // XOR the saved seed with the initialization block.
         for (int posn = 0; posn < 12; ++posn)
             block[posn + 4] ^= ((const uint32_t *)RNG_SEED_ADDR)[posn + 1];
@@ -476,11 +469,14 @@ void RNGClass::begin(const char *tag)
 #if defined(RNG_ESP_NVS)
     // Do we have a seed saved in ESP non-volatile storage (NVS)?
     nvs_handle handle = 0;
-    if (nvs_open("rng", NVS_READONLY, &handle) == 0) {
+    if (nvs_open("rng", NVS_READONLY, &handle) == 0)
+    {
         size_t len = 0;
-        if (nvs_get_blob(handle, "seed", NULL, &len) == 0 && len == SEED_SIZE) {
+        if (nvs_get_blob(handle, "seed", NULL, &len) == 0 && len == SEED_SIZE)
+        {
             uint32_t seed[12];
-            if (nvs_get_blob(handle, "seed", seed, &len) == 0) {
+            if (nvs_get_blob(handle, "seed", seed, &len) == 0)
+            {
                 for (int posn = 0; posn < 12; ++posn)
                     block[posn + 4] ^= seed[posn];
             }
@@ -548,45 +544,46 @@ void RNGClass::begin(const char *tag)
     sei();
 #elif defined(RNG_CCL)
     // CCL Setup
-    VPORTA.DIR |= 0x80; // LUT1 comes screaming out of PA7
-    VPORTA.DIR |= 0x02; // disable CCL output
-    CCL.LUT1CTRLB=0x03; //INSEL0 = 3 (Event A)
+    VPORTA.DIR |= 0x80;   // LUT1 comes screaming out of PA7
+    VPORTA.DIR |= 0x02;   // disable CCL output
+    CCL.LUT1CTRLB = 0x03; // INSEL0 = 3 (Event A)
     CCL.TRUTH1 = 0x11;
-    CCL.LUT1CTRLA = 0x01;  // enable, output to pin with 0x41 (for debugging - 0x01 without output on a pin.
-    EVSYS.CHANNEL0 = EVSYS_CHANNEL0_CCL_LUT1_gc; //Set EVSYS to use output of LUT1 as Channel0.
+    CCL.LUT1CTRLA = 0x01;                        // enable, output to pin with 0x41 (for debugging - 0x01 without output on a pin.
+    EVSYS.CHANNEL0 = EVSYS_CHANNEL0_CCL_LUT1_gc; // Set EVSYS to use output of LUT1 as Channel0.
     EVSYS.USERCCLLUT1A = EVSYS_USER_CHANNEL0_gc;
     EVSYS.USERTCB0COUNT = EVSYS_USER_CHANNEL0_gc;
     TCB0.CTRLB = 0;
     TCB0.CCMP = 255; // this is the number the timer counts up to
     TCB0.INTCTRL = 1;
     TCB0.INTFLAGS = 3;
-    TCB0.CTRLA = 0x0F; //enable with event clock
+    TCB0.CTRLA = 0x0F; // enable with event clock
 
     // Enable CCL
     CCL.CTRLA = 0x01;
 
     // RTC Setup
-    RTC.CLKSEL = RTC_CLKSEL_INT32K_gc;  // Select 32.768kHZ Internal Clock
-    while (RTC.STATUS > 0); // wait for register
+    RTC.CLKSEL = RTC_CLKSEL_INT32K_gc; // Select 32.768kHZ Internal Clock
+    while (RTC.STATUS > 0)
+        ; // wait for register
     uint8_t CCL_SAMPLE_PERIOD;
-#if(F_CPU > 4000000)
+#if (F_CPU > 4000000)
     CCL_SAMPLE_PERIOD = 2;
-#elif(F_CPU == 4000000)
+#elif (F_CPU == 4000000)
     CCL_SAMPLE_PERIOD = 5;
-#elif(F_CPU == 2000000)
+#elif (F_CPU == 2000000)
     CCL_SAMPLE_PERIOD = 9;
-#elif(F_CPU == 1000000)
+#elif (F_CPU == 1000000)
     CCL_SAMPLE_PERIOD = 16;
 #else
-    #error "Chip frequency not supported"
+#error "Chip frequency not supported"
 #endif
     RTC.PER = CCL_SAMPLE_PERIOD;
     RTC.INTCTRL |= RTC_OVF_bm; // enable overflow interrupt
 
     // Enable RTC
     RTC.CTRLA = RTC_PRESCALER_DIV1_gc // no prescaler
-              | RTC_RTCEN_bm          // RTC timer enabled
-              | RTC_RUNSTDBY_bm;      // enabled in standby
+                | RTC_RTCEN_bm        // RTC timer enabled
+                | RTC_RUNSTDBY_bm;    // enabled in standby
 #endif
 
     // Re-save the seed to obliterate the previous value and to ensure
@@ -612,8 +609,9 @@ void RNGClass::begin(const char *tag)
  */
 void RNGClass::addNoiseSource(NoiseSource &source)
 {
-    #define MAX_NOISE_SOURCES (sizeof(noiseSources) / sizeof(noiseSources[0]))
-    if (count < MAX_NOISE_SOURCES) {
+#define MAX_NOISE_SOURCES (sizeof(noiseSources) / sizeof(noiseSources[0]))
+    if (count < MAX_NOISE_SOURCES)
+    {
         noiseSources[count++] = &source;
         source.added();
     }
@@ -667,7 +665,7 @@ void RNGClass::rand(uint8_t *data, size_t len)
         begin(0);
 
     // Decrease the amount of entropy in the pool.
-    if ( (uint16_t)len > (credits / 8))
+    if ((uint16_t)len > (credits / 8))
         credits = 0;
     else
         credits -= len * 8;
@@ -676,22 +674,29 @@ void RNGClass::rand(uint8_t *data, size_t len)
     // then force a stir on the state.  Otherwise mix in some
     // fresh data from the TRNG because it is possible that
     // the application forgot to call RNG.loop().
-    if (trngPending) {
+    if (trngPending)
+    {
         stir(0, 0, 0);
         trngPending = 0;
         trngPosn = 0;
-    } else {
+    }
+    else
+    {
         mixTRNG();
     }
 
     // Generate the random data.
     uint8_t count = 0;
-    while (len > 0) {
+    while (len > 0)
+    {
         // Force a rekey if we have generated too many blocks in this request.
-        if (count >= RNG_REKEY_BLOCKS) {
+        if (count >= RNG_REKEY_BLOCKS)
+        {
             rekey();
             count = 1;
-        } else {
+        }
+        else
+        {
             ++count;
         }
 
@@ -700,10 +705,13 @@ void RNGClass::rand(uint8_t *data, size_t len)
         ChaCha::hashCore(stream, block, RNG_ROUNDS);
 
         // Copy the data to the return buffer.
-        if (len < 64) {
+        if (len < 64)
+        {
             memcpy(data, stream, len);
             break;
-        } else {
+        }
+        else
+        {
             memcpy(data, stream, 64);
             data += 64;
             len -= 64;
@@ -797,24 +805,29 @@ void RNGClass::stir(const uint8_t *data, size_t len, unsigned int credit)
         credits = RNG_MAX_CREDITS;
 
     // Process the supplied input data.
-    if (len > 0) {
+    if (len > 0)
+    {
         // XOR the data with the ChaCha input block in 48 byte
         // chunks and rekey the ChaCha cipher for each chunk to mix
         // the data in.  This should scatter any "true entropy" in
         // the input across the entire block.
-        while (len > 0) {
+        while (len > 0)
+        {
             size_t templen = len;
             if (templen > 48)
                 templen = 48;
             uint8_t *output = ((uint8_t *)block) + 16;
             len -= templen;
-            while (templen > 0) {
+            while (templen > 0)
+            {
                 *output++ ^= *data++;
                 --templen;
             }
             rekey();
         }
-    } else {
+    }
+    else
+    {
         // There was no input data, so just force a rekey so we
         // get some mixing of the state even without new data.
         rekey();
@@ -823,7 +836,8 @@ void RNGClass::stir(const uint8_t *data, size_t len, unsigned int credit)
     // Save if this is the first time we have reached max entropy.
     // This provides some protection if the system is powered off before
     // the first auto-save timeout occurs.
-    if (firstSave && credits >= RNG_MAX_CREDITS) {
+    if (firstSave && credits >= RNG_MAX_CREDITS)
+    {
         firstSave = 0;
         save();
     }
@@ -880,7 +894,8 @@ void RNGClass::save()
 #elif defined(RNG_ESP_NVS)
     // Save the seed into ESP non-volatile storage (NVS).
     nvs_handle handle = 0;
-    if (nvs_open("rng", NVS_READWRITE, &handle) == 0) {
+    if (nvs_open("rng", NVS_READWRITE, &handle) == 0)
+    {
         nvs_erase_all(handle);
         nvs_set_blob(handle, "seed", stream, SEED_SIZE);
         nvs_commit(handle);
@@ -923,11 +938,13 @@ void RNGClass::loop()
     // data from other noise sources.  By hashing together the TRNG with
     // the other noise data, rand() should produce unpredictable data even
     // if one of the sources is actually predictable.
-    if ((REG_TRNG_ISR & TRNG_ISR_DATRDY) != 0) {
+    if ((REG_TRNG_ISR & TRNG_ISR_DATRDY) != 0)
+    {
         block[4 + trngPosn] ^= REG_TRNG_ODATA;
         if (++trngPosn >= 12)
             trngPosn = 0;
-        if (credits < RNG_MAX_CREDITS) {
+        if (credits < RNG_MAX_CREDITS)
+        {
             // Credit 1 bit of entropy for the word.  The TRNG should be
             // better than this but it is so fast that we want to collect
             // up more data before passing it to the application.
@@ -940,7 +957,8 @@ void RNGClass::loop()
     block[4 + trngPosn] ^= RNG_WORD_TRNG_GET();
     if (++trngPosn >= 12)
         trngPosn = 0;
-    if (credits < RNG_MAX_CREDITS) {
+    if (credits < RNG_MAX_CREDITS)
+    {
         // Credit 1 bit of entropy for the word.  The TRNG should be
         // better than this but it is so fast that we want to collect
         // up more data before passing it to the application.
@@ -950,7 +968,8 @@ void RNGClass::loop()
 #elif defined(RNG_WATCHDOG)
     // Read the 32 bit buffer from the WDT interrupt.
     cli();
-    if (outBits >= 32) {
+    if (outBits >= 32)
+    {
         uint32_t value = hash;
         hash = 0;
         outBits = 0;
@@ -971,18 +990,24 @@ void RNGClass::loop()
         // XOR the word with the state.  Stir once we accumulate 48 bytes,
         // which happens about once every 6.4 seconds.
         block[4 + trngPosn] ^= value;
-        if (++trngPosn >= 12) {
+        if (++trngPosn >= 12)
+        {
             trngPosn = 0;
             trngPending = 0;
             stir(0, 0, 0);
-        } else {
+        }
+        else
+        {
             trngPending = 1;
         }
-    } else {
+    }
+    else
+    {
         sei();
     }
 #elif defined(RNG_CCL)
-    if (outBits >= 32) {
+    if (outBits >= 32)
+    {
         uint32_t value = hash;
         hash = 0;
         outBits = 0;
@@ -1000,11 +1025,14 @@ void RNGClass::loop()
 
         // XOR the word with the state.  Stir once we accumulate 48 bytes,
         block[4 + trngPosn] ^= value;
-        if (++trngPosn >= 12) {
+        if (++trngPosn >= 12)
+        {
             trngPosn = 0;
             trngPending = 0;
             stir(0, 0, 0);
-        } else {
+        }
+        else
+        {
             trngPending = 1;
         }
     }
@@ -1048,7 +1076,8 @@ void RNGClass::destroy()
     eraseAndWriteSeed();
 #elif defined(RNG_ESP_NVS)
     nvs_handle handle = 0;
-    if (nvs_open("rng", NVS_READWRITE, &handle) == 0) {
+    if (nvs_open("rng", NVS_READWRITE, &handle) == 0)
+    {
         nvs_erase_all(handle);
         nvs_commit(handle);
         nvs_close(handle);
@@ -1085,13 +1114,15 @@ void RNGClass::mixTRNG()
 {
 #if defined(RNG_DUE_TRNG)
     // Mix in 12 words from the Due's TRNG.
-    for (int posn = 0; posn < 12; ++posn) {
+    for (int posn = 0; posn < 12; ++posn)
+    {
         // According to the documentation the TRNG should produce a new
         // 32-bit random value every 84 clock cycles.  If it still hasn't
         // produced a value after 200 iterations, then assume that the
         // TRNG is not producing output and stop.
         int counter;
-        for (counter = 0; counter < 200; ++counter) {
+        for (counter = 0; counter < 200; ++counter)
+        {
             if ((REG_TRNG_ISR & TRNG_ISR_DATRDY) != 0)
                 break;
         }
@@ -1106,7 +1137,8 @@ void RNGClass::mixTRNG()
 #elif defined(RNG_WATCHDOG)
     // Read the pending 32 bit buffer from the WDT interrupt and mix it in.
     cli();
-    if (outBits >= 32) {
+    if (outBits >= 32)
+    {
         uint32_t value = hash;
         hash = 0;
         outBits = 0;
@@ -1120,11 +1152,14 @@ void RNGClass::mixTRNG()
 
         // XOR the word with the state.
         block[4] ^= value;
-    } else {
+    }
+    else
+    {
         sei();
     }
 #elif defined(RNG_CCL)
-    if (outBits >= 32) {
+    if (outBits >= 32)
+    {
         uint32_t value = hash;
         hash = 0;
         outBits = 0;

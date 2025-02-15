@@ -170,9 +170,11 @@ void EAXCommon::closeAuthData()
  */
 void EAXCommon::encryptCTR(uint8_t *output, const uint8_t *input, size_t len)
 {
-    while (len > 0) {
+    while (len > 0)
+    {
         // Do we need to start a new block?
-        if (state.encPosn == 16) {
+        if (state.encPosn == 16)
+        {
             // Encrypt the counter to create the next keystream block.
             omac.blockCipher()->encryptBlock(state.stream, state.counter);
             state.encPosn = 0;
@@ -183,7 +185,8 @@ void EAXCommon::encryptCTR(uint8_t *output, const uint8_t *input, size_t len)
             // if we could stop earlier because a byte is non-zero.
             uint16_t temp = 1;
             uint8_t index = 16;
-            while (index > 0) {
+            while (index > 0)
+            {
                 --index;
                 temp += state.counter[index];
                 state.counter[index] = (uint8_t)temp;

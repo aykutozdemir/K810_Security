@@ -54,8 +54,7 @@ static TestHashVector const testVectorBLAKE2b_1 PROGMEM = {
      0xd2, 0x5e, 0x10, 0x31, 0xaf, 0xee, 0x58, 0x53,
      0x13, 0x89, 0x64, 0x44, 0x93, 0x4e, 0xb0, 0x4b,
      0x90, 0x3a, 0x68, 0x5b, 0x14, 0x48, 0xb7, 0x55,
-     0xd5, 0x6f, 0x70, 0x1a, 0xfe, 0x9b, 0xe2, 0xce}
-};
+     0xd5, 0x6f, 0x70, 0x1a, 0xfe, 0x9b, 0xe2, 0xce}};
 static TestHashVector const testVectorBLAKE2b_2 PROGMEM = {
     "BLAKE2b #2",
     "abc",
@@ -66,8 +65,7 @@ static TestHashVector const testVectorBLAKE2b_2 PROGMEM = {
      0x7d, 0x87, 0xc5, 0x39, 0x2a, 0xab, 0x79, 0x2d,
      0xc2, 0x52, 0xd5, 0xde, 0x45, 0x33, 0xcc, 0x95,
      0x18, 0xd3, 0x8a, 0xa8, 0xdb, 0xf1, 0x92, 0x5a,
-     0xb9, 0x23, 0x86, 0xed, 0xd4, 0x00, 0x99, 0x23}
-};
+     0xb9, 0x23, 0x86, 0xed, 0xd4, 0x00, 0x99, 0x23}};
 static TestHashVector const testVectorBLAKE2b_3 PROGMEM = {
     "BLAKE2b #3",
     "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
@@ -78,8 +76,7 @@ static TestHashVector const testVectorBLAKE2b_3 PROGMEM = {
      0xed, 0x1b, 0x3e, 0x45, 0x28, 0x59, 0x5a, 0xcc,
      0x90, 0x77, 0x2b, 0xdf, 0x2d, 0x37, 0xdc, 0x8a,
      0x47, 0x13, 0x0b, 0x44, 0xf3, 0x3a, 0x02, 0xe8,
-     0x73, 0x0e, 0x5a, 0xd8, 0xe1, 0x66, 0xe8, 0x88}
-};
+     0x73, 0x0e, 0x5a, 0xd8, 0xe1, 0x66, 0xe8, 0x88}};
 static TestHashVector const testVectorBLAKE2b_4 PROGMEM = {
     "BLAKE2b #4",
     "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
@@ -91,8 +88,7 @@ static TestHashVector const testVectorBLAKE2b_4 PROGMEM = {
      0xee, 0x17, 0x73, 0x28, 0x71, 0x47, 0xcd, 0xea,
      0xee, 0xdf, 0xf5, 0x07, 0x09, 0xaa, 0x71, 0x63,
      0x41, 0xfe, 0x65, 0x24, 0x0f, 0x4a, 0xd6, 0x77,
-     0x7d, 0x6b, 0xfa, 0xf9, 0x72, 0x6e, 0x5e, 0x52}
-};
+     0x7d, 0x6b, 0xfa, 0xf9, 0x72, 0x6e, 0x5e, 0x52}};
 
 BLAKE2b blake2b;
 
@@ -105,7 +101,8 @@ bool testHash_N(Hash *hash, const struct TestHashVector *test, size_t inc)
     uint8_t value[HASH_SIZE];
 
     hash->reset();
-    for (posn = 0; posn < size; posn += inc) {
+    for (posn = 0; posn < size; posn += inc)
+    {
         len = size - posn;
         if (len > inc)
             len = inc;
@@ -129,7 +126,7 @@ void testHash(Hash *hash, const struct TestHashVector *test)
     Serial.print(test->name);
     Serial.print(" ... ");
 
-    ok  = testHash_N(hash, test, strlen(test->data));
+    ok = testHash_N(hash, test, strlen(test->data));
     ok &= testHash_N(hash, test, 1);
     ok &= testHash_N(hash, test, 2);
     ok &= testHash_N(hash, test, 5);
@@ -159,7 +156,8 @@ void perfHash(Hash *hash)
 
     hash->reset();
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->update(buffer, sizeof(buffer));
     }
     elapsed = micros() - start;
@@ -176,21 +174,26 @@ void hashKey(Hash *hash, const uint8_t *key, size_t keyLen, uint8_t pad)
     size_t posn;
     uint8_t buf;
     uint8_t result[HASH_SIZE];
-    if (keyLen <= BLOCK_SIZE) {
+    if (keyLen <= BLOCK_SIZE)
+    {
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < keyLen)
                 buf = key[posn] ^ pad;
             else
                 buf = pad;
             hash->update(&buf, 1);
         }
-    } else {
+    }
+    else
+    {
         hash->reset();
         hash->update(key, keyLen);
         hash->finalize(result, HASH_SIZE);
         hash->reset();
-        for (posn = 0; posn < BLOCK_SIZE; ++posn) {
+        for (posn = 0; posn < BLOCK_SIZE; ++posn)
+        {
             if (posn < HASH_SIZE)
                 buf = result[posn] ^ pad;
             else
@@ -237,12 +240,13 @@ void testHMAC(Hash *hash, size_t keyLen)
 static void selftest_seq(uint8_t *out, size_t len, uint32_t seed)
 {
     size_t i;
-    uint32_t t, a , b;
+    uint32_t t, a, b;
 
-    a = 0xDEAD4BAD * seed;              // prime
+    a = 0xDEAD4BAD * seed; // prime
     b = 1;
 
-    for (i = 0; i < len; i++) {         // fill the buf
+    for (i = 0; i < len; i++)
+    { // fill the buf
         t = a + b;
         a = b;
         b = t;
@@ -254,12 +258,13 @@ static void selftest_seq(uint8_t *out, size_t len, uint32_t seed)
 static void selftest_seq_incremental(BLAKE2b *blake, size_t len, uint32_t seed)
 {
     size_t i;
-    uint32_t t, a , b;
+    uint32_t t, a, b;
 
-    a = 0xDEAD4BAD * seed;              // prime
+    a = 0xDEAD4BAD * seed; // prime
     b = 1;
 
-    for (i = 0; i < len; i++) {         // fill the buf
+    for (i = 0; i < len; i++)
+    { // fill the buf
         t = a + b;
         a = b;
         b = t;
@@ -280,11 +285,10 @@ void testRFC7693()
         0xC2, 0x3A, 0x78, 0x00, 0xD9, 0x81, 0x23, 0xBD,
         0x10, 0xF5, 0x06, 0xC6, 0x1E, 0x29, 0xDA, 0x56,
         0x03, 0xD7, 0x63, 0xB8, 0xBB, 0xAD, 0x2E, 0x73,
-        0x7F, 0x5E, 0x76, 0x5A, 0x7B, 0xCC, 0xD4, 0x75
-    };
+        0x7F, 0x5E, 0x76, 0x5A, 0x7B, 0xCC, 0xD4, 0x75};
     // Parameter sets.
-    static const uint8_t b2b_md_len[4] PROGMEM = { 20, 32, 48, 64 };
-    static const uint16_t b2b_in_len[6] PROGMEM = { 0, 3, 128, 129, 255, 1024 };
+    static const uint8_t b2b_md_len[4] PROGMEM = {20, 32, 48, 64};
+    static const uint16_t b2b_in_len[6] PROGMEM = {0, 3, 128, 129, 255, 1024};
 
     size_t i, j, outlen, inlen;
     uint8_t md[64], key[64];
@@ -295,28 +299,31 @@ void testRFC7693()
     // 256-bit hash for testing.
     blake2b.reset(32);
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
         outlen = pgm_read_byte(&(b2b_md_len[i]));
-        for (j = 0; j < 6; j++) {
+        for (j = 0; j < 6; j++)
+        {
             inlen = pgm_read_word(&(b2b_in_len[j]));
 
-            inner.reset(outlen);                // unkeyed hash
+            inner.reset(outlen); // unkeyed hash
             selftest_seq_incremental(&inner, inlen, inlen);
             inner.finalize(md, outlen);
-            blake2b.update(md, outlen);         // hash the hash
+            blake2b.update(md, outlen); // hash the hash
 
-            selftest_seq(key, outlen, outlen);  // keyed hash
+            selftest_seq(key, outlen, outlen); // keyed hash
             inner.reset(key, outlen, outlen);
             selftest_seq_incremental(&inner, inlen, inlen);
             inner.finalize(md, outlen);
-            blake2b.update(md, outlen);         // hash the hash
+            blake2b.update(md, outlen); // hash the hash
         }
     }
 
     // Compute and compare the hash of hashes.
     bool ok = true;
     blake2b.finalize(md, 32);
-    for (i = 0; i < 32; i++) {
+    for (i = 0; i < 32; i++)
+    {
         if (md[i] != pgm_read_byte(&(blake2b_res[i])))
             ok = false;
     }
@@ -340,9 +347,10 @@ void perfKeyed(BLAKE2b *hash)
         buffer[posn] = (uint8_t)posn;
 
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->reset(buffer, hash->hashSize());
-        hash->update(buffer, 1);    // To flush the key chunk.
+        hash->update(buffer, 1); // To flush the key chunk.
     }
     elapsed = micros() - start;
 
@@ -363,7 +371,8 @@ void perfFinalize(Hash *hash)
     hash->reset();
     hash->update("abc", 3);
     start = micros();
-    for (count = 0; count < 1000; ++count) {
+    for (count = 0; count < 1000; ++count)
+    {
         hash->finalize(buffer, hash->hashSize());
     }
     elapsed = micros() - start;
