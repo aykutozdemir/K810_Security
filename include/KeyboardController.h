@@ -9,10 +9,9 @@
 class KeyboardController final
 {
 public:
-  enum State : uint8_t
-  {
+  enum State : uint8_t {
     LOCKED,
-    UNLOCKED
+   UNLOCKED
   };
 
   explicit KeyboardController(const uint8_t keyboardPowerPin);
@@ -43,12 +42,14 @@ public:
   static void cypherEncryption(byte *const dataArr,
                                const uint8_t dataArrLength,
                                byte *const seedArr,
-                               const uint8_t seedArrLength);
+                               const uint8_t seedArrLength,
+                               const byte salt);
 
   static void cypherDecryption(byte *const dataArr,
                                const uint8_t dataArrLength,
                                byte *const seedArr,
-                               const uint8_t seedArrLength);
+                               const uint8_t seedArrLength,
+                               const byte salt);
 
   void loop();
 
@@ -56,6 +57,6 @@ private:
   ezOutput m_keyboardPowerOutput;
 
   State m_state;
-}; // end KeyboardController class
+};   // end KeyboardController class
 
 #endif

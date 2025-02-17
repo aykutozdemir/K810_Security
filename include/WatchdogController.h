@@ -12,6 +12,10 @@ public:
 
   void disable();
 
+  void resetMCU();
+
+  void resetMCUForSelfProgramming();
+
   void loop();
 }; // end WatchdogController class
 

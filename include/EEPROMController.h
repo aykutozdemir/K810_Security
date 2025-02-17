@@ -24,6 +24,10 @@ public:
 private:
   bool checkWriteComplete();
 
+  void formatInternalPages();
+
+  void formatExternalPage();
+
   TwoWire &m_wire;
 
   State m_state;

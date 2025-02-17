@@ -16,33 +16,25 @@ bool ButtonController::isPressing() const
   return m_button.getState() == LOW;
 }
 
+bool ButtonController::isPressingRaw()
+{
+  return m_button.getStateRaw() == LOW;
+}
+
 void ButtonController::loop()
 {
   m_button.loop();
-
-  if (m_button.isPressed())
-  {
+  
+  if (m_button.isPressed()) {
     m_pressedTime = millis();
-  } // end if
-  else if (m_button.isReleased())
-  {
-    const unsigned long pressDuration = millis() - m_pressedTime;
-
-    if (pressDuration >= 10000)
-    {
-      m_state = VERY_LONG_PRESS;
-    } // end if
-    else if (pressDuration >= 3000)
-    {
-      m_state = LONG_PRESS;
-    } // end else
-    else
-    {
-      m_state = SHORT_PRESS;
-    }
-  } // end else if
-  else
-  {
     m_state = NO_PRESS;
-  } // end else
+  }
+  else if (m_button.isReleased()) {
+    m_state = millis() - m_pressedTime >= 10000 ? VERY_LONG_PRESS :
+              millis() - m_pressedTime >= 3000 ? LONG_PRESS : 
+              SHORT_PRESS;
+  }
+  else {
+    m_state = NO_PRESS; 
+  }
 } // end loop

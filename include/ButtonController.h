@@ -3,11 +3,9 @@
 
 #include <ezButton.h>
 
-class ButtonController final
-{
+class ButtonController final {
 public:
-  enum State : uint8_t
-  {
+  enum State : uint_fast8_t {
     NO_PRESS,
     SHORT_PRESS,
     LONG_PRESS,
@@ -17,6 +15,8 @@ public:
   explicit ButtonController(const uint8_t buttonPin);
 
   bool isPressing() const;
+
+  bool isPressingRaw();
 
   State state() const;
 
@@ -28,6 +28,6 @@ private:
   unsigned long m_pressedTime;
 
   State m_state;
-}; // end ButtonController class
+};  // end ButtonController class
 
 #endif
