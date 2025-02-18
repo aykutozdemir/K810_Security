@@ -19,9 +19,7 @@ class SoftSerial : public Stream
 public:
   typedef void (*TimerSetupCallback)(const unsigned long period);
 
-  SoftSerial(const uint8_t rxPin, const uint8_t txPin,
-             FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &rxQueue,
-             FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &txQueue);
+  SoftSerial(const uint8_t rxPin, const uint8_t txPin);
 
   inline void begin(const unsigned long baudRate,
                     TimerSetupCallback timerSetupCallback,
@@ -48,8 +46,8 @@ private:
   const FastPin m_txPin;
 
   // Buffers
-  FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &m_rxQueue;
-  FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &m_txQueue;
+  FastCircularQueue<uint8_t, RX_BUFFER_SIZE> m_rxQueue;
+  FastCircularQueue<uint8_t, TX_BUFFER_SIZE> m_txQueue;
 
   FastCircularQueue<uint16_t, RX_BUFFER_SIZE> m_rxTempQueue;
 

@@ -7,10 +7,8 @@
 #define OVERSAMPLE 3
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin,
-                                                              FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &rxQueue,
-                                                              FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &txQueue)
-    : m_rxPin(rxPin, false, true), m_txPin(txPin, true), m_rxQueue(rxQueue), m_txQueue(txQueue),
+inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin)
+    : m_rxPin(rxPin, false, true), m_txPin(txPin, true),
       m_baudRate(9600), m_stopBits(1), m_parity(NONE), m_expectedBits(0),
       m_isrCounter(0), m_rxISRPoint(0), m_rxBitIndex(255), m_receivedData(0), m_txBitIndex(255) {}
 
@@ -197,7 +195,7 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
       {
         const uint16_t receivedData = m_receivedData;
         m_rxTempQueue.push(receivedData);
-        m_rxBitIndex = 255;
+        m_rxBitIndex = 254;
       }
     }
   }

@@ -201,7 +201,8 @@ void setup() {
   businessLogicStatistic.setName(F("Business Logic"));
   loopStatistic.setName(F("Loop"));
 
-  Serial.println(F("K810 Security started"));
+  Serial.print(F("K810 Security started: "));
+  Serial.println(checked ? F("checked") : F("unchecked"));
 }
 
 //================ Main Loop ==================

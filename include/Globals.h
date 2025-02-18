@@ -10,7 +10,6 @@
 #include "SoftSerial.h"
 #include "EEPROMController.h"
 #include <StaticSerialCommands.h>
-#include <FastCircularQueue.h>
 #include <PipedStream.h>
 #include <Wire.h>
 

@@ -130,7 +130,7 @@ void HC05::handleInitializing()
 
 void HC05::handleResetting()
 {
-  if (millis() - m_stateStartTime > 250)
+  if (millis() - m_stateStartTime > 500)
   {
     digitalWrite(m_resetPin, HIGH);
     digitalWrite(m_keyPin, HIGH);
@@ -145,7 +145,7 @@ void HC05::handleResettingPermanently()
 
 void HC05::handleInitializingWait()
 {
-  if (millis() - m_stateStartTime > 2500)
+  if (millis() - m_stateStartTime > 3000)
   {
     setState(CHECKING_AT_MODE);
   }
@@ -167,7 +167,7 @@ void HC05::handleWaitingForATResponse()
     Serial.println(F("HC-05 is recognized."));
     return;
   }
-  if (millis() - m_stateStartTime > 3000)
+  if (millis() - m_stateStartTime > 4000)
   {
     Serial.println(F("HC-05 AT mode check failed. Resetting..."));
     setState(RESETTING);
@@ -177,7 +177,7 @@ void HC05::handleWaitingForATResponse()
 void HC05::handleWaitingForCommandMode()
 {
   digitalWrite(m_keyPin, HIGH);
-  if (millis() - m_stateStartTime > 100)
+  if (millis() - m_stateStartTime > 250)
   {
     m_status.inCommandMode = true;
     setState(IDLE);
@@ -188,7 +188,7 @@ void HC05::handleWaitingForCommandMode()
 void HC05::handleWaitingForDataMode()
 {
   digitalWrite(m_keyPin, LOW);
-  if (millis() - m_stateStartTime > 150)
+  if (millis() - m_stateStartTime > 250)
   {
     m_status.inCommandMode = false;
     setState(DATA_MODE);
@@ -204,7 +204,7 @@ void HC05::handleWaitingForResponse()
     if (processResponseBufferForCommand())
       return;
   }
-  if (millis() - m_stateStartTime > 3000)
+  if (millis() - m_stateStartTime > 4000)
   {
     Serial.println(F("HC-05 command processing stuck. Resetting..."));
     setState(RESETTING);
@@ -298,13 +298,21 @@ void HC05::setState(State newState)
 
 void HC05::processNextCommand()
 {
+  static unsigned long lastCommandTime = 0;
+
   if (!m_commandQueue.isEmpty())
   {
+    if ((millis() - lastCommandTime) < 500)
+    {
+      return;
+    }
+
     const Command *nextCommand = m_commandQueue.getHead();
     m_responseBuffer.clear();
     m_stream.print(nextCommand->commandText);
     m_stream.print(F("\r\n"));
     setState(WAITING_FOR_RESPONSE);
+    lastCommandTime = millis();
   }
 }
 

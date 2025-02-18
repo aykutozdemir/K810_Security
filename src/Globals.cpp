@@ -11,14 +11,11 @@ ezLED txLED(LED_BUILTIN_TX_PIN);
 ButtonController buttonController(BUTTON_PIN);
 KeyboardController keyboardController(KEYBOARD_POWER_PIN);
 
-FastCircularQueue<uint8_t, 32> rxQueue;
-FastCircularQueue<uint8_t, 32> txQueue;
-
 // Use a single buffer size constant
 constexpr uint8_t SOFTWARE_SERIAL_RX_BUFFER = 32;
 constexpr uint8_t SOFTWARE_SERIAL_TX_BUFFER = 32;
 
-SoftSerial<SOFTWARE_SERIAL_RX_BUFFER, SOFTWARE_SERIAL_TX_BUFFER> softwareSerial(HC05_RX, HC05_TX, rxQueue, txQueue);
+SoftSerial<SOFTWARE_SERIAL_RX_BUFFER, SOFTWARE_SERIAL_TX_BUFFER> softwareSerial(HC05_RX, HC05_TX);
 HC05 hc05(softwareSerial, HC05_KEY, HC05_STATE, HC05_RESET);
 EEPROMController eepromController(Wire);
 
@@ -86,7 +83,7 @@ const Command btCommands[] = {
   COMMAND(commandGenSalt, "genSalt", NULL, "generate salt"),
   COMMAND(commandGenSeed, "genSeed", NULL, "generate seed"),
   COMMAND(commandCheck, "check", NULL, "check"),
-  COMMAND(commandState, "state", NULL, "get state of the keypad"),
+  COMMAND(commandState, "state", NULL, "state of the keypad"),
   COMMAND(commandLock, "lock", ARG(ArgType::String), NULL, "lock the keypad"),
   COMMAND(commandUnlock, "unlock", ARG(ArgType::String), NULL, "unlock the keypad")
 };
