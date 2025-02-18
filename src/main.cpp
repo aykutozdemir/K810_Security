@@ -231,6 +231,7 @@ void loop() {
       serialCommands.readSerial();
     }
     MEASURE_TIME(hc05Statistic) {
+      softwareSerial.loop();
       hc05.loop();
       if (hc05.isDataMode() && streamBluetooth.available()) {
         hc05.sendData(streamBluetooth.read());

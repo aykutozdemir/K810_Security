@@ -22,7 +22,7 @@ SoftSerial<SOFTWARE_SERIAL_RX_BUFFER, SOFTWARE_SERIAL_TX_BUFFER> softwareSerial(
 HC05 hc05(softwareSerial, HC05_KEY, HC05_STATE, HC05_RESET);
 EEPROMController eepromController(Wire);
 
-constexpr size_t COMMAND_PIPES_BUFFER_SIZE = 192;
+constexpr size_t COMMAND_PIPES_BUFFER_SIZE = 256;
 PipedStreamPair commandPipes(COMMAND_PIPES_BUFFER_SIZE);
 PipedStream &streamBluetooth = commandPipes.first;
 PipedStream &streamCommander = commandPipes.second;

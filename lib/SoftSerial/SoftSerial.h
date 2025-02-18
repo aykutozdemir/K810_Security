@@ -36,30 +36,43 @@ public:
   inline void flush() override;
   inline size_t write(uint8_t data) override;
 
+  void loop();
+
 private:
+  // Methods to set TX pin low or high
+  void txBitLow();
+  void txBitHigh();
+
   // Pin control
-  FastPin m_rxPin;
-  FastPin m_txPin;
+  const FastPin m_rxPin;
+  const FastPin m_txPin;
 
   // Buffers
   FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &m_rxQueue;
   FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &m_txQueue;
 
+  FastCircularQueue<uint16_t, RX_BUFFER_SIZE> m_rxTempQueue;
+
   // Serial configuration
   unsigned long m_baudRate;
   uint8_t m_stopBits;
   ParityMode m_parity;
+  uint8_t m_expectedBits;
 
   // Bit state variables
-  volatile uint8_t m_isrCounter;
+  uint8_t m_isrCounter;
+  uint8_t m_rxISRPoint;
 
-  volatile uint8_t m_rxISRPoint;
   volatile uint8_t m_rxBitIndex;
-  volatile uint8_t m_receivedData;
+  uint16_t m_receivedData;
 
   volatile uint8_t m_txBitIndex;
-  volatile uint8_t m_txData;
-  volatile uint8_t m_txDataCopy;
+
+  // Function pointer type for TX bit manipulations
+  typedef void (SoftSerial::*TxBitManipulation)();
+
+  // Array of function pointers for TX bit manipulations
+  TxBitManipulation m_txBitManipulations[12];
 };
 
 #include "SoftSerial.hpp"

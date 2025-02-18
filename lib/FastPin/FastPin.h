@@ -25,11 +25,11 @@ public:
   }
 
   // Wrapper methods that use the instance variables
-  inline void high() { high(port, bitMask); }
-  inline void low() { low(port, bitMask); }
-  inline void toggle() { toggle(port, bitMask); }
+  inline void high() const { high(port, bitMask); }
+  inline void low() const { low(port, bitMask); }
+  inline void toggle() const { toggle(port, bitMask); }
 
-  inline void set(const uint8_t value)
+  inline void set(const uint8_t value) const
   {
     if (value)
       high();
@@ -37,7 +37,7 @@ public:
       low();
   }
 
-  inline uint8_t read()
+  inline uint8_t read() const
   {
     return (*pinReg & bitMask) ? 1 : 0;
   }
