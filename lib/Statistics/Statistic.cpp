@@ -2,47 +2,61 @@
 #include <limits.h>
 
 Statistic::Statistic()
-    : name(nullptr), startTime(0), minTime(ULONG_MAX), maxTime(0), totalTime(0), count(0) {}
+{
+    reset();
+}
+
+void Statistic::reset()
+{
+    name = nullptr;
+    startTime = 0;
+    minTime = UINT16_MAX;
+    maxTime = 0;
+    average = 0;
+}
 
 void Statistic::setName(const __FlashStringHelper *n)
 {
-  name = n;
+    name = n;
 }
 
 void Statistic::start()
 {
-  startTime = micros();
+    startTime = (uint16_t)micros(); // Store lower 16 bits
 }
 
 void Statistic::end()
 {
-  const unsigned long elapsed = micros() - startTime;
-  if (elapsed < minTime)
-    minTime = elapsed;
-  if (elapsed > maxTime)
-    maxTime = elapsed;
-  totalTime += elapsed;
-  count++;
+    uint16_t currentTime = (uint16_t)micros();
+    uint16_t elapsed;
+    
+    // Handle timer wraparound
+    if (currentTime >= startTime) {
+        elapsed = currentTime - startTime;
+    } else {
+        elapsed = UINT16_MAX - startTime + currentTime + 1;
+    }
+    
+    // Update statistics
+    if (elapsed < minTime) minTime = elapsed;
+    if (elapsed > maxTime) maxTime = elapsed;
+    
+    // Exponential moving average calculation
+    average = average - (average >> ALPHA) + (elapsed >> ALPHA);
 }
 
 void Statistic::print(Print &print) const
 {
-  print.print(F("Statistic: "));
-  if (name)
-  {
-    Serial.println(name);
-  }
-  else
-  {
-    Serial.println(F("(Unnamed)"));
-  }
-  print.print(F("Min Time: "));
-  print.print(minTime);
-  print.println(F(" us"));
-  print.print(F("Max Time: "));
-  print.print(maxTime);
-  print.println(F(" us"));
-  print.print(F("Average Time: "));
-  print.print(count > 0 ? totalTime / count : 0);
-  print.println(F(" us"));
+    print.print(F("Statistic: "));
+    print.println(name ? name : F("(Unnamed)"));
+    
+    print.print(F("Min: "));
+    print.print(minTime);
+    
+    print.print(F("us Max: "));
+    print.print(maxTime);
+    
+    print.print(F("us Avg: "));
+    print.print(average);
+    print.println(F("us"));
 }

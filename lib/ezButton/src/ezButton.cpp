@@ -31,40 +31,27 @@
 
 #include <ezButton.h>
 
-ezButton::ezButton(int pin) : ezButton(pin, INTERNAL_PULLUP) {};
+ezButton::ezButton(int pin) : ezButton(pin, INPUT_PULLUP) {}
 
 ezButton::ezButton(int pin, int mode)
 {
-	btnPin = pin;
+	config.btnPin = pin;
 	debounceTime = 0;
 	count = 0;
-	countMode = COUNT_FALLING;
+	config.flags.countMode = COUNT_FALLING;
 
-	if (mode == INTERNAL_PULLUP || mode == INTERNAL_PULLDOWN)
-	{
-		pinMode(btnPin, mode);
-	}
-	else if (mode == EXTERNAL_PULLUP || mode == EXTERNAL_PULLDOWN)
-	{
-		pinMode(btnPin, INPUT); // External pull-up/pull-down, set as INPUT
-	}
+	// Simplified pin mode setting
+	pinMode(config.btnPin, (mode == EXTERNAL_PULLUP || mode == EXTERNAL_PULLDOWN) ? INPUT : mode);
 
-	// Set the pressed and unpressed states based on the mode
-	if (mode == INTERNAL_PULLDOWN || mode == EXTERNAL_PULLDOWN)
-	{
-		pressedState = HIGH;
-		unpressedState = LOW;
-	}
-	else
-	{
-		pressedState = LOW;
-		unpressedState = HIGH;
-	}
+	// Simplified state setting
+	config.flags.pressedState = (mode == INTERNAL_PULLDOWN || mode == EXTERNAL_PULLDOWN) ? HIGH : LOW;
+	config.flags.unpressedState = !config.flags.pressedState;
 
-	previousSteadyState = digitalRead(btnPin);
-	lastSteadyState = previousSteadyState;
-	lastFlickerableState = previousSteadyState;
-
+	uint8_t initial = digitalRead(config.btnPin);
+	config.flags.previousState = initial;
+	config.flags.lastState = initial;
+	config.flags.flickerState = initial;
+	
 	lastDebounceTime = 0;
 }
 
@@ -75,36 +62,32 @@ void ezButton::setDebounceTime(unsigned long time)
 
 int ezButton::getState(void) const
 {
-	return lastSteadyState;
+	return config.flags.lastState;
 }
 
-int ezButton::getStateRaw(void)
+int ezButton::getStateRaw(void) const
 {
-	return digitalRead(btnPin);
+	return digitalRead(config.btnPin);
 }
 
-bool ezButton::isPressed(void)
+bool ezButton::isPressed(void) const
 {
-	if (previousSteadyState == unpressedState && lastSteadyState == pressedState)
-		return true;
-	else
-		return false;
+	return (config.flags.previousState == config.flags.unpressedState && 
+			config.flags.lastState == config.flags.pressedState);
 }
 
-bool ezButton::isReleased(void)
+bool ezButton::isReleased(void) const
 {
-	if (previousSteadyState == pressedState && lastSteadyState == unpressedState)
-		return true;
-	else
-		return false;
+	return (config.flags.previousState == config.flags.pressedState && 
+			config.flags.lastState == config.flags.unpressedState);
 }
 
 void ezButton::setCountMode(int mode)
 {
-	countMode = mode;
+	config.flags.countMode = mode;
 }
 
-unsigned long ezButton::getCount(void)
+unsigned long ezButton::getCount(void) const
 {
 	return count;
 }
@@ -116,46 +99,24 @@ void ezButton::resetCount(void)
 
 void ezButton::loop(void)
 {
-	// read the state of the switch/button:
-	int currentState = digitalRead(btnPin);
-	unsigned long currentTime = millis();
+	uint8_t currentState = digitalRead(config.btnPin);
+	uint32_t currentTime = millis();
 
-	// check to see if you just pressed the button
-	// (i.e. the input went from LOW to HIGH), and you've waited long enough
-	// since the last press to ignore any noise:
-
-	// If the switch/button changed, due to noise or pressing:
-	if (currentState != lastFlickerableState)
-	{
-		// reset the debouncing timer
+	if (currentState != config.flags.flickerState) {
 		lastDebounceTime = currentTime;
-		// save the the last flickerable state
-		lastFlickerableState = currentState;
+		config.flags.flickerState = currentState;
 	}
 
-	if ((currentTime - lastDebounceTime) >= debounceTime)
-	{
-		// whatever the reading is at, it's been there for longer than the debounce
-		// delay, so take it as the actual current state:
-
-		// save the the steady state
-		previousSteadyState = lastSteadyState;
-		lastSteadyState = currentState;
-	}
-
-	if (previousSteadyState != lastSteadyState)
-	{
-		if (countMode == COUNT_BOTH)
-			count++;
-		else if (countMode == COUNT_FALLING)
-		{
-			if (previousSteadyState == HIGH && lastSteadyState == LOW)
+	if ((currentTime - lastDebounceTime) >= debounceTime) {
+		config.flags.previousState = config.flags.lastState;
+		config.flags.lastState = currentState;
+		
+		if (config.flags.previousState != config.flags.lastState) {
+			if (config.flags.countMode == COUNT_BOTH ||
+				(config.flags.countMode == COUNT_FALLING && config.flags.previousState == HIGH) ||
+				(config.flags.countMode == COUNT_RISING && config.flags.previousState == LOW)) {
 				count++;
-		}
-		else if (countMode == COUNT_RISING)
-		{
-			if (previousSteadyState == LOW && lastSteadyState == HIGH)
-				count++;
+			}
 		}
 	}
 }

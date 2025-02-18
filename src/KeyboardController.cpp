@@ -1,5 +1,8 @@
-#include "KeyboardController.h"
+// Arduino core
 #include <EEPROM.h>
+
+// Project headers
+#include "KeyboardController.h"
 
 #define SALT_ADDRESS 0
 #define SEED_CHECKED_ADDRESS 1

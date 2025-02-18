@@ -1,7 +1,10 @@
 #ifndef KEYBOARDCONTROLLER_H
 #define KEYBOARDCONTROLLER_H
 
+// Arduino core
 #include <Arduino.h>
+
+// Third-party libraries
 #include <ezOutput.h>
 
 #define SEED_LENGTH 16
@@ -9,7 +12,7 @@
 class KeyboardController final
 {
 public:
-  enum State : uint8_t {
+  enum State : uint_fast8_t {
     LOCKED,
    UNLOCKED
   };

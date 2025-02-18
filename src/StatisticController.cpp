@@ -1,5 +1,8 @@
-#include "StatisticController.h"
+// Arduino core
 #include <MemoryUsage.h>
+
+// Project headers
+#include "StatisticController.h"
 
 void StatisticController::setup()
 {
@@ -23,9 +26,9 @@ void StatisticController::loop(Print &print,
 
 void StatisticController::printStatisticTable(Print &print,
                                               const Statistic *statistics[],
-                                              const uint8_t statisticSize)
+                                              const uint8_t statisticSize) const
 {
-  print.println(F("********************"));
+  MemoryUsage::printStars(print);
   for (uint8_t i = 0; i < statisticSize; ++i)
   {
     if (statistics[i] != nullptr) {
@@ -36,17 +39,17 @@ void StatisticController::printStatisticTable(Print &print,
       }
     }
   }
-  print.println(F("********************"));
+  MemoryUsage::printStars(print);
 }
 
-void StatisticController::printRam(Print &print)
+void StatisticController::printRam(Print &print) const
 {
   MemoryUsage::ramDisplay(print);
 }
 
-void StatisticController::printInterruptTable(Print &print)
+void StatisticController::printInterruptTable(Print &print) const
 {
-  print.println(F("********************"));
+  MemoryUsage::printStars(print);
   print.println(F("Enabled Interrupts"));
 
   // External Interrupts
@@ -126,5 +129,5 @@ void StatisticController::printInterruptTable(Print &print)
   print.println(UDIEN, BIN);
 #endif
 
-  print.println(F("********************"));
+  MemoryUsage::printStars(print);
 }

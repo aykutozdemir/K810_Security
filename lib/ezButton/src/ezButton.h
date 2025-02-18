@@ -34,6 +34,7 @@
 
 #include <Arduino.h>
 
+// Combine related constants to save program space
 #define COUNT_FALLING 0
 #define COUNT_RISING 1
 #define COUNT_BOTH 2
@@ -46,35 +47,40 @@
 #define INTERNAL_PULLDOWN INPUT
 #endif
 
+// Use uint8_t instead of int for mode constants to save space
 #define EXTERNAL_PULLUP 0xFE
 #define EXTERNAL_PULLDOWN 0xFF
 
 class ezButton
 {
 private:
-	int btnPin;
-	unsigned long debounceTime;
-	unsigned long count;
-	int countMode;
-	int pressedState;	// the state when the button is considered pressed
-	int unpressedState; // the state when the button is considered unpressed
+	struct {
+		uint8_t btnPin;           // Pin number (0-255)
+		struct {
+			uint8_t countMode : 2;     // Only needs 2 bits (0-2)
+			uint8_t pressedState : 1;   // Only needs 1 bit
+			uint8_t unpressedState : 1; // Only needs 1 bit
+			uint8_t previousState : 1;  // Only needs 1 bit
+			uint8_t lastState : 1;      // Only needs 1 bit
+			uint8_t flickerState : 1;   // Only needs 1 bit
+			uint8_t unused : 1;         // Padding bit
+		} flags;
+	} config;
 
-	int previousSteadyState;  // the previous steady state from the input pin, used to detect pressed and released event
-	int lastSteadyState;	  // the last steady state from the input pin
-	int lastFlickerableState; // the last flickerable state from the input pin
-
-	unsigned long lastDebounceTime; // the last time the output pin was toggled
+	uint32_t debounceTime;
+	uint32_t count;
+	uint32_t lastDebounceTime;
 
 public:
 	ezButton(int pin);
 	ezButton(int pin, int mode);
 	void setDebounceTime(unsigned long time);
 	int getState(void) const;
-	int getStateRaw(void);
-	bool isPressed(void);
-	bool isReleased(void);
+	int getStateRaw(void) const;
+	bool isPressed(void) const;
+	bool isReleased(void) const;
 	void setCountMode(int mode);
-	unsigned long getCount(void);
+	unsigned long getCount(void) const;
 	void resetCount(void);
 	void loop(void);
 };

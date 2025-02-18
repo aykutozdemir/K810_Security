@@ -31,25 +31,29 @@ static inline bool requireSeedNotChecked(SerialCommands &sender) {
 }
 
 // Converts a hex character to its numeric value.
-static inline bool isHexChar(const char c) {
-  return (c >= '0' && c <= '9') ||
-         (c >= 'a' && c <= 'f') ||
-         (c >= 'A' && c <= 'F');
-}
-
-static inline byte hexCharToByte(const char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-  return 0xFF; // Indicate invalid character
+static inline bool hexCharToByte(const char c, byte &result) {
+  if (c >= '0' && c <= '9') {
+    result = c - '0';
+    return true;
+  }
+  if (c >= 'a' && c <= 'f') {
+    result = c - 'a' + 10;
+    return true;
+  }
+  if (c >= 'A' && c <= 'F') {
+    result = c - 'A' + 10;
+    return true;
+  }
+  return false; // Indicate invalid character
 }
 
 // Parse a hexadecimal string into a seed array.
 static inline bool parseSeedString(const char *str, byte *seed, size_t length) {
   for (size_t i = 0; i < length; ++i) {
-    byte highNibble = hexCharToByte(str[2 * i]);
-    byte lowNibble = hexCharToByte(str[2 * i + 1]);
-    if (highNibble == 0xFF || lowNibble == 0xFF) return false;
+    byte highNibble, lowNibble;
+    if (!hexCharToByte(str[2 * i], highNibble) || !hexCharToByte(str[2 * i + 1], lowNibble)) {
+      return false;
+    }
     seed[i] = (highNibble << 4) | lowNibble;
   }
   return true;

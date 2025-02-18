@@ -73,7 +73,7 @@ void MemoryUsage::ramDisplay(Print &out)
 	const int available = freeRam();
 	const int min_available = minimumFreeRam();
 
-	out.println(F("********************"));
+	printStars(out);
 	out.print(F("+----------------+ "));
 	out.print((int)&__data_start);
 	out.println(F(" (__data_start)"));
@@ -116,7 +116,7 @@ void MemoryUsage::ramDisplay(Print &out)
 	out.print(F("+----------------+ "));
 	out.print((int)RAMEND);
 	out.println(F(" (RAMEND / __stack)"));
-	out.println(F("********************"));
+	printStars(out);
 
 	if (min_available < 100)
 	{
@@ -137,6 +137,11 @@ void MemoryUsage::ramDisplay(Print &out)
 
 		out.print(F("Warning: Possible collision between heap and stack: %"));
 		out.println(100 - j);
-		out.println(F("********************"));
+		printStars(out);
 	}
+}
+
+void MemoryUsage::printStars(Print &out)
+{
+	out.println(F("********************"));
 }

@@ -21,6 +21,14 @@ public:
   explicit LoopbackStream(uint16_t buffer_size = LoopbackStream::DEFAULT_SIZE);
   ~LoopbackStream();
 
+  // Add move semantics
+  LoopbackStream(LoopbackStream&& other) noexcept;
+  LoopbackStream& operator=(LoopbackStream&& other) noexcept;
+  
+  // Delete copy operations
+  LoopbackStream(const LoopbackStream&) = delete;
+  LoopbackStream& operator=(const LoopbackStream&) = delete;
+
   void clear();
 
   virtual size_t write(uint8_t);

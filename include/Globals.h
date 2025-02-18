@@ -26,7 +26,7 @@
 #define HC05_STATE 1
 #define HC05_KEY 0
 
-enum State : uint8_t {
+enum State : uint_fast8_t {
   IDLE,
   CONNECTING,
   FORMATTING

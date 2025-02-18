@@ -34,39 +34,47 @@
 
 #include <Arduino.h>
 
-#define BLINK_STATE_DISABLE 0
-#define BLINK_STATE_DELAY 1
-#define BLINK_STATE_BLINK 2
+// Use enum instead of defines to save program space
+enum BlinkState {
+	BLINK_STATE_DISABLE = 0,
+	BLINK_STATE_DELAY = 1, 
+	BLINK_STATE_BLINK = 2
+};
 
 class ezOutput
 {
 private:
-	int _outputPin;
-	int _outputState;
-	int _blinkState;
-
-	unsigned long _highTime;
-	unsigned long _lowTime;
-	unsigned long _startTime;
-	unsigned long _blinkTimes;
-	unsigned long _lastBlinkTime; // the last time the output pin was blinked
+	const uint8_t _outputPin;
+	
+	// Pack states into a bit field structure
+	struct {
+		uint8_t outputState : 1;  // 1 bit for HIGH/LOW
+		uint8_t blinkState : 2;   // 2 bits for DISABLE/DELAY/BLINK
+		uint8_t unused : 5;       // unused bits
+	} _states;
+	
+	uint32_t _highTime;
+	uint32_t _lowTime;
+	uint32_t _startTime;
+	int16_t _blinkTimes;
+	uint32_t _lastBlinkTime;
 
 public:
-	ezOutput(int pin);
-	void high(void);
-	void low(void);
-	void toggle(void);
-	void toggle(unsigned long delayTime);
+	explicit ezOutput(uint8_t pin);
+	void high();
+	void low();
+	void toggle();
+	void toggle(uint32_t delayTime);
 
-	void pulse(unsigned long pulseTime);
-	void pulse(unsigned long pulseTime, unsigned long delayTime);
+	void pulse(uint32_t pulseTime);
+	void pulse(uint32_t pulseTime, uint32_t delayTime);
 
-	void blink(unsigned long lowTime, unsigned long highTime);
-	void blink(unsigned long lowTime, unsigned long highTime, unsigned long delayTime);
+	void blink(uint32_t lowTime, uint32_t highTime);
+	void blink(uint32_t lowTime, uint32_t highTime, uint32_t delayTime);
+	void blink(uint32_t lowTime, uint32_t highTime, uint32_t delayTime, int16_t blinkTimes);
 
-	void blink(unsigned long lowTime, unsigned long highTime, unsigned long delayTime, long blinkTimes);
-	int getState(void);
-	void loop(void);
+	uint8_t getState() const;
+	void loop();
 };
 
 #endif

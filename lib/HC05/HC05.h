@@ -31,7 +31,7 @@ public:
 private:
   enum State : uint8_t
   {
-    IDLE,
+    IDLE = 0,
     WAITING_FOR_RESPONSE,
     DATA_MODE,
     RESETTING,
@@ -42,6 +42,13 @@ private:
     WAITING_FOR_AT_RESPONSE,
     WAITING_FOR_COMMAND_MODE,
     WAITING_FOR_DATA_MODE
+  };
+
+  struct Status {
+    uint8_t currentState : 4;    // Stores State enum (11 values need 4 bits)
+    uint8_t inCommandMode : 1;   // Boolean flag needs 1 bit
+    uint8_t connected : 1;       // Boolean flag needs 1 bit
+    uint8_t unused : 2;          // Padding bits for future use
   };
 
   struct Command
@@ -75,9 +82,7 @@ private:
 
   ArduinoQueue<const Command *> m_commandQueue;
   StringBuffer<32> m_responseBuffer;
-  State m_currentState;
-  bool m_inCommandMode;
-  bool m_connected;
+  Status m_status;
   unsigned long m_stateStartTime;
   DataCallback m_dataReceivedCallback;
 };

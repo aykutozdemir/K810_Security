@@ -23,18 +23,18 @@ public:
              FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &rxQueue,
              FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &txQueue);
 
-  void begin(const unsigned long baudRate,
-             TimerSetupCallback timerSetupCallback,
-             const uint8_t stopBits = 1, const ParityMode parity = NONE);
-  void end();
+  inline void begin(const unsigned long baudRate,
+                    TimerSetupCallback timerSetupCallback,
+                    const uint8_t stopBits = 1, const ParityMode parity = NONE);
+  inline void end();
 
-  void processISR();
+  inline void processISR();
 
-  virtual int available() override;
-  virtual int read() override;
-  virtual int peek() override;
-  virtual void flush() override;
-  virtual size_t write(uint8_t data) override;
+  inline int available() override;
+  inline int read() override;
+  inline int peek() override;
+  inline void flush() override;
+  inline size_t write(uint8_t data) override;
 
 private:
   // Pin control

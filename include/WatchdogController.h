@@ -6,8 +6,6 @@
 class WatchdogController final
 {
 public:
-  WatchdogController();
-
   void enable(const uint8_t timeout);
 
   void disable();
@@ -15,6 +13,8 @@ public:
   void resetMCU();
 
   void resetMCUForSelfProgramming();
+
+  void printResetReason(Stream &stream);
 
   void loop();
 }; // end WatchdogController class

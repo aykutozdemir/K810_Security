@@ -7,9 +7,40 @@ LoopbackStream::LoopbackStream(uint16_t buffer_size)
   this->pos = 0;
   this->size = 0;
 }
+
 LoopbackStream::~LoopbackStream()
 {
   free(buffer);
+}
+
+LoopbackStream::LoopbackStream(LoopbackStream&& other) noexcept
+    : buffer(other.buffer)
+    , buffer_size(other.buffer_size)
+    , pos(other.pos)
+    , size(other.size)
+{
+    other.buffer = nullptr;
+    other.buffer_size = 0;
+    other.pos = 0;
+    other.size = 0;
+}
+
+LoopbackStream& LoopbackStream::operator=(LoopbackStream&& other) noexcept
+{
+    if (this != &other) {
+        free(buffer);
+        
+        buffer = other.buffer;
+        buffer_size = other.buffer_size;
+        pos = other.pos;
+        size = other.size;
+        
+        other.buffer = nullptr;
+        other.buffer_size = 0;
+        other.pos = 0;
+        other.size = 0;
+    }
+    return *this;
 }
 
 void LoopbackStream::clear()
@@ -43,17 +74,11 @@ size_t LoopbackStream::write(uint8_t v)
   {
     return 0;
   }
-  else
-  {
-    uint16_t p = pos + size;
-    if (p >= buffer_size)
-    {
-      p -= buffer_size;
-    }
-    buffer[p] = v;
-    size++;
-    return 1;
-  }
+  
+  uint16_t write_pos = (pos + size) % buffer_size;
+  buffer[write_pos] = v;
+  size++;
+  return 1;
 }
 
 int LoopbackStream::available()
@@ -68,13 +93,18 @@ int LoopbackStream::availableForWrite()
 
 bool LoopbackStream::contains(char ch)
 {
-  for (uint16_t i = 0; i < size; i++)
-  {
-    int p = (pos + i) % buffer_size;
-    if (buffer[p] == ch)
-    {
+  uint16_t current = pos;
+  uint16_t remaining = size;
+  
+  while (remaining > 0) {
+    if (buffer[current] == ch) {
       return true;
     }
+    current++;
+    if (current == buffer_size) {
+      current = 0;
+    }
+    remaining--;
   }
   return false;
 }
@@ -86,5 +116,5 @@ int LoopbackStream::peek()
 
 void LoopbackStream::flush()
 {
-  // I'm not sure what to do here...
+  // No implementation needed
 }

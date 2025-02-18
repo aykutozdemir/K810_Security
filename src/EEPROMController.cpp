@@ -1,9 +1,12 @@
-#include "USBAPI.h"
-#include "EEPROMController.h"
+// Arduino core
 #include <Arduino.h>
+#include <USBAPI.h>
+
+// Project headers
+#include "EEPROMController.h"
 #include <EEPROM.h>
 
-// Use constexpr instead of #define for type safety
+// Constants
 constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50;
 constexpr uint8_t EXT_EEPROM_PAGE_SIZE = 32;
 constexpr uint16_t EXT_EEPROM_TOTAL_SIZE = 8192;
@@ -66,7 +69,7 @@ void EEPROMController::loop()
   } // end switch
 } // end loop
 
-bool EEPROMController::checkWriteComplete()
+bool EEPROMController::checkWriteComplete() const
 {
   m_wire.beginTransmission(EXT_EEPROM_I2C_ADDRESS);
 
@@ -85,7 +88,7 @@ void EEPROMController::formatExternalPage()
   for (uint8_t i = 0; i < EXT_EEPROM_PAGE_SIZE; i++)
   {
     m_wire.write(0x00);
-  } // end for
+  }
   m_wire.endTransmission();
 
   Serial.print(F("External EEPROM page formatted, page: "));

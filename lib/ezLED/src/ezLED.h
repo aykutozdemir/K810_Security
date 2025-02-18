@@ -62,24 +62,36 @@
 class ezLED
 {
 private:
-	int _ledPin;
-	unsigned char _ctrlMode; // CTRL_ANODE, CTRL_CATHODE
-	unsigned char _ledMode;
-	unsigned char _ledState;
-	unsigned char _outputState; // LED_OFF, LED_ON
-	int _brightness;			// 0 to 255
+	uint8_t _ledPin;
+	uint8_t _brightness;      // 0 to 255
 
-	unsigned char _fadeFrom = 0;
-	unsigned char _fadeTo = 0;
-	unsigned long _fadeTime;
-	unsigned long _blinkOnTime;
-	unsigned long _blinkOffTime;
-	unsigned long _blinkTimePeriod;
-	unsigned int _blinkNumberOfTimes;
-	unsigned long _delayTime;
-	unsigned long _lastTime;
-	unsigned long _blinkTimer;
-	unsigned int _blinkCounter;
+	// Group flags into a struct to ensure optimal bit-packing
+	struct {
+		uint8_t _ctrlMode : 1;    // CTRL_ANODE, CTRL_CATHODE
+		uint8_t _ledMode : 3;     // Needs 3 bits for values 0-6
+		uint8_t _ledState : 3;    // Needs 3 bits for values 0-4
+		uint8_t _outputState : 1; // LED_OFF, LED_ON
+	} flags;
+
+	// Group fade-related variables
+	struct {
+		uint8_t from;
+		uint8_t to;
+		uint32_t time;
+	} _fade;
+
+	// Group blink-related variables
+	struct {
+		uint32_t onTime;
+		uint32_t offTime;
+		uint32_t period;
+		uint32_t timer;
+		uint16_t count;
+		uint16_t target;
+	} _blink;
+
+	uint32_t _delayTime;
+	uint32_t _lastTime;
 
 	void setBlink(unsigned long onTime, unsigned long offTime, unsigned long delayTime);
 	void updateAnalog();

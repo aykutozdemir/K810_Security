@@ -16,11 +16,11 @@ public:
 
   void printStatisticTable(Print &print,
                            const Statistic *statistics[],
-                           const uint8_t statisticSize);
+                           const uint8_t statisticSize) const;
 
-  void printRam(Print &print);
+  void printRam(Print &print) const;
 
-  void printInterruptTable(Print &print);
+  void printInterruptTable(Print &print) const;
 }; // end StatisticController class
 
 #endif

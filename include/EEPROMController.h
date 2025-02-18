@@ -1,12 +1,13 @@
 #ifndef EEPROMCONTROLLER_H
 #define EEPROMCONTROLLER_H
 
+// Arduino core
 #include <Wire.h>
 
 class EEPROMController final
 {
 public:
-  enum State : uint8_t
+  enum State : uint_fast8_t
   {
     IDLE,
     FORMATTING_EXTERNAL,
@@ -22,7 +23,7 @@ public:
   void loop();
 
 private:
-  bool checkWriteComplete();
+  bool checkWriteComplete() const;
 
   void formatInternalPages();
 

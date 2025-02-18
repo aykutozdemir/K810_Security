@@ -1,6 +1,7 @@
 #ifndef BUTTONCONTROLLER_H
 #define BUTTONCONTROLLER_H
 
+// Third-party libraries
 #include <ezButton.h>
 
 class ButtonController final {
@@ -16,7 +17,7 @@ public:
 
   bool isPressing() const;
 
-  bool isPressingRaw();
+  bool isPressingRaw() const;
 
   State state() const;
 
@@ -25,7 +26,7 @@ public:
 private:
   ezButton m_button;
 
-  unsigned long m_pressedTime;
+  uint16_t m_pressedTime;
 
   State m_state;
 };  // end ButtonController class

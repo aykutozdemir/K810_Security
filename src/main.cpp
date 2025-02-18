@@ -60,7 +60,7 @@ static void bluetoothInitSequence(const bool checked) {
 
 static void handleBusinessLogic() {
   static State state = IDLE;
-  static SimpleTimer bluetoothConnectionTimeout(40000);
+  static SimpleTimer<uint16_t> bluetoothConnectionTimeout(40000);
   const bool checked = keyboardController.isSeedChecked();
 
   // Handle non-IDLE states first
@@ -155,12 +155,13 @@ ISR(TIMER1_COMPA_vect) {
 //================ Setup ==================
 
 void setup() {
-  SimpleTimer serialWaitTimeout;
+  SimpleTimer<uint16_t> serialWaitTimeout(2000);
   serialWaitTimeout.setInterval(2000);
 
   Serial.begin(9600);
   while (!Serial && !serialWaitTimeout.isReady());
 
+  watchdogController.printResetReason(Serial);
   if (buttonController.isPressingRaw()) {
     watchdogController.resetMCUForSelfProgramming();
   }

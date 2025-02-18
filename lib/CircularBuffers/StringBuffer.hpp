@@ -41,7 +41,9 @@ void StringBuffer<BUFFER_SIZE>::append(const __FlashStringHelper *flashStr)
 template <uint8_t BUFFER_SIZE>
 void StringBuffer<BUFFER_SIZE>::append(const String &str)
 {
-  for (uint16_t i = 0; i < str.length(); i++)
+  const unsigned int strLen = str.length();
+  // Only copy up to BUFFER_SIZE characters
+  for (uint16_t i = 0; i < strLen && i < BUFFER_SIZE; i++)
   {
     this->pushOverwrite(str[i]);
   }
@@ -67,7 +69,9 @@ int StringBuffer<BUFFER_SIZE>::indexOf(const char c) const
 template <uint8_t BUFFER_SIZE>
 int StringBuffer<BUFFER_SIZE>::indexOf(const char *str) const
 {
+  if (!str) return -1;  // Check for null pointer
   const size_t len = strlen(str);
+  if (len == 0) return -1;  // Check for empty string
   if (len > this->available())
   {
     return -1;
@@ -96,6 +100,7 @@ int StringBuffer<BUFFER_SIZE>::indexOf(const char *str) const
 template <uint8_t BUFFER_SIZE>
 int StringBuffer<BUFFER_SIZE>::indexOf(const __FlashStringHelper *flashStr) const
 {
+  if (!flashStr) return -1;  // Check for null pointer
   const size_t len = strnlen_P(reinterpret_cast<PGM_P>(flashStr), BUFFER_SIZE);
   if (len == 0 || len > this->available())
     return -1; // Validate input

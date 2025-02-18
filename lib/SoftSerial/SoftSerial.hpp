@@ -7,17 +7,17 @@
 #define OVERSAMPLE 3
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin,
-                                                       FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &rxQueue,
-                                                       FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &txQueue)
+inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin,
+                                                              FastCircularQueue<uint8_t, RX_BUFFER_SIZE> &rxQueue,
+                                                              FastCircularQueue<uint8_t, TX_BUFFER_SIZE> &txQueue)
     : m_rxPin(rxPin, false, true), m_txPin(txPin, true), m_rxQueue(rxQueue), m_txQueue(txQueue),
       m_baudRate(9600), m_stopBits(1), m_parity(NONE),
       m_isrCounter(0), m_rxISRPoint(0), m_rxBitIndex(255), m_receivedData(0), m_txBitIndex(255), m_txData(0) {}
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned long baudRate,
-                                                       TimerSetupCallback timerSetupCallback,
-                                                       const uint8_t stopBits, const ParityMode parity)
+inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned long baudRate,
+                                                              TimerSetupCallback timerSetupCallback,
+                                                              const uint8_t stopBits, const ParityMode parity)
 {
   SafeInterrupts::ScopedDisable guard;
 
@@ -31,20 +31,20 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned long baudR
   m_rxBitIndex = 254;
   m_txPin.high();
 
-  const unsigned long bitPeriod = (F_CPU + baudRate / 2UL) / baudRate;
+  unsigned long bitPeriod = (F_CPU + baudRate / 2UL) / baudRate;
 
   timerSetupCallback(bitPeriod / OVERSAMPLE);
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::end()
+inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::end()
 {
   m_rxBitIndex = 255;
   m_txBitIndex = 255;
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
+inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
 {
   /*** RX Handling ***/
   if (m_rxBitIndex == 255)
@@ -122,7 +122,6 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
       {
         if (!m_rxQueue.isFull())
         {
-
           uint8_t receivedData = m_receivedData;
           m_rxQueue.push(receivedData);
         }
@@ -208,51 +207,35 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::available()
+inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::available()
 {
   SafeInterrupts::ScopedDisable guard;
-
-  const int availableBytes = m_rxQueue.available();
-
-  return availableBytes;
+  return m_rxQueue.available();
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::read()
+inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::read()
 {
   SafeInterrupts::ScopedDisable guard;
-
   uint8_t data;
-  if (m_rxQueue.pop(data))
-  {
-    return data;
-  }
-
-  return -1;
+  return m_rxQueue.pop(data) ? data : -1;
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::peek()
+inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::peek()
 {
   SafeInterrupts::ScopedDisable guard;
-
   uint8_t data;
-  if (m_rxQueue.peek(data))
-  {
-    return data;
-  }
-
-  return -1;
+  return m_rxQueue.peek(data) ? data : -1;
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::flush() {}
+inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::flush() {}
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-size_t SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::write(uint8_t data)
+inline size_t SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::write(uint8_t data)
 {
   SafeInterrupts::ScopedDisable guard;
-
   const bool result = m_txQueue.push(data);
 
   if (m_txBitIndex == 255)

@@ -7,6 +7,7 @@ template <typename T, uint8_t BUFFER_SIZE>
 class FastCircularQueue
 {
   static_assert((BUFFER_SIZE & (BUFFER_SIZE - 1)) == 0, "BUFFER_SIZE must be a power of 2!");
+  static_assert(BUFFER_SIZE <= 256, "BUFFER_SIZE must be <= 256 due to uint8_t index type!");
 
 public:
   FastCircularQueue()
@@ -14,24 +15,26 @@ public:
 
   inline bool push(const T &value)
   {
-    const uint8_t next = (head + 1) & (BUFFER_SIZE - 1);
+    const uint8_t currentHead = head; // Take a snapshot of head
+    const uint8_t next = (currentHead + 1) & (BUFFER_SIZE - 1);
     if (next == tail)
       return false;
-    buffer[head] = value;
-    head = next;
+    buffer[currentHead] = value;
+    head = next;  // Memory barrier might be needed here for thread safety
     return true;
   }
 
   inline void pushOverwrite(const T &value)
   {
-    const uint8_t next = (head + 1) & (BUFFER_SIZE - 1);
+    const uint8_t currentHead = head;
+    const uint8_t next = (currentHead + 1) & (BUFFER_SIZE - 1);
     if (next == tail)
     {
       // Overwrite mode: move tail to discard oldest data
       tail = (tail + 1) & (BUFFER_SIZE - 1);
     }
-    buffer[head] = value;
-    head = next;
+    buffer[currentHead] = value;
+    head = next;  // Memory barrier might be needed here for thread safety
   }
 
   inline bool pop(T &value)

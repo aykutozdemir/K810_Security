@@ -42,6 +42,8 @@ public:
        static int minimumFreeRam(void);
 
        static void ramDisplay(Print &out);
+
+       static void printStars(Print &out);
 };
 
 #endif

@@ -9,9 +9,7 @@ HC05::HC05(Stream &stream,
       m_keyPin(keyPin),
       m_statePin(statePin),
       m_resetPin(resetPin),
-      m_currentState(INITIALIZING),
-      m_inCommandMode(true),
-      m_connected(false),
+      m_status{INITIALIZING, true, false},
       m_stateStartTime(0),
       m_dataReceivedCallback(nullptr)
 {
@@ -43,7 +41,7 @@ void HC05::sendCommand(const String &command, const CommandCallback callback)
 
 void HC05::sendData(const String &data)
 {
-  if (m_inCommandMode)
+  if (m_status.inCommandMode)
   {
     Serial.println(F("Error: Cannot send data in command mode!"));
     return;
@@ -53,7 +51,7 @@ void HC05::sendData(const String &data)
 
 void HC05::sendData(const char data)
 {
-  if (m_inCommandMode)
+  if (m_status.inCommandMode)
   {
     Serial.println(F("Error: Cannot send data in command mode!"));
     return;
@@ -68,12 +66,12 @@ void HC05::onDataReceived(const DataCallback callback)
 
 bool HC05::isConnected()
 {
-  return m_connected;
+  return m_status.connected;
 }
 
 bool HC05::isDataMode()
 {
-  return m_currentState == DATA_MODE;
+  return m_status.currentState == DATA_MODE;
 }
 
 //---------------- Helper Sub-Methods ----------------//
@@ -181,7 +179,7 @@ void HC05::handleWaitingForCommandMode()
   digitalWrite(m_keyPin, HIGH);
   if (millis() - m_stateStartTime > 100)
   {
-    m_inCommandMode = true;
+    m_status.inCommandMode = true;
     setState(IDLE);
     Serial.println(F("HC-05 is in COMMAND mode"));
   }
@@ -192,7 +190,7 @@ void HC05::handleWaitingForDataMode()
   digitalWrite(m_keyPin, LOW);
   if (millis() - m_stateStartTime > 150)
   {
-    m_inCommandMode = false;
+    m_status.inCommandMode = false;
     setState(DATA_MODE);
     Serial.println(F("HC-05 is in DATA mode"));
   }
@@ -219,7 +217,7 @@ void HC05::handleDataMode()
   while (m_stream.available())
   {
     char c = m_stream.read();
-    if (m_connected && m_dataReceivedCallback)
+    if (m_status.connected && m_dataReceivedCallback)
     {
       m_dataReceivedCallback(c);
     }
@@ -248,7 +246,7 @@ void HC05::loop()
 {
   updateConnectionState();
 
-  switch (m_currentState)
+  switch (m_status.currentState)
   {
   case INITIALIZING:
     handleInitializing();
@@ -294,7 +292,7 @@ void HC05::reset(const bool permanent)
 
 void HC05::setState(State newState)
 {
-  m_currentState = newState;
+  m_status.currentState = newState;
   m_stateStartTime = millis();
 }
 
@@ -313,9 +311,9 @@ void HC05::processNextCommand()
 void HC05::updateConnectionState()
 {
   bool connectionStatus = (digitalRead(m_statePin) == HIGH);
-  if (connectionStatus != m_connected)
+  if (connectionStatus != m_status.connected)
   {
-    m_connected = connectionStatus;
-    Serial.println(m_connected ? F("Bluetooth device connected.") : F("Bluetooth device disconnected."));
+    m_status.connected = connectionStatus;
+    Serial.println(m_status.connected ? F("BT device connected.") : F("BT device disconnected."));
   }
 }

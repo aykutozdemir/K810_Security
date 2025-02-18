@@ -8,31 +8,33 @@ class FastPin
 public:
   FastPin(const uint8_t pin, const bool isOutput, const bool pullup = false);
 
-  inline void high()
+  // Make these static inline to reduce code size
+  static inline void high(volatile uint8_t* port, const uint8_t bitMask)
   {
     *port |= bitMask;
   }
 
-  inline void low()
+  static inline void low(volatile uint8_t* port, const uint8_t bitMask)
   {
     *port &= ~bitMask;
   }
 
-  inline void toggle()
+  static inline void toggle(volatile uint8_t* port, const uint8_t bitMask)
   {
     *port ^= bitMask;
   }
 
+  // Wrapper methods that use the instance variables
+  inline void high() { high(port, bitMask); }
+  inline void low() { low(port, bitMask); }
+  inline void toggle() { toggle(port, bitMask); }
+
   inline void set(const uint8_t value)
   {
     if (value)
-    {
       high();
-    }
     else
-    {
       low();
-    }
   }
 
   inline uint8_t read()

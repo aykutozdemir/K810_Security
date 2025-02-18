@@ -1,12 +1,13 @@
 #ifndef LEDCONTROLLER_H
 #define LEDCONTROLLER_H
 
+// Third-party libraries
 #include <ezLED.h>
 
 class LEDController final
 {
 public:
-  enum State : uint8_t
+  enum State : uint_fast8_t
   {
     LOCKED,
     FORMATTING,
