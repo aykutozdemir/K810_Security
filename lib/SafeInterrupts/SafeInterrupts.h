@@ -2,6 +2,7 @@
 #define SAFEINTERRUPTS_H
 
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 
 #ifdef cli
 #undef cli
@@ -14,52 +15,70 @@
 class SafeInterrupts final
 {
 private:
-    static volatile uint8_t interruptState; // Use single byte with bit fields
-    static constexpr uint8_t DEPTH_MASK = 0x7F; // Lower 7 bits for depth
-    static constexpr uint8_t STATE_MASK = 0x80; // Top bit for interrupt state
+    static volatile uint8_t interruptState;
+    static volatile uint8_t savedSREG;
+    static constexpr uint8_t DEPTH_MASK = 0x7F;
+    static constexpr uint8_t STATE_MASK = 0x80;
 
 public:
-    // Disable global interrupts safely
     static inline void disable()
     {
-        uint8_t depth = interruptState & DEPTH_MASK;
-        if (depth == 0)
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
         {
-            asm volatile("cli"); // Directly disable interrupts
-            interruptState |= STATE_MASK; // Mark interrupts as disabled
-        }
-        if (depth < DEPTH_MASK)
-        {
-            interruptState = (interruptState & STATE_MASK) | (depth + 1);
-        }
-    }
-
-    // Enable global interrupts safely
-    static inline void enable()
-    {
-        uint8_t depth = interruptState & DEPTH_MASK;
-        if (depth > 0)
-        {
-            depth--;
-            interruptState = (interruptState & STATE_MASK) | depth;
-            if (depth == 0 && (interruptState & STATE_MASK))
+            uint8_t depth = interruptState & DEPTH_MASK;
+            if (depth == 0)
             {
-                asm volatile("sei"); // Only re-enable when all disable calls are cleared
-                interruptState &= DEPTH_MASK; // Clear disabled state
+                savedSREG = SREG;
+                asm volatile("cli");
+                interruptState |= STATE_MASK;
+            }
+            if (depth < DEPTH_MASK)
+            {
+                interruptState = (interruptState & STATE_MASK) | (depth + 1);
             }
         }
     }
 
-    // Scoped interrupt guard (disables on enter, restores on exit)
+    static inline void enable()
+    {
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+        {
+            uint8_t depth = interruptState & DEPTH_MASK;
+            if (depth > 0)
+            {
+                depth--;
+                interruptState = (interruptState & STATE_MASK) | depth;
+                if (depth == 0 && (interruptState & STATE_MASK))
+                {
+                    SREG = savedSREG;
+                    interruptState &= DEPTH_MASK;
+                }
+            }
+        }
+    }
+
     class ScopedDisable final
     {
+    private:
+        bool alreadyDisabled;
+
     public:
-        inline ScopedDisable() { SafeInterrupts::disable(); }
-        inline ~ScopedDisable() { SafeInterrupts::enable(); }
+        inline ScopedDisable()
+        {
+            alreadyDisabled = (interruptState & STATE_MASK);
+            SafeInterrupts::disable();
+        }
+
+        inline ~ScopedDisable()
+        {
+            if (!alreadyDisabled)
+            {
+                SafeInterrupts::enable();
+            }
+        }
     };
 };
 
-// Override cli() and sei() globally
 #define cli() SafeInterrupts::disable()
 #define sei() SafeInterrupts::enable()
 

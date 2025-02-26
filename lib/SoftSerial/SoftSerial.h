@@ -18,6 +18,7 @@ class SoftSerial : public Stream
 {
 public:
   typedef void (*TimerSetupCallback)(const unsigned long period);
+  typedef void (*ErrorCallback)(const __FlashStringHelper* errorMessage);
 
   SoftSerial(const uint8_t rxPin, const uint8_t txPin);
 
@@ -25,6 +26,7 @@ public:
                     TimerSetupCallback timerSetupCallback,
                     const uint8_t stopBits = 1, const ParityMode parity = NONE);
   inline void end();
+  inline void setErrorCallback(ErrorCallback callback);
 
   inline void processISR();
 
@@ -37,40 +39,27 @@ public:
   void loop();
 
 private:
-  // Methods to set TX pin low or high
-  void txBitLow();
-  void txBitHigh();
-
-  // Pin control
   const FastPin m_rxPin;
   const FastPin m_txPin;
 
-  // Buffers
   FastCircularQueue<uint8_t, RX_BUFFER_SIZE> m_rxQueue;
   FastCircularQueue<uint8_t, TX_BUFFER_SIZE> m_txQueue;
-
   FastCircularQueue<uint16_t, RX_BUFFER_SIZE> m_rxTempQueue;
 
-  // Serial configuration
   unsigned long m_baudRate;
   uint8_t m_stopBits;
   ParityMode m_parity;
   uint8_t m_expectedBits;
-
-  // Bit state variables
-  uint8_t m_isrCounter;
-  uint8_t m_rxISRPoint;
+  ErrorCallback m_errorCallback;
 
   volatile uint8_t m_rxBitIndex;
   uint16_t m_receivedData;
+  uint16_t m_rxIsrCounter;
+  uint8_t m_rxIsrTargetCounter;
 
   volatile uint8_t m_txBitIndex;
-
-  // Function pointer type for TX bit manipulations
-  typedef void (SoftSerial::*TxBitManipulation)();
-
-  // Array of function pointers for TX bit manipulations
-  TxBitManipulation m_txBitManipulations[12];
+  volatile bool m_txBitChanges[12];
+  uint8_t m_txIsrCounter;
 };
 
 #include "SoftSerial.hpp"

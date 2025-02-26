@@ -3,10 +3,7 @@
 
 // Project headers
 #include "KeyboardController.h"
-
-#define SALT_ADDRESS 0
-#define SEED_CHECKED_ADDRESS 1
-#define SEED_ADDRESS 2
+#include "Globals.h"
 
 KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
   : m_keyboardPowerOutput(keyboardPowerPin), m_state(LOCKED) {
@@ -39,9 +36,9 @@ void KeyboardController::generateSeed(byte *const seedArr,
     return;
   }
 
-  if (EEPROM.read(SEED_ADDRESS) != 0) {
+  if (EEPROM.read(EEPROM_SEED_ADDRESS) != 0) {
     for (int i = 0; i < SEED_LENGTH; ++i) {
-      seedArr[i] = EEPROM.read(SEED_ADDRESS + i);
+      seedArr[i] = EEPROM.read(EEPROM_SEED_ADDRESS + i);
     }
 
     return;
@@ -52,12 +49,12 @@ void KeyboardController::generateSeed(byte *const seedArr,
   for (int i = 0; i < SEED_LENGTH; ++i) {
     seedArr[i] = (rand() % (0xFF - 1)) + 1;
 
-    EEPROM.update(SEED_ADDRESS + i, seedArr[i]);
+    EEPROM.update(EEPROM_SEED_ADDRESS + i, seedArr[i]);
   }
 }
 
 byte KeyboardController::generateSalt() {
-  byte salt = EEPROM.read(SALT_ADDRESS);
+  byte salt = EEPROM.read(EEPROM_SALT_ADDRESS);
 
   if (salt != 0) {
     return salt;
@@ -66,17 +63,17 @@ byte KeyboardController::generateSalt() {
   srand(millis());
   salt = (rand() % (0xFF - 1)) + 1;
 
-  EEPROM.update(SALT_ADDRESS, salt);
+  EEPROM.update(EEPROM_SALT_ADDRESS, salt);
 
   return salt;
 }
 
 bool KeyboardController::isSeedChecked() {
-  return EEPROM.read(SEED_CHECKED_ADDRESS) != 0;
+  return EEPROM.read(EEPROM_SEED_CHECKED_ADDRESS) != 0;
 }
 
 void KeyboardController::seedChecked() {
-  EEPROM.update(SEED_CHECKED_ADDRESS, true);
+  EEPROM.update(EEPROM_SEED_CHECKED_ADDRESS, true);
 }
 
 void KeyboardController::cypherEncryption(byte *const dataArr,

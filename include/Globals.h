@@ -12,6 +12,7 @@
 #include <StaticSerialCommands.h>
 #include <PipedStream.h>
 #include <Wire.h>
+#include <util/atomic.h>
 
 #define LED_BUILTIN_RX_PIN LED_BUILTIN_RX
 #define LED_BUILTIN_TX_PIN LED_BUILTIN_TX
@@ -25,13 +26,17 @@
 #define HC05_STATE 1
 #define HC05_KEY 0
 
+#define EEPROM_SALT_ADDRESS 0
+#define EEPROM_SEED_CHECKED_ADDRESS 1
+#define EEPROM_SEED_ADDRESS 2
+#define EEPROM_RESET_REASON_ADDRESS 18
+
 enum State : uint_fast8_t {
   IDLE,
   CONNECTING,
   FORMATTING
 };
 
-extern WatchdogController watchdogController;
 extern StatisticController statisticController;
 extern LEDController ledController;
 extern ezLED rxLED;

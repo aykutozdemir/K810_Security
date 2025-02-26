@@ -12,9 +12,10 @@
 class KeyboardController final
 {
 public:
-  enum State : uint_fast8_t {
+  enum State : uint_fast8_t
+  {
     LOCKED,
-   UNLOCKED
+    UNLOCKED
   };
 
   explicit KeyboardController(const uint8_t keyboardPowerPin);
@@ -60,6 +61,6 @@ private:
   ezOutput m_keyboardPowerOutput;
 
   State m_state;
-};   // end KeyboardController class
+}; // end KeyboardController class
 
 #endif

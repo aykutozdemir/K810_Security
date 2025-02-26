@@ -3,7 +3,6 @@
 
 //================ Global Objects Initialization ==================
 
-WatchdogController watchdogController;
 StatisticController statisticController;
 LEDController ledController(GREEN_LED_PIN, RED_LED_PIN);
 ezLED rxLED(LED_BUILTIN_RX_PIN);
@@ -62,7 +61,9 @@ const Command serCommands[] = {
   COMMAND(commandPing, "ping", NULL, "ping"),
   COMMAND(commandIrq, "irq", NULL, "list irq registers"),
   COMMAND(commandRam, "ram", NULL, "display ram usage"),
-  COMMAND(commandStatistics, "statistics", NULL, "list statistics")
+  COMMAND(commandStatistics, "statistics", NULL, "list statistics"),
+  COMMAND(commandReset, "reset", NULL, "reset the keypad"),
+  COMMAND(commandResetForProgramming, "resetfp", NULL, "reset the keypad for self programming")
 };
 
 char serialCommandBuffer[16];
@@ -79,10 +80,10 @@ SerialCommands serialCommands(
 
 const Command btCommands[] = {
   COMMAND(commandHelp, "help", NULL, "list commands"),
-  COMMAND(commandPing, "ping", NULL, "ping"),
+  COMMAND(commandPing, "ping", NULL, "ping the keypad"),
   COMMAND(commandGenSalt, "genSalt", NULL, "generate salt"),
   COMMAND(commandGenSeed, "genSeed", NULL, "generate seed"),
-  COMMAND(commandCheck, "check", NULL, "check"),
+  COMMAND(commandCheck, "check", NULL, "check the seed"),
   COMMAND(commandState, "state", NULL, "state of the keypad"),
   COMMAND(commandLock, "lock", ARG(ArgType::String), NULL, "lock the keypad"),
   COMMAND(commandUnlock, "unlock", ARG(ArgType::String), NULL, "unlock the keypad")

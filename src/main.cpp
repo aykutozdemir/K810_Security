@@ -2,16 +2,21 @@
 
 //================ Bluetooth Methods ==================
 
-static void bluetoothDataCallback(const char data) {
+static void bluetoothDataCallback(const char data)
+{
   streamBluetooth.write(data);
 }
 
-static void bluetoothCallback(const String &command, const bool result, const String &response) {
-  if (result) {
+static void bluetoothCallback(const __FlashStringHelper *command, const bool result, const String &response)
+{
+  if (result)
+  {
     Serial.print(F("BT successfully "));
     Serial.print(command);
     Serial.println(F("."));
-  } else {
+  }
+  else
+  {
     Serial.print(F("BT error "));
     Serial.print(command);
     Serial.print(F(": "));
@@ -20,62 +25,84 @@ static void bluetoothCallback(const String &command, const bool result, const St
   }
 }
 
-static void bluetoothSendCommands(const __FlashStringHelper * commands[], const size_t numCommands)
+static void bluetoothResetCallback(const __FlashStringHelper *command, const bool result, const String &response)
 {
-  for (size_t i = 0; i < numCommands; ++i) {
-    hc05.sendCommand(commands[i], bluetoothCallback);
+  if (result)
+  {
+    hc05.forceDataMode();
+  }
+  bluetoothCallback(command, result, response);
+}
+
+static void bluetoothSendCommands(const HC05::Command commands[], const size_t numCommands)
+{
+  for (size_t i = 0; i < numCommands; ++i)
+  {
+    hc05.sendCommand(commands[i]);
   }
 }
 
-static void bluetoothResetSequence() {
-  const __FlashStringHelper *commands[] PROGMEM = {
-    F("AT+RMAAD"),
-    F("AT+NAME=K810"),
-    F("AT+PSWD=1588"),
-    F("AT+UART=38400,0,0"),
-    F("AT+RESET")
-  };
+static void bluetoothResetSequence()
+{
+  const HC05::Command commands[] PROGMEM = {
+      {F("AT+RMAAD"), bluetoothCallback, 1500},
+      {F("AT+ROLE=0"), bluetoothCallback, 300},
+      {F("AT+CMODE=1"), bluetoothCallback, 300},
+      {F("AT+NAME=K810"), bluetoothCallback, 300},
+      {F("AT+PSWD=1588"), bluetoothCallback, 300},
+      {F("AT+UART=38400,1,0"), bluetoothCallback, 500},
+      {F("AT+RESET"), bluetoothResetCallback, 3000}};
+
+  hc05.clearCommandQueue();
+  bluetoothSendCommands(commands, sizeof(commands) / sizeof(commands[0]));
+  if (hc05.isResettingPermanently())
+  {
+    hc05.reset();
+  }
+}
+
+static void bluetoothInitSequence()
+{
+  const HC05::Command commands[] PROGMEM = {
+      {F("AT+ROLE=0"), bluetoothCallback, 300},
+      {F("AT+CMODE=1"), bluetoothCallback, 300},
+      {F("AT+INIT"), bluetoothCallback, 2000},
+      {F("AT+RESET"), bluetoothCallback, 1500}};
 
   bluetoothSendCommands(commands, sizeof(commands) / sizeof(commands[0]));
-  hc05.reset(false);
-}
-
-static void bluetoothInitSequence(const bool checked) {
-  const __FlashStringHelper *commands[] PROGMEM = {
-    F("AT+ROLE=0"),
-    F("AT+CMODE=1"),
-    F("AT+RESET")
-  };
-
-  const size_t numCommands = sizeof(commands) / sizeof(commands[0]);
-
-  if (!checked) {
-    bluetoothSendCommands(&commands[1], numCommands - 1);
-  } else {
-    bluetoothSendCommands(commands, numCommands);
-  }
 }
 
 //================ Business Logic ==================
 
-static void handleBusinessLogic() {
+static void handleBusinessLogic()
+{
   static State state = IDLE;
-  static SimpleTimer<uint16_t> bluetoothConnectionTimeout(40000);
+  static SimpleTimer<uint32_t> bluetoothConnectionTimeout(120000);
   const bool checked = keyboardController.isSeedChecked();
 
-  // Handle non-IDLE states first
-  if (state == CONNECTING) {
-    if (hc05.isConnected() || bluetoothConnectionTimeout.isReady()) {
-      if (bluetoothConnectionTimeout.isReady()) {
-        hc05.reset(true);
-      }
+  if (state == CONNECTING)
+  {
+    static bool lastConnectionState = false;
+    const bool currentConnectionState = hc05.isConnected();
+
+    if (currentConnectionState)
+    {
+      lastConnectionState = true;
+      state = IDLE;
+    }
+    else if (bluetoothConnectionTimeout.isReady() && !lastConnectionState)
+    {
+      hc05.reset(true);
+      lastConnectionState = false;
       state = IDLE;
     }
     return;
   }
 
-  if (state == FORMATTING) {
-    if (eepromController.state() == EEPROMController::IDLE) {
+  if (state == FORMATTING)
+  {
+    if (eepromController.state() == EEPROMController::IDLE)
+    {
       Serial.println(F("Formatting completed, resetting..."));
       Serial.flush();
       watchdogController.resetMCU();
@@ -84,94 +111,113 @@ static void handleBusinessLogic() {
   }
 
   // Handle IDLE state
-  if (buttonController.isPressing()) {
+  if (buttonController.isPressing())
+  {
     ledController.setState(LEDController::PRESSING);
     return;
   }
 
   // Handle different button press states
-  switch (buttonController.state()) {
-    case ButtonController::SHORT_PRESS:
-      if (checked) {
-        keyboardController.lock();
-        ledController.setState(LEDController::LOCKED);
-        return;
-      }
-      // Toggle lock state
-      if (keyboardController.state() == KeyboardController::LOCKED) {
-        keyboardController.unlock();
-        ledController.setState(LEDController::UNLOCKED);
-      } else {
-        keyboardController.lock();
-        ledController.setState(LEDController::LOCKED);
-      }
-      break;
-
-    case ButtonController::LONG_PRESS:
-      Serial.println(F("BT module resetting..."));
-      state = CONNECTING;
-      ledController.setState(LEDController::CONNECTING);
-      bluetoothConnectionTimeout.reset();
-      bluetoothResetSequence();
-      break;
-
-    case ButtonController::VERY_LONG_PRESS:
-      Serial.println(F("Keypad formatting..."));
+  switch (buttonController.state())
+  {
+  case ButtonController::SHORT_PRESS:
+    if (checked)
+    {
+      keyboardController.lock();
+      ledController.setState(LEDController::LOCKED);
+      return;
+    }
+    // Toggle lock state
+    if (keyboardController.state() == KeyboardController::LOCKED)
+    {
       keyboardController.unlock();
-      state = FORMATTING;
-      ledController.setState(LEDController::FORMATTING);
-      eepromController.format();
-      break;
+      ledController.setState(LEDController::UNLOCKED);
+    }
+    else
+    {
+      keyboardController.lock();
+      ledController.setState(LEDController::LOCKED);
+    }
+    break;
 
-    case ButtonController::NO_PRESS:
-      ledController.setState(
+  case ButtonController::LONG_PRESS:
+    Serial.println(F("BT module resetting..."));
+    state = CONNECTING;
+    ledController.setState(LEDController::CONNECTING);
+    bluetoothConnectionTimeout.reset();
+    bluetoothResetSequence();
+    break;
+
+  case ButtonController::VERY_LONG_PRESS:
+    Serial.println(F("Keypad formatting..."));
+    keyboardController.unlock();
+    state = FORMATTING;
+    ledController.setState(LEDController::FORMATTING);
+    eepromController.format();
+    break;
+
+  case ButtonController::NO_PRESS:
+    ledController.setState(
         (keyboardController.state() == KeyboardController::LOCKED) ? LEDController::LOCKED : LEDController::UNLOCKED);
-      break;
+    break;
   }
 }
 
 //================ Timer and ISR ==================
 
-void timer1Setup(const unsigned long period) {
-  // Set Timer1 to CTC mode (WGM12 = 1, others = 0)
+void timer1Setup(const unsigned long oversampleBitPeriod)
+{
+  SafeInterrupts::ScopedDisable guard;
+
   TCCR1A = 0;
   TCCR1B = 0;
+  TCCR1C = 0;
+  TIMSK1 = 0;
+
+  // Set Timer1 to CTC mode (WGM12 = 1, others = 0)
   TCCR1B |= (1 << WGM12);
-  TCCR1B &= ~((1 << WGM13) | (1 << WGM11) | (1 << WGM10));
 
   // Select best prescaler (Prescaler = 1)
-  TCCR1B &= ~((1 << CS12) | (1 << CS11) | (1 << CS10));
   TCCR1B |= (1 << CS10);
-  OCR1A = period;
+
+  // Set OCR1A to the oversampleBitPeriod
+  OCR1A = oversampleBitPeriod;
+  TCNT1 = 0;
 
   // Enable Compare Match Interrupt for OCR1A
   TIMSK1 |= (1 << OCIE1A);
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect)
+{
   softwareSerial.processISR();
 }
 
 //================ Setup ==================
 
-void setup() {
+void setup()
+{
   SimpleTimer<uint16_t> serialWaitTimeout(2000);
   serialWaitTimeout.setInterval(2000);
 
   Serial.begin(9600);
-  while (!Serial && !serialWaitTimeout.isReady());
+  while (!Serial && !serialWaitTimeout.isReady())
+    ;
 
   watchdogController.printResetReason(Serial);
-  if (buttonController.isPressingRaw()) {
+  if (buttonController.isPressingRaw())
+  {
     watchdogController.resetMCUForSelfProgramming();
   }
 
   softwareSerial.begin(38400, timer1Setup);
+  softwareSerial.setErrorCallback([](const __FlashStringHelper *errorMessage)
+                                  { Serial.println(errorMessage); });
 
   Wire.begin();
   Wire.setClock(400000);
 
-  watchdogController.enable(WDTO_500MS);
+  watchdogController.enable(WDTO_2S);
   statisticController.setup();
 
   rxLED.blink(1000, 1000);
@@ -180,11 +226,15 @@ void setup() {
   const bool checked = keyboardController.isSeedChecked();
   hc05.begin();
   hc05.onDataReceived(bluetoothDataCallback);
-  bluetoothInitSequence(checked);  
-  if (!checked) {
+  if (!checked)
+  {
     hc05.reset(true);
     keyboardController.unlock();
     ledController.setState(LEDController::UNLOCKED);
+  }
+  else
+  {
+    bluetoothInitSequence();
   }
 
   // Set statistic names.
@@ -207,44 +257,58 @@ void setup() {
 
 //================ Main Loop ==================
 
-void loop() {
-  MEASURE_TIME(loopStatistic) {
-    MEASURE_TIME(watchdogControllerStatistic) {
+void loop()
+{
+  MEASURE_TIME(loopStatistic)
+  {
+    MEASURE_TIME(watchdogControllerStatistic)
+    {
       watchdogController.loop();
     }
-    MEASURE_TIME(statisticControllerStatistic) {
+    MEASURE_TIME(statisticControllerStatistic)
+    {
       statisticController.loop(Serial, statistics, lengthOfStatistics);
     }
-    MEASURE_TIME(ledControllerStatistic) {
+    MEASURE_TIME(ledControllerStatistic)
+    {
       ledController.loop();
     }
-    MEASURE_TIME(rxTxLedStatistic) {
+    MEASURE_TIME(rxTxLedStatistic)
+    {
       rxLED.loop();
       txLED.loop();
     }
-    MEASURE_TIME(buttonControllerStatistic) {
+    MEASURE_TIME(buttonControllerStatistic)
+    {
       buttonController.loop();
     }
-    MEASURE_TIME(keyboardControllerStatistic) {
+    MEASURE_TIME(keyboardControllerStatistic)
+    {
       keyboardController.loop();
     }
-    MEASURE_TIME(serialCommandsStatistic) {
+    MEASURE_TIME(serialCommandsStatistic)
+    {
       serialCommands.readSerial();
     }
-    MEASURE_TIME(hc05Statistic) {
+    MEASURE_TIME(hc05Statistic)
+    {
       softwareSerial.loop();
       hc05.loop();
-      if (hc05.isDataMode() && streamBluetooth.available()) {
+      if (hc05.isDataMode() && streamBluetooth.available())
+      {
         hc05.sendData(streamBluetooth.read());
       }
     }
-    MEASURE_TIME(bluetoothCommandsStatistic) {
+    MEASURE_TIME(bluetoothCommandsStatistic)
+    {
       bluetoothCommands.readSerial();
     }
-    MEASURE_TIME(eepromControllerStatistic) {
+    MEASURE_TIME(eepromControllerStatistic)
+    {
       eepromController.loop();
     }
-    MEASURE_TIME(businessLogicStatistic) {
+    MEASURE_TIME(businessLogicStatistic)
+    {
       handleBusinessLogic();
     }
   }

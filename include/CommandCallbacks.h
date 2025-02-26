@@ -25,4 +25,8 @@ void commandLock(SerialCommands &sender, Args &args);
 
 void commandUnlock(SerialCommands &sender, Args &args);
 
+void commandReset(SerialCommands &sender, Args &args);
+
+void commandResetForProgramming(SerialCommands &sender, Args &args);
+
 #endif

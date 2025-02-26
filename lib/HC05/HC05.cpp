@@ -21,22 +21,31 @@ void HC05::begin()
   pinMode(m_resetPin, OUTPUT);
   pinMode(m_keyPin, OUTPUT);
 
-  digitalWrite(m_resetPin, LOW);
   digitalWrite(m_keyPin, HIGH);
+  digitalWrite(m_resetPin, HIGH);
 
   setState(INITIALIZING);
 }
 
-void HC05::sendCommand(const String &command, const CommandCallback callback)
+void HC05::sendCommand(const Command &command)
 {
   if (m_commandQueue.isFull())
   {
     Serial.println(F("Error: Command queue is full!"));
     return;
   }
-  // Allocate a new command and enqueue it.
-  const Command *newCommand = new Command({command, callback});
+
+  const Command * newCommand = new Command(command);
   m_commandQueue.enqueue(newCommand);
+}
+
+void HC05::clearCommandQueue()
+{
+  while (!m_commandQueue.isEmpty())
+  {
+    const Command *const command = m_commandQueue.dequeue();
+    delete command;
+  }
 }
 
 void HC05::sendData(const String &data)
@@ -84,39 +93,63 @@ void HC05::appendStreamData()
   }
 }
 
+void HC05::clearResponseBuffer()
+{
+  while (m_stream.available())
+  {
+    m_stream.read();
+  }
+  m_responseBuffer.clear();
+}
+
+bool HC05::isStateTimeElapsed(const uint16_t timeMs)
+{
+  return millis() - m_stateStartTime > timeMs;
+}
+
 bool HC05::processResponseBufferForCommand()
 {
+  bool success = false;
+  bool errorDetected = false;
+
   if (m_responseBuffer.endsWith(F("OK\r\n")))
   {
-    int okIndex = m_responseBuffer.indexOf(F("OK\r\n"));
-    m_responseBuffer = m_responseBuffer.substring(0, okIndex);
-    m_responseBuffer.trim();
-    if (!m_commandQueue.isEmpty())
-    {
-      const Command *command = m_commandQueue.dequeue();
-      if (command->callback != nullptr)
-      {
-        command->callback(command->commandText, true, m_responseBuffer.toString());
-      }
-      delete command;
-    }
-    setState(IDLE);
-    return true;
+    success = true;
   }
-  if (m_responseBuffer.indexOf(F("ERROR:")) != -1)
+  else if (m_responseBuffer.indexOf(F("ERROR:")) != -1 || m_responseBuffer.indexOf(F("FAIL")) != -1)
+  {
+    errorDetected = true;
+  }
+
+  if (success || errorDetected)
   {
     if (!m_commandQueue.isEmpty())
     {
-      const Command *command = m_commandQueue.dequeue();
-      if (command->callback != nullptr)
+      const Command *const command = m_commandQueue.dequeue();
+      if (command != nullptr)
       {
-        command->callback(command->commandText, false, m_responseBuffer.toString());
+        if (command->callback != nullptr)
+        {
+          command->callback(command->commandText, success, m_responseBuffer.toString());
+        }
+
+        if (success && (m_status.currentState == WAITING_FOR_RESPONSE))
+        {
+          m_commandDelayTimer.setInterval(command->delayMs);
+          m_commandDelayTimer.reset();
+          setState(WAITING_FOR_COMMAND_DELAY);
+        }
+        else
+        {
+          setState(IDLE);
+        }
+
+        delete command;
       }
-      delete command;
     }
-    setState(IDLE);
     return true;
   }
+
   return false;
 }
 
@@ -125,15 +158,15 @@ bool HC05::processResponseBufferForCommand()
 void HC05::handleInitializing()
 {
   Serial.println(F("Initializing HC-05..."));
-  reset(); // Uses the default (non-permanent) reset.
+  reset();
 }
 
 void HC05::handleResetting()
 {
-  if (millis() - m_stateStartTime > 500)
+  if (isStateTimeElapsed(RESET_DELAY_MS))
   {
-    digitalWrite(m_resetPin, HIGH);
     digitalWrite(m_keyPin, HIGH);
+    digitalWrite(m_resetPin, HIGH);
     setState(INITIALIZING_WAIT);
   }
 }
@@ -145,7 +178,7 @@ void HC05::handleResettingPermanently()
 
 void HC05::handleInitializingWait()
 {
-  if (millis() - m_stateStartTime > 3000)
+  if (isStateTimeElapsed(INIT_WAIT_DELAY_MS))
   {
     setState(CHECKING_AT_MODE);
   }
@@ -153,7 +186,7 @@ void HC05::handleInitializingWait()
 
 void HC05::handleCheckingATMode()
 {
-  m_responseBuffer.clear();
+  clearResponseBuffer();
   m_stream.print(F("AT\r\n"));
   setState(WAITING_FOR_AT_RESPONSE);
 }
@@ -163,13 +196,15 @@ void HC05::handleWaitingForATResponse()
   appendStreamData();
   if (m_responseBuffer.endsWith(F("OK\r\n")))
   {
-    setState(IDLE);
+    m_commandDelayTimer.setInterval(DEFAULT_COMMAND_DELAY_MS);
+    setState(WAITING_FOR_COMMAND_DELAY);
     Serial.println(F("HC-05 is recognized."));
     return;
   }
-  if (millis() - m_stateStartTime > 4000)
+  if (isStateTimeElapsed(AT_RESPONSE_TIMEOUT_MS))
   {
-    Serial.println(F("HC-05 AT mode check failed. Resetting..."));
+    Serial.print(F("HC-05 AT check failed. Resetting...: "));
+    Serial.println(m_responseBuffer.toString());
     setState(RESETTING);
   }
 }
@@ -177,7 +212,7 @@ void HC05::handleWaitingForATResponse()
 void HC05::handleWaitingForCommandMode()
 {
   digitalWrite(m_keyPin, HIGH);
-  if (millis() - m_stateStartTime > 250)
+  if (isStateTimeElapsed(COMMAND_MODE_DELAY_MS))
   {
     m_status.inCommandMode = true;
     setState(IDLE);
@@ -188,7 +223,7 @@ void HC05::handleWaitingForCommandMode()
 void HC05::handleWaitingForDataMode()
 {
   digitalWrite(m_keyPin, LOW);
-  if (millis() - m_stateStartTime > 250)
+  if (isStateTimeElapsed(DATA_MODE_DELAY_MS))
   {
     m_status.inCommandMode = false;
     setState(DATA_MODE);
@@ -204,16 +239,24 @@ void HC05::handleWaitingForResponse()
     if (processResponseBufferForCommand())
       return;
   }
-  if (millis() - m_stateStartTime > 4000)
+  if (isStateTimeElapsed(COMMAND_RESPONSE_TIMEOUT_MS))
   {
-    Serial.println(F("HC-05 command processing stuck. Resetting..."));
+    Serial.print(F("HC-05 command processing stuck. Resetting...: "));
+    Serial.println(m_responseBuffer.toString());
     setState(RESETTING);
+  }
+}
+
+void HC05::handleWaitingForCommandDelay()
+{
+  if (m_commandDelayTimer.isReady())
+  {
+    setState(IDLE);
   }
 }
 
 void HC05::handleDataMode()
 {
-  // In data mode, process incoming data by invoking the callback.
   while (m_stream.available())
   {
     char c = m_stream.read();
@@ -275,6 +318,9 @@ void HC05::loop()
   case WAITING_FOR_RESPONSE:
     handleWaitingForResponse();
     break;
+  case WAITING_FOR_COMMAND_DELAY:
+    handleWaitingForCommandDelay();
+    break;
   case DATA_MODE:
     handleDataMode();
     break;
@@ -287,38 +333,47 @@ void HC05::loop()
 void HC05::reset(const bool permanent)
 {
   digitalWrite(m_resetPin, LOW);
+
   setState(permanent ? RESETTING_PERMANENTLY : RESETTING);
+}
+
+bool HC05::isResettingPermanently() const
+{
+  return m_status.currentState == RESETTING_PERMANENTLY;
+}
+
+void HC05::forceDataMode()
+{
+  digitalWrite(m_keyPin, LOW);
+  m_status.inCommandMode = false;
+  setState(WAITING_FOR_DATA_MODE);
 }
 
 void HC05::setState(State newState)
 {
-  m_status.currentState = newState;
-  m_stateStartTime = millis();
+  if (m_status.currentState != newState)
+  {
+    m_status.currentState = newState;
+    m_stateStartTime = millis();
+  }
 }
 
 void HC05::processNextCommand()
 {
-  static unsigned long lastCommandTime = 0;
-
   if (!m_commandQueue.isEmpty())
   {
-    if ((millis() - lastCommandTime) < 500)
-    {
-      return;
-    }
-
-    const Command *nextCommand = m_commandQueue.getHead();
-    m_responseBuffer.clear();
-    m_stream.print(nextCommand->commandText);
-    m_stream.print(F("\r\n"));
+    const Command *const nextCommand = m_commandQueue.getHead();
+    clearResponseBuffer();
+    Serial.print(F("HC-05 sending command: "));
+    Serial.println(nextCommand->commandText);
+    m_stream.println(nextCommand->commandText);
     setState(WAITING_FOR_RESPONSE);
-    lastCommandTime = millis();
   }
 }
 
 void HC05::updateConnectionState()
 {
-  bool connectionStatus = (digitalRead(m_statePin) == HIGH);
+  const bool connectionStatus = (digitalRead(m_statePin) == HIGH);
   if (connectionStatus != m_status.connected)
   {
     m_status.connected = connectionStatus;

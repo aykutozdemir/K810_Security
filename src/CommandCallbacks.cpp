@@ -169,3 +169,13 @@ void commandUnlock(SerialCommands &sender, Args &args) {
   keyboardController.unlock();
   printOK(sender);
 }
+
+void commandReset(SerialCommands &sender, Args &args) {
+  watchdogController.resetMCU();
+  printOK(sender);
+}
+
+void commandResetForProgramming(SerialCommands &sender, Args &args) {
+  watchdogController.resetMCUForSelfProgramming();
+  printOK(sender);
+}
