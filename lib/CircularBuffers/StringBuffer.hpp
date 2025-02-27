@@ -69,9 +69,11 @@ int StringBuffer<BUFFER_SIZE>::indexOf(const char c) const
 template <uint8_t BUFFER_SIZE>
 int StringBuffer<BUFFER_SIZE>::indexOf(const char *str) const
 {
-  if (!str) return -1;  // Check for null pointer
+  if (!str)
+    return -1; // Check for null pointer
   const size_t len = strlen(str);
-  if (len == 0) return -1;  // Check for empty string
+  if (len == 0)
+    return -1; // Check for empty string
   if (len > this->available())
   {
     return -1;
@@ -100,7 +102,8 @@ int StringBuffer<BUFFER_SIZE>::indexOf(const char *str) const
 template <uint8_t BUFFER_SIZE>
 int StringBuffer<BUFFER_SIZE>::indexOf(const __FlashStringHelper *flashStr) const
 {
-  if (!flashStr) return -1;  // Check for null pointer
+  if (!flashStr)
+    return -1; // Check for null pointer
   const size_t len = strnlen_P(reinterpret_cast<PGM_P>(flashStr), BUFFER_SIZE);
   if (len == 0 || len > this->available())
     return -1; // Validate input

@@ -25,20 +25,22 @@ bool ButtonController::isPressingRaw() const
 void ButtonController::loop()
 {
   m_button.loop();
-  
-  if (m_button.isPressed()) {
+
+  if (m_button.isPressed())
+  {
     m_pressedTime = millis() & 0xFFFF;
     m_state = NO_PRESS;
   }
-  else if (m_button.isReleased()) {
+  else if (m_button.isReleased())
+  {
     uint16_t currentTime = millis() & 0xFFFF;
     uint16_t pressedDuration = currentTime - m_pressedTime;
-    
-    m_state = pressedDuration >= 10000 ? VERY_LONG_PRESS :
-              pressedDuration >= 3000 ? LONG_PRESS : 
-              SHORT_PRESS;
+
+    m_state = pressedDuration >= 10000 ? VERY_LONG_PRESS : pressedDuration >= 3000 ? LONG_PRESS
+                                                                                   : SHORT_PRESS;
   }
-  else {
-    m_state = NO_PRESS; 
+  else
+  {
+    m_state = NO_PRESS;
   }
 } // end loop

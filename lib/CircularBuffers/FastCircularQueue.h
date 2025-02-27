@@ -20,7 +20,7 @@ public:
     if (next == tail)
       return false;
     buffer[currentHead] = value;
-    head = next;  // Memory barrier might be needed here for thread safety
+    head = next; // Memory barrier might be needed here for thread safety
     return true;
   }
 
@@ -34,7 +34,7 @@ public:
       tail = (tail + 1) & (BUFFER_SIZE - 1);
     }
     buffer[currentHead] = value;
-    head = next;  // Memory barrier might be needed here for thread safety
+    head = next; // Memory barrier might be needed here for thread safety
   }
 
   inline bool pop(T &value)

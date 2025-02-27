@@ -4,9 +4,11 @@
 // Third-party libraries
 #include <ezButton.h>
 
-class ButtonController final {
+class ButtonController final
+{
 public:
-  enum State : uint_fast8_t {
+  enum State : uint_fast8_t
+  {
     NO_PRESS,
     SHORT_PRESS,
     LONG_PRESS,
@@ -29,6 +31,6 @@ private:
   uint16_t m_pressedTime;
 
   State m_state;
-};  // end ButtonController class
+}; // end ButtonController class
 
 #endif

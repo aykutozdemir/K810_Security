@@ -18,7 +18,7 @@ class SoftSerial : public Stream
 {
 public:
   typedef void (*TimerSetupCallback)(const unsigned long period);
-  typedef void (*ErrorCallback)(const __FlashStringHelper* errorMessage);
+  typedef void (*ErrorCallback)(const __FlashStringHelper *errorMessage);
 
   SoftSerial(const uint8_t rxPin, const uint8_t txPin);
 

@@ -63,25 +63,28 @@ class ezLED
 {
 private:
 	uint8_t _ledPin;
-	uint8_t _brightness;      // 0 to 255
+	uint8_t _brightness; // 0 to 255
 
 	// Group flags into a struct to ensure optimal bit-packing
-	struct {
-		uint8_t _ctrlMode : 1;    // CTRL_ANODE, CTRL_CATHODE
-		uint8_t _ledMode : 3;     // Needs 3 bits for values 0-6
-		uint8_t _ledState : 3;    // Needs 3 bits for values 0-4
+	struct
+	{
+		uint8_t _ctrlMode : 1;	  // CTRL_ANODE, CTRL_CATHODE
+		uint8_t _ledMode : 3;	  // Needs 3 bits for values 0-6
+		uint8_t _ledState : 3;	  // Needs 3 bits for values 0-4
 		uint8_t _outputState : 1; // LED_OFF, LED_ON
 	} flags;
 
 	// Group fade-related variables
-	struct {
+	struct
+	{
 		uint8_t from;
 		uint8_t to;
 		uint32_t time;
 	} _fade;
 
 	// Group blink-related variables
-	struct {
+	struct
+	{
 		uint32_t onTime;
 		uint32_t offTime;
 		uint32_t period;

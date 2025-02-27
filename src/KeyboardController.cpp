@@ -6,38 +6,48 @@
 #include "Globals.h"
 
 KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
-  : m_keyboardPowerOutput(keyboardPowerPin), m_state(LOCKED) {
+    : m_keyboardPowerOutput(keyboardPowerPin), m_state(LOCKED)
+{
   m_keyboardPowerOutput.low();
-}  // end KeyboardController
+} // end KeyboardController
 
-KeyboardController::State KeyboardController::state() const {
+KeyboardController::State KeyboardController::state() const
+{
   return m_state;
-}  // end state
+} // end state
 
-void KeyboardController::lock() {
-  if (m_state != LOCKED) {
+void KeyboardController::lock()
+{
+  if (m_state != LOCKED)
+  {
     m_state = LOCKED;
     m_keyboardPowerOutput.low();
     Serial.println(F("Keyboard locked."));
-  }  // end if
-}  // end lock
+  } // end if
+} // end lock
 
-void KeyboardController::unlock() {
-  if (m_state != UNLOCKED) {
+void KeyboardController::unlock()
+{
+  if (m_state != UNLOCKED)
+  {
     m_state = UNLOCKED;
     m_keyboardPowerOutput.high();
     Serial.println(F("Keyboard unlocked."));
-  }  // end if
-}  // end unlock
+  } // end if
+} // end unlock
 
 void KeyboardController::generateSeed(byte *const seedArr,
-                                      const uint8_t arrLength) {
-  if (arrLength < SEED_LENGTH) {
+                                      const uint8_t arrLength)
+{
+  if (arrLength < SEED_LENGTH)
+  {
     return;
   }
 
-  if (EEPROM.read(EEPROM_SEED_ADDRESS) != 0) {
-    for (int i = 0; i < SEED_LENGTH; ++i) {
+  if (EEPROM.read(EEPROM_SEED_ADDRESS) != 0)
+  {
+    for (int i = 0; i < SEED_LENGTH; ++i)
+    {
       seedArr[i] = EEPROM.read(EEPROM_SEED_ADDRESS + i);
     }
 
@@ -46,17 +56,20 @@ void KeyboardController::generateSeed(byte *const seedArr,
 
   srand(millis());
 
-  for (int i = 0; i < SEED_LENGTH; ++i) {
+  for (int i = 0; i < SEED_LENGTH; ++i)
+  {
     seedArr[i] = (rand() % (0xFF - 1)) + 1;
 
     EEPROM.update(EEPROM_SEED_ADDRESS + i, seedArr[i]);
   }
 }
 
-byte KeyboardController::generateSalt() {
+byte KeyboardController::generateSalt()
+{
   byte salt = EEPROM.read(EEPROM_SALT_ADDRESS);
 
-  if (salt != 0) {
+  if (salt != 0)
+  {
     return salt;
   }
 
@@ -68,39 +81,47 @@ byte KeyboardController::generateSalt() {
   return salt;
 }
 
-bool KeyboardController::isSeedChecked() {
+bool KeyboardController::isSeedChecked()
+{
   return EEPROM.read(EEPROM_SEED_CHECKED_ADDRESS) != 0;
 }
 
-void KeyboardController::seedChecked() {
+void KeyboardController::seedChecked()
+{
   EEPROM.update(EEPROM_SEED_CHECKED_ADDRESS, true);
 }
 
 void KeyboardController::cypherEncryption(byte *const dataArr,
                                           const uint8_t arrLength,
-                                          const byte salt) {
-  if (arrLength == 0) {
+                                          const byte salt)
+{
+  if (arrLength == 0)
+  {
     return;
   }
 
   dataArr[0] ^= salt;
 
-  for (uint8_t i = 1; i < arrLength; i++) {
+  for (uint8_t i = 1; i < arrLength; i++)
+  {
     dataArr[i] ^= dataArr[i - 1];
   }
 }
 
 void KeyboardController::cypherDecryption(byte *const dataArr,
                                           const uint8_t dataArrLength,
-                                          const byte salt) {
-  if (dataArrLength == 0) {
+                                          const byte salt)
+{
+  if (dataArrLength == 0)
+  {
     return;
   }
 
   byte prevEncrypted = dataArr[0];
   dataArr[0] ^= salt;
 
-  for (uint8_t i = 1; i < dataArrLength; ++i) {
+  for (uint8_t i = 1; i < dataArrLength; ++i)
+  {
     const byte currentEncrypted = dataArr[i];
     dataArr[i] ^= prevEncrypted;
     prevEncrypted = currentEncrypted;
@@ -111,8 +132,10 @@ void KeyboardController::cypherEncryption(byte *const dataArr,
                                           const uint8_t dataArrLength,
                                           byte *const seedArr,
                                           const uint8_t seedArrLength,
-                                          const byte salt) {
-  if (dataArrLength == 0 || seedArrLength == 0) {
+                                          const byte salt)
+{
+  if (dataArrLength == 0 || seedArrLength == 0)
+  {
     return;
   }
 
@@ -121,7 +144,8 @@ void KeyboardController::cypherEncryption(byte *const dataArr,
   byte prev = dataArr[0];
   dataArr[0] ^= seedArr[seedOffset];
 
-  for (uint8_t i = 1; i < dataArrLength; i++) {
+  for (uint8_t i = 1; i < dataArrLength; i++)
+  {
     byte plaintext = dataArr[i];
     dataArr[i] = (byte)(plaintext ^ prev ^ seedArr[(i + seedOffset) % seedArrLength]);
     prev = plaintext;
@@ -132,8 +156,10 @@ void KeyboardController::cypherDecryption(byte *const dataArr,
                                           const uint8_t dataArrLength,
                                           byte *const seedArr,
                                           const uint8_t seedArrLength,
-                                          const byte salt) {
-  if (dataArrLength == 0 || seedArrLength == 0) {
+                                          const byte salt)
+{
+  if (dataArrLength == 0 || seedArrLength == 0)
+  {
     return;
   }
 
@@ -142,12 +168,19 @@ void KeyboardController::cypherDecryption(byte *const dataArr,
   dataArr[0] ^= seedArr[seedOffset];
   byte prev = dataArr[0];
 
-  for (uint8_t i = 1; i < dataArrLength; i++) {
+  for (uint8_t i = 1; i < dataArrLength; i++)
+  {
     dataArr[i] = (byte)(dataArr[i] ^ prev ^ seedArr[(i + seedOffset) % seedArrLength]);
     prev = dataArr[i];
   }
 }
 
-void KeyboardController::loop() {
+uint16_t KeyboardController::getVersion()
+{
+  return BUILD_VERSION;
+}
+
+void KeyboardController::loop()
+{
   m_keyboardPowerOutput.loop();
-}  // end loop
+} // end loop

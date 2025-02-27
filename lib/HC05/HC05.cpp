@@ -35,7 +35,7 @@ void HC05::sendCommand(const Command &command)
     return;
   }
 
-  const Command * newCommand = new Command(command);
+  const Command *newCommand = new Command(command);
   m_commandQueue.enqueue(newCommand);
 }
 
@@ -104,7 +104,7 @@ void HC05::clearResponseBuffer()
 
 bool HC05::isStateTimeElapsed(const uint16_t timeMs)
 {
-  return millis() - m_stateStartTime > timeMs;
+  return ((millis() - m_stateStartTime) > timeMs);
 }
 
 bool HC05::processResponseBufferForCommand()
@@ -187,7 +187,7 @@ void HC05::handleInitializingWait()
 void HC05::handleCheckingATMode()
 {
   clearResponseBuffer();
-  m_stream.print(F("AT\r\n"));
+  m_stream.println(F("AT"));
   setState(WAITING_FOR_AT_RESPONSE);
 }
 

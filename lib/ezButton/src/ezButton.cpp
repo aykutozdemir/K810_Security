@@ -51,7 +51,7 @@ ezButton::ezButton(int pin, int mode)
 	config.flags.previousState = initial;
 	config.flags.lastState = initial;
 	config.flags.flickerState = initial;
-	
+
 	lastDebounceTime = 0;
 }
 
@@ -72,13 +72,13 @@ int ezButton::getStateRaw(void) const
 
 bool ezButton::isPressed(void) const
 {
-	return (config.flags.previousState == config.flags.unpressedState && 
+	return (config.flags.previousState == config.flags.unpressedState &&
 			config.flags.lastState == config.flags.pressedState);
 }
 
 bool ezButton::isReleased(void) const
 {
-	return (config.flags.previousState == config.flags.pressedState && 
+	return (config.flags.previousState == config.flags.pressedState &&
 			config.flags.lastState == config.flags.unpressedState);
 }
 
@@ -102,19 +102,23 @@ void ezButton::loop(void)
 	uint8_t currentState = digitalRead(config.btnPin);
 	uint32_t currentTime = millis();
 
-	if (currentState != config.flags.flickerState) {
+	if (currentState != config.flags.flickerState)
+	{
 		lastDebounceTime = currentTime;
 		config.flags.flickerState = currentState;
 	}
 
-	if ((currentTime - lastDebounceTime) >= debounceTime) {
+	if ((currentTime - lastDebounceTime) >= debounceTime)
+	{
 		config.flags.previousState = config.flags.lastState;
 		config.flags.lastState = currentState;
-		
-		if (config.flags.previousState != config.flags.lastState) {
+
+		if (config.flags.previousState != config.flags.lastState)
+		{
 			if (config.flags.countMode == COUNT_BOTH ||
 				(config.flags.countMode == COUNT_FALLING && config.flags.previousState == HIGH) ||
-				(config.flags.countMode == COUNT_RISING && config.flags.previousState == LOW)) {
+				(config.flags.countMode == COUNT_RISING && config.flags.previousState == LOW))
+			{
 				count++;
 			}
 		}

@@ -25,8 +25,8 @@
 
 #include <inttypes.h>
 
-#define NEWHOPE_SENDABYTES  1824
-#define NEWHOPE_SENDBBYTES  2048
+#define NEWHOPE_SENDABYTES 1824
+#define NEWHOPE_SENDBBYTES 2048
 #define NEWHOPE_SHAREDBYTES 32
 
 #if defined(__AVR__)

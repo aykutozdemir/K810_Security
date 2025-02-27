@@ -54,16 +54,18 @@
 class ezButton
 {
 private:
-	struct {
-		uint8_t btnPin;           // Pin number (0-255)
-		struct {
-			uint8_t countMode : 2;     // Only needs 2 bits (0-2)
-			uint8_t pressedState : 1;   // Only needs 1 bit
+	struct
+	{
+		uint8_t btnPin; // Pin number (0-255)
+		struct
+		{
+			uint8_t countMode : 2;		// Only needs 2 bits (0-2)
+			uint8_t pressedState : 1;	// Only needs 1 bit
 			uint8_t unpressedState : 1; // Only needs 1 bit
-			uint8_t previousState : 1;  // Only needs 1 bit
-			uint8_t lastState : 1;      // Only needs 1 bit
-			uint8_t flickerState : 1;   // Only needs 1 bit
-			uint8_t unused : 1;         // Padding bit
+			uint8_t previousState : 1;	// Only needs 1 bit
+			uint8_t lastState : 1;		// Only needs 1 bit
+			uint8_t flickerState : 1;	// Only needs 1 bit
+			uint8_t unused : 1;			// Padding bit
 		} flags;
 	} config;
 

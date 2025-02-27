@@ -35,9 +35,10 @@
 #include <Arduino.h>
 
 // Use enum instead of defines to save program space
-enum BlinkState {
+enum BlinkState
+{
 	BLINK_STATE_DISABLE = 0,
-	BLINK_STATE_DELAY = 1, 
+	BLINK_STATE_DELAY = 1,
 	BLINK_STATE_BLINK = 2
 };
 
@@ -45,14 +46,15 @@ class ezOutput
 {
 private:
 	const uint8_t _outputPin;
-	
+
 	// Pack states into a bit field structure
-	struct {
-		uint8_t outputState : 1;  // 1 bit for HIGH/LOW
-		uint8_t blinkState : 2;   // 2 bits for DISABLE/DELAY/BLINK
-		uint8_t unused : 5;       // unused bits
+	struct
+	{
+		uint8_t outputState : 1; // 1 bit for HIGH/LOW
+		uint8_t blinkState : 2;	 // 2 bits for DISABLE/DELAY/BLINK
+		uint8_t unused : 5;		 // unused bits
 	} _states;
-	
+
 	uint32_t _highTime;
 	uint32_t _lowTime;
 	uint32_t _startTime;

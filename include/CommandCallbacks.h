@@ -29,4 +29,6 @@ void commandReset(SerialCommands &sender, Args &args);
 
 void commandResetForProgramming(SerialCommands &sender, Args &args);
 
+void commandVersion(SerialCommands &sender, Args &args);
+
 #endif

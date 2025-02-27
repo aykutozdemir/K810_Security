@@ -4,7 +4,10 @@
 #include "SoftSerial.h"
 #include <SafeInterrupts.h>
 
+constexpr uint8_t SAMPLE = 1;
 constexpr uint8_t OVERSAMPLE = 3;
+constexpr uint8_t OVERSAMPLE_SHIFT = (OVERSAMPLE / 2);
+constexpr uint8_t OVERSAMPLE_THRESHOLD = 30;
 
 constexpr uint8_t UNINITIALIZED_INDEX = 255;
 constexpr uint8_t INITIALIZED_INDEX = 254;
@@ -28,10 +31,17 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned lon
   m_parity = parity;
   m_expectedBits = 1 /*start*/ + 8 /*data*/ + ((m_parity != NONE) ? 1 : 0) + m_stopBits;
 
-  // More precise bit timing calculation
   const uint32_t bitPeriod = (F_CPU + (baudRate / 2UL)) / baudRate;
-  // Add a small adjustment for interrupt latency
   const uint16_t oversampleBitPeriod = ((bitPeriod + (OVERSAMPLE / 2UL)) / OVERSAMPLE) + 1;
+
+  if (oversampleBitPeriod < OVERSAMPLE_THRESHOLD)
+  {
+    if (m_errorCallback)
+    {
+      m_errorCallback(F("SoftSerial: Baud rate too high for reliable operation"));
+    }
+    return;
+  }
 
   m_rxQueue.clear();
   m_txQueue.clear();
@@ -39,7 +49,7 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned lon
 
   m_txPin.high();
   m_rxIsrCounter = 0;
-  m_rxIsrTargetCounter = 1;
+  m_rxIsrTargetCounter = SAMPLE;
   m_txIsrCounter = 0;
   m_txBitIndex = UNINITIALIZED_INDEX;
 
@@ -58,8 +68,7 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::end()
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 {
-  // Process received data from temp queue to main queue
-  while (true)
+  for (uint8_t i = 0; i < 8; i++)
   {
     uint16_t frame;
     {
@@ -83,28 +92,33 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
       stopIndex = dataStartIndex + dataBits;
     }
 
+    bool hasError = false;
+
+    // Check start bit
     if ((frame & 0x01) != 0)
     {
       if (m_errorCallback)
         m_errorCallback(F("SoftSerial: Start bit error"));
-      continue;
+      hasError = true;
     }
 
-    bool stopValid = true;
-    for (uint8_t i = 0; i < m_stopBits; i++)
+    // Check stop bits
+    if (!hasError)
     {
-      if (!((frame >> (stopIndex + i)) & 0x01))
+      for (uint8_t i = 0; i < m_stopBits; i++)
       {
-        stopValid = false;
-        break;
+        if (!((frame >> (stopIndex + i)) & 0x01))
+        {
+          if (m_errorCallback)
+            m_errorCallback(F("SoftSerial: Stop bit error"));
+          hasError = true;
+          break;
+        }
       }
     }
-    if (!stopValid)
-    {
-      if (m_errorCallback)
-        m_errorCallback(F("SoftSerial: Stop bit error"));
+
+    if (hasError)
       continue;
-    }
 
     const uint8_t data = (frame >> dataStartIndex) & 0xFF;
 
@@ -113,9 +127,7 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
       const uint8_t parityBit = (frame >> parityIndex) & 0x01;
       bool computedParity = __builtin_parity(data);
       if (m_parity == EVEN)
-      {
         computedParity = !computedParity;
-      }
       if (parityBit != computedParity)
       {
         if (m_errorCallback)
@@ -126,11 +138,11 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 
     {
       SafeInterrupts::ScopedDisable guard;
-      m_rxQueue.push(data);
+      if (!m_rxQueue.push(data) && m_errorCallback)
+        m_errorCallback(F("SoftSerial: RX buffer overflow"));
     }
   }
 
-  // Handle transmission
   if (m_txBitIndex == UNINITIALIZED_INDEX)
   {
     uint8_t data;
@@ -142,17 +154,12 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 
     if (shouldProcess)
     {
-      // Clear all bit changes first
       for (uint8_t i = 0; i < sizeof(m_txBitChanges); i++)
-      {
         m_txBitChanges[i] = false;
-      }
 
-      // Start bit (always transition from high to low)
       m_txBitChanges[0] = true;
-      
-      // Process data bits LSB first
-      bool currentState = false;  // After start bit, we're in low state
+
+      bool currentState = false;
       for (uint8_t i = 0; i < 8; i++)
       {
         const bool bitVal = (data & (1 << i)) != 0;
@@ -163,14 +170,11 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
         }
       }
 
-      // Handle parity if enabled
       if (m_parity != NONE)
       {
         bool parityVal = __builtin_parity(data);
         if (m_parity == EVEN)
-        {
           parityVal = !parityVal;
-        }
         if (currentState != parityVal)
         {
           m_txBitChanges[9] = true;
@@ -178,12 +182,9 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
         }
       }
 
-      // Stop bits (always high)
       const uint8_t stopBitStart = (m_parity != NONE) ? 10 : 9;
-      if (!currentState)  // If we're not already high
-      {
+      if (!currentState)
         m_txBitChanges[stopBitStart] = true;
-      }
 
       SafeInterrupts::ScopedDisable guard;
       m_txBitIndex = 0;
@@ -200,7 +201,6 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
 
   const uint8_t rxState = m_rxPin.read();
 
-  // Handle transmission
   if (m_txBitIndex != UNINITIALIZED_INDEX)
   {
     if (++m_txIsrCounter >= OVERSAMPLE)
@@ -217,7 +217,7 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
       }
       else
       {
-        m_txPin.high();  // Ensure we end in idle state
+        m_txPin.high();
         m_txBitIndex = UNINITIALIZED_INDEX;
       }
     }
@@ -233,13 +233,14 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
       {
         m_rxBitIndex = 0;
         m_receivedData = 0;
+        m_rxIsrTargetCounter = OVERSAMPLE_SHIFT;
       }
     }
     else if (m_rxBitIndex < m_expectedBits)
     {
       if (rxState)
       {
-        m_receivedData |= (1 << m_rxBitIndex);
+        m_receivedData |= ((uint16_t)1 << m_rxBitIndex);
       }
       m_rxBitIndex++;
 
@@ -251,7 +252,7 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
       {
         m_rxTempQueue.push(m_receivedData);
         m_rxBitIndex = INITIALIZED_INDEX;
-        m_rxIsrTargetCounter = 1;
+        m_rxIsrTargetCounter = SAMPLE;
       }
     }
   }

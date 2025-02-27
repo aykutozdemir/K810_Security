@@ -1,5 +1,23 @@
 #include "Globals.h"
 
+// Common BT commands stored in flash
+static const char PROGMEM CMD_RMAAD[] = "AT+RMAAD";
+static const char PROGMEM CMD_ROLE[] = "AT+ROLE=0";
+static const char PROGMEM CMD_CMODE[] = "AT+CMODE=1";
+static const char PROGMEM CMD_NAME[] = "AT+NAME=K810";
+static const char PROGMEM CMD_PSWD[] = "AT+PSWD=1588";
+static const char PROGMEM CMD_UART[] = "AT+UART=38400,1,0";
+static const char PROGMEM CMD_INIT[] = "AT+INIT";
+static const char PROGMEM CMD_RESET[] = "AT+RESET";
+
+// Command delays in milliseconds
+static constexpr uint16_t DELAY_FACTORY_RESET = 1500;
+static constexpr uint16_t DELAY_BASIC_CMD = 300;
+static constexpr uint16_t DELAY_UART_CMD = 500;
+static constexpr uint16_t DELAY_INIT_CMD = 2000;
+static constexpr uint16_t DELAY_RESET_CMD = 3000;
+static constexpr uint16_t DELAY_FINAL_RESET = 1500;
+
 //================ Bluetooth Methods ==================
 
 static void bluetoothDataCallback(const char data)
@@ -34,27 +52,34 @@ static void bluetoothResetCallback(const __FlashStringHelper *command, const boo
   bluetoothCallback(command, result, response);
 }
 
-static void bluetoothSendCommands(const HC05::Command commands[], const size_t numCommands)
+static void sendBTCommand(const char *cmd_progmem, HC05::CommandCallback callback, uint16_t delayMs)
 {
-  for (size_t i = 0; i < numCommands; ++i)
-  {
-    hc05.sendCommand(commands[i]);
-  }
+  HC05::Command cmd;
+  cmd.commandText = reinterpret_cast<const __FlashStringHelper *>(cmd_progmem);
+  cmd.callback = callback;
+  cmd.delayMs = delayMs;
+  hc05.sendCommand(cmd);
 }
 
 static void bluetoothResetSequence()
 {
-  const HC05::Command commands[] PROGMEM = {
-      {F("AT+RMAAD"), bluetoothCallback, 1500},
-      {F("AT+ROLE=0"), bluetoothCallback, 300},
-      {F("AT+CMODE=1"), bluetoothCallback, 300},
-      {F("AT+NAME=K810"), bluetoothCallback, 300},
-      {F("AT+PSWD=1588"), bluetoothCallback, 300},
-      {F("AT+UART=38400,1,0"), bluetoothCallback, 500},
-      {F("AT+RESET"), bluetoothResetCallback, 3000}};
-
   hc05.clearCommandQueue();
-  bluetoothSendCommands(commands, sizeof(commands) / sizeof(commands[0]));
+
+  // Factory reset
+  sendBTCommand(CMD_RMAAD, bluetoothCallback, DELAY_FACTORY_RESET);
+
+  // Basic setup
+  sendBTCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBTCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
+
+  // Device specific setup
+  sendBTCommand(CMD_NAME, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBTCommand(CMD_PSWD, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBTCommand(CMD_UART, bluetoothCallback, DELAY_UART_CMD);
+
+  // Final reset
+  sendBTCommand(CMD_RESET, bluetoothResetCallback, DELAY_RESET_CMD);
+
   if (hc05.isResettingPermanently())
   {
     hc05.reset();
@@ -63,13 +88,15 @@ static void bluetoothResetSequence()
 
 static void bluetoothInitSequence()
 {
-  const HC05::Command commands[] PROGMEM = {
-      {F("AT+ROLE=0"), bluetoothCallback, 300},
-      {F("AT+CMODE=1"), bluetoothCallback, 300},
-      {F("AT+INIT"), bluetoothCallback, 2000},
-      {F("AT+RESET"), bluetoothCallback, 1500}};
+  hc05.clearCommandQueue();
 
-  bluetoothSendCommands(commands, sizeof(commands) / sizeof(commands[0]));
+  // Basic setup
+  sendBTCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBTCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
+
+  // Initialize and reset
+  sendBTCommand(CMD_INIT, bluetoothCallback, DELAY_INIT_CMD);
+  sendBTCommand(CMD_RESET, bluetoothCallback, DELAY_FINAL_RESET);
 }
 
 //================ Business Logic ==================
@@ -210,20 +237,20 @@ void setup()
     watchdogController.resetMCUForSelfProgramming();
   }
 
-  softwareSerial.begin(38400, timer1Setup);
   softwareSerial.setErrorCallback([](const __FlashStringHelper *errorMessage)
                                   { Serial.println(errorMessage); });
+  softwareSerial.begin(38400, timer1Setup);
 
   Wire.begin();
   Wire.setClock(400000);
 
-  watchdogController.enable(WDTO_2S);
+  watchdogController.enable(WDTO_500MS);
   statisticController.setup();
 
   rxLED.blink(1000, 1000);
   txLED.blink(1000, 1000, 1000);
 
-  const bool checked = keyboardController.isSeedChecked();
+  const bool checked = KeyboardController::isSeedChecked();
   hc05.begin();
   hc05.onDataReceived(bluetoothDataCallback);
   if (!checked)
@@ -253,6 +280,8 @@ void setup()
 
   Serial.print(F("K810 Security started: "));
   Serial.println(checked ? F("checked") : F("unchecked"));
+  Serial.print(F("Version: "));
+  Serial.println(KeyboardController::getVersion());
 }
 
 //================ Main Loop ==================

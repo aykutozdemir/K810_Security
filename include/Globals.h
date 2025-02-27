@@ -31,7 +31,8 @@
 #define EEPROM_SEED_ADDRESS 2
 #define EEPROM_RESET_REASON_ADDRESS 18
 
-enum State : uint_fast8_t {
+enum State : uint_fast8_t
+{
   IDLE,
   CONNECTING,
   FORMATTING
@@ -72,4 +73,4 @@ extern const uint8_t lengthOfStatistics;
 extern SerialCommands serialCommands;
 extern SerialCommands bluetoothCommands;
 
-#endif  // GLOBALS_H
+#endif // GLOBALS_H

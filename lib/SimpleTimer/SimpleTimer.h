@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 
-template<typename TimeType = unsigned long>
+template <typename TimeType = unsigned long>
 class SimpleTimer
 {
     TimeType _start;
@@ -31,25 +31,25 @@ public:
 };
 
 // Implementation must be in header for templates
-template<typename TimeType>
+template <typename TimeType>
 SimpleTimer<TimeType>::SimpleTimer(const TimeType interval) : _interval(interval)
 {
     _start = millis();
 }
 
-template<typename TimeType>
+template <typename TimeType>
 bool SimpleTimer<TimeType>::isReady()
 {
     return (TimeType)(millis() - _start) >= _interval;
 }
 
-template<typename TimeType>
+template <typename TimeType>
 void SimpleTimer<TimeType>::setInterval(TimeType interval)
 {
     _interval = interval;
 }
 
-template<typename TimeType>
+template <typename TimeType>
 void SimpleTimer<TimeType>::reset()
 {
     _start = millis();

@@ -14,7 +14,7 @@ FastPin::FastPin(const uint8_t pin, const bool isOutput, const bool pullup)
   }
   else
   {
-    *ddr &= ~bitMask; // Set as input
+    *ddr &= ~bitMask;                                      // Set as input
     *port = (pullup ? *port | bitMask : *port & ~bitMask); // Set pullup in one operation
   }
 }

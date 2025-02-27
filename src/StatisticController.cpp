@@ -31,7 +31,8 @@ void StatisticController::printStatisticTable(Print &print,
   MemoryUsage::printStars(print);
   for (uint8_t i = 0; i < statisticSize; ++i)
   {
-    if (statistics[i] != nullptr) {
+    if (statistics[i] != nullptr)
+    {
       statistics[i]->print(print);
       if ((i + 1) < statisticSize)
       {

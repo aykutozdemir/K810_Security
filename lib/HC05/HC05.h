@@ -49,7 +49,6 @@ private:
   static constexpr uint16_t DATA_MODE_DELAY_MS = 500;
   static constexpr uint16_t COMMAND_RESPONSE_TIMEOUT_MS = 4000;
   static constexpr uint16_t DEFAULT_COMMAND_DELAY_MS = 200;
-  
   // Add buffer size constants
   static constexpr uint8_t RESPONSE_BUFFER_SIZE = 64;
 

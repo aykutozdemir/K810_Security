@@ -55,6 +55,8 @@ public:
                                const uint8_t seedArrLength,
                                const byte salt);
 
+  static uint16_t getVersion();
+
   void loop();
 
 private:

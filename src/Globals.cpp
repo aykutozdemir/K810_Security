@@ -39,63 +39,59 @@ Statistic businessLogicStatistic;
 Statistic loopStatistic;
 
 const Statistic *statistics[] = {
-  &watchdogControllerStatistic,
-  &statisticControllerStatistic,
-  &ledControllerStatistic,
-  &rxTxLedStatistic,
-  &buttonControllerStatistic,
-  &keyboardControllerStatistic,
-  &serialCommandsStatistic,
-  &hc05Statistic,
-  &bluetoothCommandsStatistic,
-  &eepromControllerStatistic,
-  &businessLogicStatistic,
-  &loopStatistic
-};
+    &watchdogControllerStatistic,
+    &statisticControllerStatistic,
+    &ledControllerStatistic,
+    &rxTxLedStatistic,
+    &buttonControllerStatistic,
+    &keyboardControllerStatistic,
+    &serialCommandsStatistic,
+    &hc05Statistic,
+    &bluetoothCommandsStatistic,
+    &eepromControllerStatistic,
+    &businessLogicStatistic,
+    &loopStatistic};
 const uint8_t lengthOfStatistics = sizeof(statistics) / sizeof(statistics[0]);
 
 //================ Serial Commands ==================
 
 const Command serCommands[] = {
-  COMMAND(commandHelp, "help", NULL, "list commands"),
-  COMMAND(commandPing, "ping", NULL, "ping"),
-  COMMAND(commandIrq, "irq", NULL, "list irq registers"),
-  COMMAND(commandRam, "ram", NULL, "display ram usage"),
-  COMMAND(commandStatistics, "statistics", NULL, "list statistics"),
-  COMMAND(commandReset, "reset", NULL, "reset the keypad"),
-  COMMAND(commandResetForProgramming, "resetfp", NULL, "reset the keypad for self programming")
-};
+    COMMAND(commandHelp, "help", NULL, "list commands"),
+    COMMAND(commandPing, "ping", NULL, "ping"),
+    COMMAND(commandIrq, "irq", NULL, "list irq registers"),
+    COMMAND(commandRam, "ram", NULL, "display ram usage"),
+    COMMAND(commandStatistics, "statistics", NULL, "list statistics"),
+    COMMAND(commandReset, "reset", NULL, "reset the keypad"),
+    COMMAND(commandResetForProgramming, "resetfp", NULL, "reset the keypad for self programming"),
+    COMMAND(commandVersion, "version", NULL, "display the version")};
 
 char serialCommandBuffer[16];
 SerialCommands serialCommands(
-  Serial,
-  serCommands,
-  sizeof(serCommands) / sizeof(Command),
-  serialCommandBuffer,
-  sizeof(serialCommandBuffer) / sizeof(char),
-  3000
-);
+    Serial,
+    serCommands,
+    sizeof(serCommands) / sizeof(Command),
+    serialCommandBuffer,
+    sizeof(serialCommandBuffer) / sizeof(char),
+    3000);
 
 //================ Bluetooth Commands ==================
 
 const Command btCommands[] = {
-  COMMAND(commandHelp, "help", NULL, "list commands"),
-  COMMAND(commandPing, "ping", NULL, "ping the keypad"),
-  COMMAND(commandGenSalt, "genSalt", NULL, "generate salt"),
-  COMMAND(commandGenSeed, "genSeed", NULL, "generate seed"),
-  COMMAND(commandCheck, "check", NULL, "check the seed"),
-  COMMAND(commandState, "state", NULL, "state of the keypad"),
-  COMMAND(commandLock, "lock", ARG(ArgType::String), NULL, "lock the keypad"),
-  COMMAND(commandUnlock, "unlock", ARG(ArgType::String), NULL, "unlock the keypad")
-};
+    COMMAND(commandHelp, "help", NULL, "list commands"),
+    COMMAND(commandPing, "ping", NULL, "ping the keypad"),
+    COMMAND(commandGenSalt, "genSalt", NULL, "generate salt"),
+    COMMAND(commandGenSeed, "genSeed", NULL, "generate seed"),
+    COMMAND(commandCheck, "check", NULL, "check the seed"),
+    COMMAND(commandState, "state", NULL, "state of the keypad"),
+    COMMAND(commandLock, "lock", ARG(ArgType::String), NULL, "lock the keypad"),
+    COMMAND(commandUnlock, "unlock", ARG(ArgType::String), NULL, "unlock the keypad"),
+    COMMAND(commandVersion, "version", NULL, "display the version")};
 
 char bluetoothCommandBuffer[48];
 SerialCommands bluetoothCommands(
-  streamCommander,
-  btCommands,
-  sizeof(btCommands) / sizeof(Command),
-  bluetoothCommandBuffer,
-  sizeof(bluetoothCommandBuffer) / sizeof(char),
-  1000
-);
-
+    streamCommander,
+    btCommands,
+    sizeof(btCommands) / sizeof(Command),
+    bluetoothCommandBuffer,
+    sizeof(bluetoothCommandBuffer) / sizeof(char),
+    1000);

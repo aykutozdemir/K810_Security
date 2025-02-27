@@ -13,13 +13,13 @@ ezLED::ezLED(int pin, int mode)
     flags._ledState = LED_STATE_IDLE;
     flags._outputState = LED_OFF;
     _brightness = 0;
-    
+
     // Initialize fade struct
     _fade = {0, 0, 0};
-    
+
     // Initialize blink struct
     _blink = {0, 0, 0, 0, 0, 0};
-    
+
     _delayTime = _lastTime = 0;
 
     pinMode(_ledPin, OUTPUT);
