@@ -9,6 +9,8 @@
 #include "HC05.h"
 #include "SoftSerial.h"
 #include "EEPROMController.h"
+#include "CRCPackageInterface.h"
+#include "DefaultPackageInterface.h"
 #include <StaticSerialCommands.h>
 #include <PipedStream.h>
 #include <Wire.h>
@@ -51,8 +53,12 @@ extern HC05 hc05;
 extern EEPROMController eepromController;
 
 extern PipedStreamPair commandPipes;
-extern PipedStream &streamBluetooth;
+extern PipedStream &streamBluetoothData;
+extern PipedStream &streamBluetoothCommand;
 extern PipedStream &streamCommander;
+
+extern CRCPackageInterface crcPackageInterface;
+extern DefaultPackageInterface defaultPackageInterface;
 
 extern Statistic watchdogControllerStatistic;
 extern Statistic statisticControllerStatistic;

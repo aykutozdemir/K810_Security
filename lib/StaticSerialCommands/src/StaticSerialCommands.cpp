@@ -12,7 +12,7 @@ void SerialCommands::printCommand(const Command &command)
   if (command.hasParent())
   {
     printCommand(command.getParent());
-    serial.print(' ');
+    serial->print(' ');
   }
 
   printFromPgm(command.getCommandPgm());
@@ -23,10 +23,10 @@ void SerialCommands::printCommand(const Command &command)
   for (uint16_t j = 0; j < count; ++j)
   {
     memcpy_P(&argc, &argcs[j], sizeof(impl::ArgConstraint));
-    serial.print(' ');
-    serial.print('<');
+    serial->print(' ');
+    serial->print('<');
     printFromPgm(argc.getNamePgm());
-    serial.print('>');
+    serial->print('>');
   }
 }
 
@@ -40,9 +40,9 @@ void SerialCommands::listCommands(const Command *commands, uint16_t commandsCoun
   for (uint16_t i = 0; i < commandsCount; ++i)
   {
     printCommand(commands[i]);
-    serial.print(F(" - "));
+    serial->print(F(" - "));
     printCommandDescription(commands[i]);
-    serial.println();
+    serial->println();
   }
 }
 
@@ -53,9 +53,9 @@ void SerialCommands::listAllCommands(const Command *commands, uint16_t commandsC
   for (uint16_t i = 0; i < commandsCount; ++i)
   {
     printCommand(commands[i]);
-    serial.print(F(" - "));
+    serial->print(F(" - "));
     printCommandDescription(commands[i]);
-    serial.println();
+    serial->println();
 
     subcmds = nullptr;
     commands[i].getSubCommands(&subcmds, &subcmdCount);
@@ -76,10 +76,10 @@ void SerialCommands::readSerial()
     index = 0;
   }
 
-  while (serial.available() > 0)
+  while (serial->available())
   {
     lastTime = millis();
-    int ch = serial.read();
+    int ch = serial->read();
     if (isTerm(ch))
     {
       if (index > 0)
@@ -96,7 +96,7 @@ void SerialCommands::readSerial()
     }
     else
     {
-      serial.println(F("ERROR: Buffer overflow"));
+      serial->println(F("ERROR: Buffer overflow"));
       index = 0;
     }
   }
@@ -134,31 +134,31 @@ bool SerialCommands::processArguments(const Command *cmd, char **string, Args &a
     char *token = getToken(string);
     if (token == nullptr)
     {
-      serial.println(F("ERROR: Not enough arguments"));
+      serial->println(F("ERROR: Not enough arguments"));
       printCommand(*cmd);
-      serial.println();
+      serial->println();
       return false;
     }
     if (!getArg(args[argIndex], token, argc))
     {
-      serial.print(F("ERROR: Can't parse argument "));
-      serial.println(argIndex + 1);
+      serial->print(F("ERROR: Can't parse argument "));
+      serial->println(argIndex + 1);
       printCommand(*cmd);
-      serial.println();
+      serial->println();
       return false;
     }
     if (!argc.isInRange(args[argIndex]))
     {
-      serial.print(F("ERROR: Argument out of range "));
-      serial.print(argIndex + 1);
+      serial->print(F("ERROR: Argument out of range "));
+      serial->print(argIndex + 1);
       impl::Range range = argc.getRange();
-      serial.print(F(" ("));
-      serial.print(range.minimum);
-      serial.print(F(" - "));
-      serial.print(range.maximum);
-      serial.println(')');
+      serial->print(F(" ("));
+      serial->print(range.minimum);
+      serial->print(F(" - "));
+      serial->print(range.maximum);
+      serial->println(')');
       printCommand(*cmd);
-      serial.println();
+      serial->println();
       return false;
     }
     argIndex++;
@@ -190,9 +190,9 @@ void SerialCommands::parseCommand(char *string)
       {
         if (token != nullptr)
         {
-          serial.println(F("ERROR: Too many arguments"));
+          serial->println(F("ERROR: Too many arguments"));
           printCommand(*cmd);
-          serial.println();
+          serial->println();
           return;
         }
         cmd->runCommand(*this, args);
@@ -206,9 +206,9 @@ void SerialCommands::parseCommand(char *string)
     }
     else
     {
-      serial.print(F("ERROR: Command does not exist \""));
-      serial.print(token);
-      serial.println('"');
+      serial->print(F("ERROR: Command does not exist \""));
+      serial->print(token);
+      serial->println('"');
       return;
     }
   }
@@ -297,5 +297,5 @@ bool SerialCommands::getArg(Arg &out, const char *string, const impl::ArgConstra
 
 void SerialCommands::printFromPgm(PGM_P str)
 {
-  serial.print(reinterpret_cast<const __FlashStringHelper *>(str));
+  serial->print(reinterpret_cast<const __FlashStringHelper *>(str));
 }

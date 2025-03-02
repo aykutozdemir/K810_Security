@@ -74,7 +74,7 @@ private:
 	uint32_t lastDebounceTime;
 
 public:
-	ezButton(int pin);
+	explicit ezButton(int pin);
 	ezButton(int pin, int mode);
 	void setDebounceTime(unsigned long time);
 	int getState(void) const;

@@ -4,6 +4,15 @@
 // Third-party libraries
 #include <ezLED.h>
 
+// LED timing constants - can be configured at compile time
+#ifndef LED_FAST_BLINK_DURATION
+#define LED_FAST_BLINK_DURATION 250
+#endif
+
+#ifndef LED_SLOW_BLINK_DURATION
+#define LED_SLOW_BLINK_DURATION 500
+#endif
+
 class LEDController final
 {
 public:
@@ -11,6 +20,7 @@ public:
   {
     LOCKED,
     FORMATTING,
+    RESETTING_BLUETOOTH,
     CONNECTING,
     PRESSING,
     UNLOCKED

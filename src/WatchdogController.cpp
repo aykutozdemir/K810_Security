@@ -82,17 +82,17 @@ void WatchdogController::printResetReason(Stream &stream) const
 {
   MemoryUsage::printStars(stream);
 
-  stream.print(F("Reset Reason: "));
+  stream.print(F("Reset: "));
   switch (m_resetReason)
   {
   case ResetReason::POWER_ON_RESET:
-    stream.println(F("Power-on Reset"));
+    stream.println(F("Power-on"));
     break;
   case ResetReason::EXTERNAL_RESET:
-    stream.println(F("External Reset"));
+    stream.println(F("External"));
     break;
   case ResetReason::WATCHDOG_RESET:
-    stream.println(F("Watchdog Reset"));
+    stream.println(F("WDT"));
     break;
   }
 

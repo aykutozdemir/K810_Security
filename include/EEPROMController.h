@@ -29,7 +29,7 @@ private:
 
   void formatExternalPage();
 
-  TwoWire &m_wire;
+  TwoWire *p_wire;
 
   State m_state;
 

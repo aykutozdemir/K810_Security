@@ -4,6 +4,11 @@
 // Third-party libraries
 #include <ezButton.h>
 
+// Constants for button press durations
+constexpr uint16_t VERY_LONG_PRESS_DURATION = 10000;
+constexpr uint16_t LONG_PRESS_DURATION = 3000;
+constexpr uint8_t DEBOUNCE_TIME = 30;
+
 class ButtonController final
 {
 public:

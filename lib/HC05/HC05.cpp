@@ -5,7 +5,7 @@ HC05::HC05(Stream &stream,
            const uint8_t keyPin,
            const uint8_t statePin,
            const uint8_t resetPin)
-    : m_stream(stream),
+    : p_stream(&stream),
       m_keyPin(keyPin),
       m_statePin(statePin),
       m_resetPin(resetPin),
@@ -31,7 +31,7 @@ void HC05::sendCommand(const Command &command)
 {
   if (m_commandQueue.isFull())
   {
-    Serial.println(F("Error: Command queue is full!"));
+    Serial.println(F("BT queue full"));
     return;
   }
 
@@ -52,20 +52,20 @@ void HC05::sendData(const String &data)
 {
   if (m_status.inCommandMode)
   {
-    Serial.println(F("Error: Cannot send data in command mode!"));
+    Serial.println(F("BT cmd mode - no data"));
     return;
   }
-  m_stream.print(data);
+  p_stream->print(data);
 }
 
 void HC05::sendData(const char data)
 {
   if (m_status.inCommandMode)
   {
-    Serial.println(F("Error: Cannot send data in command mode!"));
+    Serial.println(F("BT cmd mode - no data"));
     return;
   }
-  m_stream.print(data);
+  p_stream->print(data);
 }
 
 void HC05::onDataReceived(const DataCallback callback)
@@ -86,18 +86,18 @@ bool HC05::isDataMode()
 //---------------- Helper Sub-Methods ----------------//
 void HC05::appendStreamData()
 {
-  while (m_stream.available())
+  while (p_stream->available())
   {
-    char c = m_stream.read();
+    char c = p_stream->read();
     m_responseBuffer.append(c);
   }
 }
 
 void HC05::clearResponseBuffer()
 {
-  while (m_stream.available())
+  while (p_stream->available())
   {
-    m_stream.read();
+    p_stream->read();
   }
   m_responseBuffer.clear();
 }
@@ -157,7 +157,7 @@ bool HC05::processResponseBufferForCommand()
 
 void HC05::handleInitializing()
 {
-  Serial.println(F("Initializing HC-05..."));
+  Serial.println(F("BT init..."));
   reset();
 }
 
@@ -187,7 +187,7 @@ void HC05::handleInitializingWait()
 void HC05::handleCheckingATMode()
 {
   clearResponseBuffer();
-  m_stream.println(F("AT"));
+  p_stream->println(F("AT"));
   setState(WAITING_FOR_AT_RESPONSE);
 }
 
@@ -198,12 +198,12 @@ void HC05::handleWaitingForATResponse()
   {
     m_commandDelayTimer.setInterval(DEFAULT_COMMAND_DELAY_MS);
     setState(WAITING_FOR_COMMAND_DELAY);
-    Serial.println(F("HC-05 is recognized."));
+    Serial.println(F("BT ok"));
     return;
   }
   if (isStateTimeElapsed(AT_RESPONSE_TIMEOUT_MS))
   {
-    Serial.print(F("HC-05 AT check failed. Resetting...: "));
+    Serial.print(F("BT AT fail: "));
     Serial.println(m_responseBuffer.toString());
     setState(RESETTING);
   }
@@ -216,7 +216,7 @@ void HC05::handleWaitingForCommandMode()
   {
     m_status.inCommandMode = true;
     setState(IDLE);
-    Serial.println(F("HC-05 is in COMMAND mode"));
+    Serial.println(F("BT cmd mode"));
   }
 }
 
@@ -227,7 +227,7 @@ void HC05::handleWaitingForDataMode()
   {
     m_status.inCommandMode = false;
     setState(DATA_MODE);
-    Serial.println(F("HC-05 is in DATA mode"));
+    Serial.println(F("BT data mode"));
   }
 }
 
@@ -241,7 +241,7 @@ void HC05::handleWaitingForResponse()
   }
   if (isStateTimeElapsed(COMMAND_RESPONSE_TIMEOUT_MS))
   {
-    Serial.print(F("HC-05 command processing stuck. Resetting...: "));
+    Serial.print(F("BT cmd timeout: "));
     Serial.println(m_responseBuffer.toString());
     setState(RESETTING);
   }
@@ -257,9 +257,9 @@ void HC05::handleWaitingForCommandDelay()
 
 void HC05::handleDataMode()
 {
-  while (m_stream.available())
+  while (p_stream->available())
   {
-    char c = m_stream.read();
+    char c = p_stream->read();
     if (m_status.connected && m_dataReceivedCallback)
     {
       m_dataReceivedCallback(c);
@@ -364,9 +364,9 @@ void HC05::processNextCommand()
   {
     const Command *const nextCommand = m_commandQueue.getHead();
     clearResponseBuffer();
-    Serial.print(F("HC-05 sending command: "));
+    Serial.print(F("BT cmd: "));
     Serial.println(nextCommand->commandText);
-    m_stream.println(nextCommand->commandText);
+    p_stream->println(nextCommand->commandText);
     setState(WAITING_FOR_RESPONSE);
   }
 }
@@ -377,6 +377,6 @@ void HC05::updateConnectionState()
   if (connectionStatus != m_status.connected)
   {
     m_status.connected = connectionStatus;
-    Serial.println(m_status.connected ? F("BT device connected.") : F("BT device disconnected."));
+    Serial.println(m_status.connected ? F("BT conn") : F("BT disc"));
   }
 }

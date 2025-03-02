@@ -7,8 +7,6 @@ void commandHelp(SerialCommands &sender, Args &args);
 
 void commandPing(SerialCommands &sender, Args &args);
 
-void commandIrq(SerialCommands &sender, Args &args);
-
 void commandRam(SerialCommands &sender, Args &args);
 
 void commandStatistics(SerialCommands &sender, Args &args);

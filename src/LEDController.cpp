@@ -23,33 +23,26 @@ void LEDController::setState(const State state)
     switch (m_state)
     {
     case LOCKED:
-    {
       m_greenLED.turnOFF();
       m_redLED.turnON();
-    }
-    break;
+      break;
 
+    case RESETTING_BLUETOOTH:
     case FORMATTING:
-    {
       m_greenLED.turnOFF();
-      m_redLED.blink(250, 250);
-    }
-    break;
+      m_redLED.blink(LED_FAST_BLINK_DURATION, LED_FAST_BLINK_DURATION);
+      break;
 
     case CONNECTING:
     case PRESSING:
-    {
       m_greenLED.turnOFF();
-      m_redLED.blink(500, 500);
-    }
-    break;
+      m_redLED.blink(LED_SLOW_BLINK_DURATION, LED_SLOW_BLINK_DURATION);
+      break;
 
     case UNLOCKED:
-    {
       m_greenLED.turnON();
       m_redLED.turnOFF();
-    }
-    break;
+      break;
     } // end switch
   } // end if
 } // end setState

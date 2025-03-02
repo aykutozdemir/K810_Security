@@ -12,21 +12,22 @@
 
 class PipedStream : public Stream
 {
-  LoopbackStream &in;
-  LoopbackStream &out;
+  LoopbackStream *in;
+  LoopbackStream *out;
 
 public:
   PipedStream(LoopbackStream &in, LoopbackStream &out);
 
   void clear();
 
-  virtual size_t write(uint8_t);
-  virtual int availableForWrite(void);
+  virtual size_t write(uint8_t) override;
+  virtual size_t write(const uint8_t *, size_t) override;
+  virtual int availableForWrite(void) override;
 
-  virtual int available();
-  virtual int read();
-  virtual int peek();
-  virtual void flush();
+  virtual int available() override;
+  virtual int read() override;
+  virtual int peek() override;
+  virtual void flush() override;
 };
 
 class PipedStreamPair
@@ -35,6 +36,6 @@ private:
   LoopbackStream buffer1, buffer2;
 
 public:
-  explicit PipedStreamPair(uint16_t buffer_size = LoopbackStream::DEFAULT_SIZE);
+  explicit PipedStreamPair(const uint16_t buffer_size = LoopbackStream::DEFAULT_SIZE);
   PipedStream first, second;
 };

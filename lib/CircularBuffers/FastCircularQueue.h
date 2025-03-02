@@ -11,7 +11,13 @@ class FastCircularQueue
 
 public:
   FastCircularQueue()
-      : head(0), tail(0) {}
+      : head(0), tail(0)
+  {
+    for (uint8_t i = 0; i < BUFFER_SIZE; ++i)
+    {
+      buffer[i] = T();
+    }
+  }
 
   inline bool push(const T &value)
   {

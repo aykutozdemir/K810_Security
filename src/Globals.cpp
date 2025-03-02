@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include "CommandCallbacks.h"
+#include "DefaultPackageInterface.h"
+#include "CRCPackageInterface.h"
 
 //================ Global Objects Initialization ==================
 
@@ -20,8 +22,11 @@ EEPROMController eepromController(Wire);
 
 constexpr size_t COMMAND_PIPES_BUFFER_SIZE = 256;
 PipedStreamPair commandPipes(COMMAND_PIPES_BUFFER_SIZE);
-PipedStream &streamBluetooth = commandPipes.first;
+DefaultPackageInterface defaultPackageInterface(commandPipes.first);
+CRCPackageInterface crcPackageInterface(commandPipes.first);
 PipedStream &streamCommander = commandPipes.second;
+PipedStream &streamBluetoothData = crcPackageInterface.getPackagedStream();
+PipedStream &streamBluetoothCommand = defaultPackageInterface.getPackagedStream();
 
 //================ Statistic Objects ==================
 
@@ -58,7 +63,6 @@ const uint8_t lengthOfStatistics = sizeof(statistics) / sizeof(statistics[0]);
 const Command serCommands[] = {
     COMMAND(commandHelp, "help", NULL, "list commands"),
     COMMAND(commandPing, "ping", NULL, "ping"),
-    COMMAND(commandIrq, "irq", NULL, "list irq registers"),
     COMMAND(commandRam, "ram", NULL, "display ram usage"),
     COMMAND(commandStatistics, "statistics", NULL, "list statistics"),
     COMMAND(commandReset, "reset", NULL, "reset the keypad"),

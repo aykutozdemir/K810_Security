@@ -18,7 +18,7 @@ class LoopbackStream : public Stream
 public:
   static const uint16_t DEFAULT_SIZE = 64;
 
-  explicit LoopbackStream(uint16_t buffer_size = LoopbackStream::DEFAULT_SIZE);
+  explicit LoopbackStream(const uint16_t buffer_size = LoopbackStream::DEFAULT_SIZE);
   ~LoopbackStream();
 
   // Add move semantics

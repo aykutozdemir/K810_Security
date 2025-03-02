@@ -101,7 +101,7 @@ private:
 	void updateDigital();
 
 public:
-	ezLED(int pin, int mode = CTRL_ANODE);
+	explicit ezLED(int pin, int mode = CTRL_ANODE);
 	void turnON(unsigned long delayTime = 0);
 	void turnOFF(unsigned long delayTime = 0);
 	void toggle(unsigned long delayTime = 0);

@@ -38,8 +38,8 @@ private:
   uint16_t count;
 
 public:
-  ArduinoQueue(uint16_t maxItems = UINT16_MAX,
-               uint16_t maxMemory = UINT16_MAX)
+  explicit ArduinoQueue(uint16_t maxItems = UINT16_MAX,
+                        uint16_t maxMemory = UINT16_MAX)
   {
     this->head = nullptr;
     this->tail = nullptr;

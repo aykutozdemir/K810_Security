@@ -22,7 +22,7 @@ void KeyboardController::lock()
   {
     m_state = LOCKED;
     m_keyboardPowerOutput.low();
-    Serial.println(F("Keyboard locked."));
+    Serial.println(F("KB locked"));
   } // end if
 } // end lock
 
@@ -32,7 +32,7 @@ void KeyboardController::unlock()
   {
     m_state = UNLOCKED;
     m_keyboardPowerOutput.high();
-    Serial.println(F("Keyboard unlocked."));
+    Serial.println(F("KB unlocked"));
   } // end if
 } // end unlock
 

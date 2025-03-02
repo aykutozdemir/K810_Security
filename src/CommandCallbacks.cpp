@@ -124,12 +124,6 @@ void commandPing(SerialCommands &sender, Args &args)
   printOK(sender);
 }
 
-void commandIrq(SerialCommands &sender, Args &args)
-{
-  statisticController.printInterruptTable(sender.getSerial());
-  printOK(sender);
-}
-
 void commandRam(SerialCommands &sender, Args &args)
 {
   statisticController.printRam(sender.getSerial());

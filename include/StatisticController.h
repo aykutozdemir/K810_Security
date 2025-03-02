@@ -19,8 +19,6 @@ public:
                            const uint8_t statisticSize) const;
 
   void printRam(Print &print) const;
-
-  void printInterruptTable(Print &print) const;
 }; // end StatisticController class
 
 #endif

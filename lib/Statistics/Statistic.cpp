@@ -52,16 +52,12 @@ void Statistic::end()
 
 void Statistic::print(Print &print) const
 {
-    print.print(F("Statistic: "));
-    print.println(name ? name : F("(Unnamed)"));
-
-    print.print(F("Min: "));
+    print.print(name ? name : F("?"));
+    print.print(F(": "));
     print.print(minTime);
-
-    print.print(F("us Max: "));
-    print.print(maxTime);
-
-    print.print(F("us Avg: "));
+    print.print(F(" / "));
     print.print(average);
-    print.println(F("us"));
+    print.print(F(" / "));
+    print.print(maxTime);
+    print.println(F(" us"));
 }

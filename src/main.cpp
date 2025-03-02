@@ -20,26 +20,33 @@ static constexpr uint16_t DELAY_FINAL_RESET = 1500;
 
 //================ Bluetooth Methods ==================
 
+static void softSerialErrorCallback(const __FlashStringHelper *errorMessage)
+{
+  Serial.println(errorMessage);
+}
+
 static void bluetoothDataCallback(const char data)
 {
-  streamBluetooth.write(data);
+  // Optimized to reduce flash usage - single check for data mode
+  PipedStream &activeStream = hc05.isDataMode() ? streamBluetoothData : streamBluetoothCommand;
+  activeStream.write(data);
 }
 
 static void bluetoothCallback(const __FlashStringHelper *command, const bool result, const String &response)
 {
   if (result)
   {
-    Serial.print(F("BT successfully "));
+    Serial.print(F("BT ok "));
     Serial.print(command);
-    Serial.println(F("."));
+    Serial.println('.');
   }
   else
   {
-    Serial.print(F("BT error "));
+    Serial.print(F("BT err "));
     Serial.print(command);
     Serial.print(F(": "));
     Serial.print(response);
-    Serial.println(F("."));
+    Serial.println('.');
   }
 }
 
@@ -52,7 +59,7 @@ static void bluetoothResetCallback(const __FlashStringHelper *command, const boo
   bluetoothCallback(command, result, response);
 }
 
-static void sendBTCommand(const char *cmd_progmem, HC05::CommandCallback callback, uint16_t delayMs)
+static void sendBluetoothCommand(const char *cmd_progmem, HC05::CommandCallback callback, uint16_t delayMs)
 {
   HC05::Command cmd;
   cmd.commandText = reinterpret_cast<const __FlashStringHelper *>(cmd_progmem);
@@ -66,19 +73,19 @@ static void bluetoothResetSequence()
   hc05.clearCommandQueue();
 
   // Factory reset
-  sendBTCommand(CMD_RMAAD, bluetoothCallback, DELAY_FACTORY_RESET);
+  sendBluetoothCommand(CMD_RMAAD, bluetoothCallback, DELAY_FACTORY_RESET);
 
   // Basic setup
-  sendBTCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
-  sendBTCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBluetoothCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBluetoothCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
 
   // Device specific setup
-  sendBTCommand(CMD_NAME, bluetoothCallback, DELAY_BASIC_CMD);
-  sendBTCommand(CMD_PSWD, bluetoothCallback, DELAY_BASIC_CMD);
-  sendBTCommand(CMD_UART, bluetoothCallback, DELAY_UART_CMD);
+  sendBluetoothCommand(CMD_NAME, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBluetoothCommand(CMD_PSWD, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBluetoothCommand(CMD_UART, bluetoothCallback, DELAY_UART_CMD);
 
   // Final reset
-  sendBTCommand(CMD_RESET, bluetoothResetCallback, DELAY_RESET_CMD);
+  sendBluetoothCommand(CMD_RESET, bluetoothResetCallback, DELAY_RESET_CMD);
 
   if (hc05.isResettingPermanently())
   {
@@ -91,12 +98,12 @@ static void bluetoothInitSequence()
   hc05.clearCommandQueue();
 
   // Basic setup
-  sendBTCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
-  sendBTCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBluetoothCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
+  sendBluetoothCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
 
   // Initialize and reset
-  sendBTCommand(CMD_INIT, bluetoothCallback, DELAY_INIT_CMD);
-  sendBTCommand(CMD_RESET, bluetoothCallback, DELAY_FINAL_RESET);
+  sendBluetoothCommand(CMD_INIT, bluetoothCallback, DELAY_INIT_CMD);
+  sendBluetoothCommand(CMD_RESET, bluetoothCallback, DELAY_FINAL_RESET);
 }
 
 //================ Business Logic ==================
@@ -109,18 +116,21 @@ static void handleBusinessLogic()
 
   if (state == CONNECTING)
   {
-    static bool lastConnectionState = false;
+    const bool currentDataMode = hc05.isDataMode();
     const bool currentConnectionState = hc05.isConnected();
 
+    if (currentDataMode)
+    {
+      ledController.setState(LEDController::CONNECTING);
+    }
+    
     if (currentConnectionState)
     {
-      lastConnectionState = true;
       state = IDLE;
     }
-    else if (bluetoothConnectionTimeout.isReady() && !lastConnectionState)
+    else if (bluetoothConnectionTimeout.isReady())
     {
       hc05.reset(true);
-      lastConnectionState = false;
       state = IDLE;
     }
     return;
@@ -130,7 +140,7 @@ static void handleBusinessLogic()
   {
     if (eepromController.state() == EEPROMController::IDLE)
     {
-      Serial.println(F("Formatting completed, resetting..."));
+      Serial.println(F("Fmt done, rst..."));
       Serial.flush();
       watchdogController.resetMCU();
     }
@@ -168,15 +178,15 @@ static void handleBusinessLogic()
     break;
 
   case ButtonController::LONG_PRESS:
-    Serial.println(F("BT module resetting..."));
+    Serial.println(F("BT rst..."));
     state = CONNECTING;
-    ledController.setState(LEDController::CONNECTING);
+    ledController.setState(LEDController::RESETTING_BLUETOOTH);
     bluetoothConnectionTimeout.reset();
     bluetoothResetSequence();
     break;
 
   case ButtonController::VERY_LONG_PRESS:
-    Serial.println(F("Keypad formatting..."));
+    Serial.println(F("Fmt..."));
     keyboardController.unlock();
     state = FORMATTING;
     ledController.setState(LEDController::FORMATTING);
@@ -237,8 +247,7 @@ void setup()
     watchdogController.resetMCUForSelfProgramming();
   }
 
-  softwareSerial.setErrorCallback([](const __FlashStringHelper *errorMessage)
-                                  { Serial.println(errorMessage); });
+  softwareSerial.setErrorCallback(softSerialErrorCallback);
   softwareSerial.begin(38400, timer1Setup);
 
   Wire.begin();
@@ -264,6 +273,8 @@ void setup()
     bluetoothInitSequence();
   }
 
+  watchdogController.loop();
+
   // Set statistic names.
   watchdogControllerStatistic.setName(F("Watchdog"));
   statisticControllerStatistic.setName(F("Statistic"));
@@ -278,13 +289,13 @@ void setup()
   businessLogicStatistic.setName(F("Business Logic"));
   loopStatistic.setName(F("Loop"));
 
-  Serial.print(F("K810 Security started: "));
-  Serial.println(checked ? F("checked") : F("unchecked"));
-  Serial.print(F("Version: "));
+  Serial.print(F("K810 start: "));
+  Serial.println(checked ? F("chk") : F("unchk"));
+  Serial.print(F("Ver: "));
   Serial.println(KeyboardController::getVersion());
 }
 
-//================ Main Loop ==================
+//================ Loop ==================
 
 void loop()
 {
@@ -323,9 +334,22 @@ void loop()
     {
       softwareSerial.loop();
       hc05.loop();
-      if (hc05.isDataMode() && streamBluetooth.available())
+
+      if (hc05.isDataMode())
       {
-        hc05.sendData(streamBluetooth.read());
+        crcPackageInterface.loop();
+        if (streamBluetoothData.available())
+        {
+          hc05.sendData(streamBluetoothData.read());
+        }
+      }
+      else
+      {
+        defaultPackageInterface.loop();
+        if (streamBluetoothCommand.available())
+        {
+          hc05.sendData(streamBluetoothCommand.read());
+        }
       }
     }
     MEASURE_TIME(bluetoothCommandsStatistic)

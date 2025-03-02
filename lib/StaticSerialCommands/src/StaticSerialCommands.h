@@ -23,12 +23,12 @@ public:
   typedef bool (*CharPredicate)(char);
 
   SerialCommands(Stream &serial, const Command *commands, uint16_t commandsCount, char *buffer, uint16_t bufferSize, uint16_t timeout = 0)
-      : serial(serial), buffer(buffer), bufferSize(bufferSize),
+      : serial(&serial), buffer(buffer), bufferSize(bufferSize),
         commands(commands), commandsCount(commandsCount),
         timeout(timeout) {}
 
   SerialCommands(Stream &serial, const Command *commands, uint16_t commandsCount)
-      : serial(serial),
+      : serial(&serial),
         commands(commands), commandsCount(commandsCount), timeout(0)
   {
     static char tmpBffer[64];
@@ -57,7 +57,7 @@ public:
 
   Stream &getSerial()
   {
-    return serial;
+    return *serial;
   }
 
   void setDelimiterPredicate(CharPredicate predicate)
@@ -94,7 +94,7 @@ public:
   }
 
 private:
-  Stream &serial;
+  Stream *const serial;
   char *buffer;
   uint16_t bufferSize;
   const Command *commands;

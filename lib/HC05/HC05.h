@@ -97,7 +97,7 @@ private:
   void handleDataMode();
   void handleIdle();
 
-  Stream &m_stream;
+  Stream *const p_stream;
   const uint8_t m_keyPin;
   const uint8_t m_statePin;
   const uint8_t m_resetPin;

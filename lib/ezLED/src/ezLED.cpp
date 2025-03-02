@@ -306,9 +306,6 @@ void ezLED::loop(void)
             break;
         }
         break;
-
-    default:
-        Serial.println(F("UNKNOW STATE"));
     }
 
     if (flags._ledState == LED_STATE_FADE)
