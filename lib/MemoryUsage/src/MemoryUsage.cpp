@@ -1,7 +1,31 @@
-#include "MemoryUsage.h"
+/**
+ * @file MemoryUsage.cpp
+ * @brief Implementation of the MemoryUsage class.
+ *
+ * This file contains the implementation of the MemoryUsage class methods for
+ * monitoring and analyzing SRAM memory usage on AVR-based Arduino boards.
+ *
+ * @author Aykut ÖZDEMİR
+ * @date 2025
+ */
 
+#include "MemoryUsage.h"
+#include "Utilities.h"
+
+/**
+ * @brief Canary value used to paint the stack
+ *
+ * This specific value (0xc5) is used to identify untouched memory in the stack.
+ */
 #define STACK_CANARY 0xc5
 
+/**
+ * @brief Paint the stack with a canary pattern
+ *
+ * Fills unused memory between the heap break and stack pointer with a canary value
+ * to help detect maximum stack usage. This is called early in program execution to
+ * establish a baseline.
+ */
 void MemoryUsage::stackPaint(void)
 {
 	uint8_t *p = (__brkval == 0 ? (uint8_t *)&__heap_start : __brkval);
@@ -13,6 +37,14 @@ void MemoryUsage::stackPaint(void)
 	}
 }
 
+/**
+ * @brief Calculate the current free RAM
+ *
+ * Calculates the amount of free memory between the heap break and stack pointer.
+ * This represents the available memory for stack growth and dynamic memory allocation.
+ *
+ * @return Number of free bytes
+ */
 int MemoryUsage::freeRam()
 {
 	uint8_t *heap_end = (__brkval == 0) ? (uint8_t *)&__heap_start : __brkval;
@@ -20,6 +52,15 @@ int MemoryUsage::freeRam()
 	return SP - (int)heap_end; // Subtract from actual heap end
 }
 
+/**
+ * @brief Calculate the minimum free RAM that has occurred
+ *
+ * Uses the painted canary pattern to determine the minimum amount of free RAM that
+ * has been available since stackPaint() was called. This helps identify peak memory
+ * usage scenarios.
+ *
+ * @return Minimum number of free bytes observed
+ */
 int MemoryUsage::minimumFreeRam(void)
 {
 	uint8_t *scan_start = (__brkval == 0 ? (uint8_t *)&__heap_start : __brkval); // Start scanning from brkval
@@ -63,6 +104,15 @@ int MemoryUsage::minimumFreeRam(void)
 	return longest_end ? (int)(longest_end - longest_start) : 0;
 }
 
+/**
+ * @brief Display detailed RAM usage information
+ *
+ * Outputs detailed information about memory usage to the provided Print stream,
+ * including the data section, BSS section, heap, free RAM, and stack with their
+ * sizes and memory addresses.
+ *
+ * @param out Print stream to output information to (e.g., Serial)
+ */
 void MemoryUsage::ramDisplay(Print &out)
 {
 	const int data_size = (int)&__data_end - (int)&__data_start;
@@ -73,7 +123,7 @@ void MemoryUsage::ramDisplay(Print &out)
 	const int available = freeRam();
 	const int min_available = minimumFreeRam();
 
-	printStars(out);
+	Utilities::printStars(out);
 	out.print(F("+----------------+ "));
 	out.print((int)&__data_start);
 	out.println(F(" (__data_start)"));
@@ -116,32 +166,5 @@ void MemoryUsage::ramDisplay(Print &out)
 	out.print(F("+----------------+ "));
 	out.print((int)RAMEND);
 	out.println(F(" (RAMEND / __stack)"));
-	printStars(out);
-
-	if (min_available < 100)
-	{
-		uint8_t *p = (__brkval == 0 ? (uint8_t *)&__heap_start : __brkval);
-
-		int i = 0;
-		int j = 0;
-		while (i < 100)
-		{
-			++i;
-
-			if (*p == STACK_CANARY)
-			{
-				++j;
-			}
-			++p;
-		}
-
-		out.print(F("Warning: Possible collision between heap and stack: %"));
-		out.println(100 - j);
-		printStars(out);
-	}
-}
-
-void MemoryUsage::printStars(Print &out)
-{
-	out.println(F("********************"));
+	Utilities::printStars(out);
 }

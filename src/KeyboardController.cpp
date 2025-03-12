@@ -6,7 +6,7 @@
 #include "Globals.h"
 
 KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
-    : m_keyboardPowerOutput(keyboardPowerPin), m_state(LOCKED)
+    : m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)
 {
   m_keyboardPowerOutput.low();
 } // end KeyboardController
@@ -130,7 +130,7 @@ void KeyboardController::cypherDecryption(byte *const dataArr,
 
 void KeyboardController::cypherEncryption(byte *const dataArr,
                                           const uint8_t dataArrLength,
-                                          byte *const seedArr,
+                                          const byte *const seedArr,
                                           const uint8_t seedArrLength,
                                           const byte salt)
 {
@@ -154,7 +154,7 @@ void KeyboardController::cypherEncryption(byte *const dataArr,
 
 void KeyboardController::cypherDecryption(byte *const dataArr,
                                           const uint8_t dataArrLength,
-                                          byte *const seedArr,
+                                          const byte *const seedArr,
                                           const uint8_t seedArrLength,
                                           const byte salt)
 {
@@ -182,5 +182,5 @@ uint16_t KeyboardController::getVersion()
 
 void KeyboardController::loop()
 {
-  m_keyboardPowerOutput.loop();
+
 } // end loop

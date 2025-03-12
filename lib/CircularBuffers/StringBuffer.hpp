@@ -1,3 +1,15 @@
+/**
+ * @file StringBuffer.hpp
+ * @brief Implementation of the StringBuffer class.
+ *
+ * This file contains the implementation of the StringBuffer class methods for efficient
+ * string handling in embedded systems. It provides optimized string operations designed
+ * for memory-constrained environments.
+ *
+ * @author Aykut ÖZDEMİR
+ * @date 2025
+ */
+
 #ifndef STRINGBUFFER_HPP
 #define STRINGBUFFER_HPP
 

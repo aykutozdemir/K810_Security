@@ -1,0 +1,94 @@
+@startuml CRCPackageInterface Algorithm
+
+title CRCPackageInterface Communication Protocol
+
+skinparam state {
+  BackgroundColor LightBlue
+  BorderColor DarkBlue
+  ArrowColor DarkBlue
+}
+
+state "Main Loop" as MainLoop {
+  state "Check Reset Timeout" as CheckResetTimeout
+  state "Process Outgoing State Machine" as ProcessOutgoing
+  state "Process Incoming State Machine" as ProcessIncoming
+}
+
+state "Outgoing State Machine" as OutgoingStateMachine {
+  state "READ_DATA" as ReadData
+  state "SEND_PACKAGE" as SendPackage
+  state "WAIT_FOR_ACK_OR_NACK" as WaitForAckNack
+}
+
+state "Incoming State Machine" as IncomingStateMachine {
+  state "WAIT_FOR_START_BYTE" as WaitForStartByte
+  state "READ_INCOMING_DATA" as ReadIncomingData
+  state "PROCESS_INCOMING_DATA" as ProcessIncomingData
+}
+
+state "Process Package" as ProcessPackage {
+  state "Reset Detection" as ResetDetection
+  state "Validate Package" as ValidatePackage
+  state "Process by Type" as ProcessByType
+}
+
+state "Process by Type" as TypeProcessing {
+  state "Handle DATA" as HandleData
+  state "Handle ACK" as HandleAck
+  state "Handle NACK" as HandleNack
+  state "Handle RESET" as HandleReset
+}
+
+state "Reset Mechanism" as ResetMechanism {
+  state "Manual Reset" as ManualReset
+  state "Timeout Reset" as TimeoutReset
+  state "Sequence Reset" as SequenceReset
+}
+
+[*] --> MainLoop
+
+MainLoop --> CheckResetTimeout
+CheckResetTimeout --> ResetMechanism : if timeout
+CheckResetTimeout --> ProcessOutgoing
+ProcessOutgoing --> OutgoingStateMachine
+ProcessIncoming --> IncomingStateMachine
+
+OutgoingStateMachine --> ReadData : Initial state
+ReadData --> ReadData : Data available\nand buffer not full
+ReadData --> SendPackage : Timeout or\nbuffer full
+SendPackage --> WaitForAckNack : After sending
+WaitForAckNack --> SendPackage : On NACK or timeout\n(under max retries)
+WaitForAckNack --> ReadData : On ACK or\nmax retries
+
+IncomingStateMachine --> WaitForStartByte : Initial state
+WaitForStartByte --> ReadIncomingData : Start byte received
+ReadIncomingData --> ReadIncomingData : Reading bytes
+ReadIncomingData --> ProcessIncomingData : Package complete
+ReadIncomingData --> WaitForStartByte : Timeout
+ProcessIncomingData --> ProcessPackage
+
+ProcessPackage --> ResetDetection
+ResetDetection --> ResetMechanism : if out-of-sequence
+ResetDetection --> ValidatePackage
+ValidatePackage --> TypeProcessing : if valid
+ValidatePackage --> HandleNack : if invalid DATA
+
+TypeProcessing --> HandleData : if DATA type
+TypeProcessing --> HandleAck : if ACK type  
+TypeProcessing --> HandleNack : if NACK type
+TypeProcessing --> HandleReset : if RESET type
+
+HandleData --> WaitForStartByte : after processing
+HandleAck --> WaitForStartByte : after processing  
+HandleNack --> WaitForStartByte : after processing
+HandleReset --> ResetMechanism : Reset packet counters
+HandleReset --> WaitForStartByte : after processing
+
+ResetMechanism --> ManualReset : via sendResetPacket()
+ResetMechanism --> TimeoutReset : on communication timeout
+ResetMechanism --> SequenceReset : on sequence mismatch
+ManualReset --> [*]
+TimeoutReset --> [*]
+SequenceReset --> [*]
+
+@enduml 

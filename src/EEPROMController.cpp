@@ -1,19 +1,20 @@
+// Project headers
+#include "EEPROMController.h"
+#include <EEPROM.h>
+#include "Utilities.h"
+
 // Arduino core
 #include <Arduino.h>
 #include <USBAPI.h>
 
-// Project headers
-#include "EEPROMController.h"
-#include <EEPROM.h>
-
 // Constants
-constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50;
+constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50 >> 1;
 constexpr uint8_t EXT_EEPROM_PAGE_SIZE = 32;
 constexpr uint16_t EXT_EEPROM_TOTAL_SIZE = 8192;
 constexpr uint8_t INT_EEPROM_PAGE_SIZE = 32;
 
-EEPROMController::EEPROMController(TwoWire &wire)
-    : p_wire(&wire), m_state(IDLE), m_currentCounter(0)
+EEPROMController::EEPROMController(I2C &i2c)
+    : p_i2c(&i2c), m_state(IDLE), m_currentCounter(0)
 {
 } // end EEPROMController
 
@@ -71,9 +72,7 @@ void EEPROMController::loop()
 
 bool EEPROMController::checkWriteComplete() const
 {
-  p_wire->beginTransmission(EXT_EEPROM_I2C_ADDRESS);
-
-  const uint8_t result = p_wire->endTransmission();
+  const uint8_t result = p_i2c->write(EXT_EEPROM_I2C_ADDRESS);
 
   return result == 0;
 }
@@ -81,18 +80,13 @@ bool EEPROMController::checkWriteComplete() const
 void EEPROMController::formatExternalPage()
 {
   const uint16_t startAddress = m_currentCounter * EXT_EEPROM_PAGE_SIZE;
+  const uint8_t pageData[EXT_EEPROM_PAGE_SIZE] = {0x00};
 
-  p_wire->beginTransmission(EXT_EEPROM_I2C_ADDRESS);
-  p_wire->write((startAddress >> 8) & 0xFF);
-  p_wire->write(startAddress & 0xFF);
-  for (uint8_t i = 0; i < EXT_EEPROM_PAGE_SIZE; i++)
-  {
-    p_wire->write(0x00);
-  }
-  p_wire->endTransmission();
+  p_i2c->write16(EXT_EEPROM_I2C_ADDRESS, startAddress, pageData, EXT_EEPROM_PAGE_SIZE);
 
   Serial.print(F("Ext eeprom pg: "));
-  Serial.println(m_currentCounter);
+  Serial.print(m_currentCounter, HEX);
+  Serial.println();
 
   ++m_currentCounter;
 }
@@ -106,5 +100,6 @@ void EEPROMController::formatInternalPages()
   }
 
   Serial.print(F("Int eeprom cnt: "));
-  Serial.println(m_currentCounter - 1);
+  Serial.print(m_currentCounter - 1, HEX);
+  Serial.println();
 }

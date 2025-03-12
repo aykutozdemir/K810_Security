@@ -11,4 +11,6 @@
     "C_Cpp.clang_format_fallbackStyle": "Visual Studio",
     "editor.wordWrap": "wordWrapColumn",
     "editor.wordWrapColumn": 120,
+    "sonarlint.pathToCompileCommands": "${workspaceFolder}\\compile_commands.json",
+    "CodeGPT.apiKey": "Ollama",
 }

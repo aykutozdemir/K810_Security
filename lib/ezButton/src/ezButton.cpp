@@ -29,10 +29,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file ezButton.cpp
+ * @brief Implementation of the ezButton library.
+ *
+ * This file contains the implementation of the ezButton class which provides
+ * debounced button handling and event counting.
+ *
+ * @author ArduinoGetStarted.com
+ * @author Modified by Aykut ÖZDEMİR
+ * @date 2025
+ */
+
 #include <ezButton.h>
 
+/**
+ * @brief Constructor with pull-up mode by default
+ *
+ * Initializes the button with INPUT_PULLUP mode.
+ *
+ * @param pin Arduino pin number the button is connected to
+ */
 ezButton::ezButton(int pin) : ezButton(pin, INPUT_PULLUP) {}
 
+/**
+ * @brief Constructor with configurable input mode
+ *
+ * Initializes the button with the specified mode.
+ *
+ * @param pin Arduino pin number the button is connected to
+ * @param mode INPUT, INPUT_PULLUP, INTERNAL_PULLUP, INTERNAL_PULLDOWN, EXTERNAL_PULLUP, or EXTERNAL_PULLDOWN
+ */
 ezButton::ezButton(int pin, int mode)
 {
 	config.btnPin = pin;
@@ -55,52 +82,100 @@ ezButton::ezButton(int pin, int mode)
 	lastDebounceTime = 0;
 }
 
-void ezButton::setDebounceTime(unsigned long time)
+/**
+ * @brief Set the debounce time
+ *
+ * @param time Debounce time in milliseconds
+ */
+void ezButton::setDebounceTime(uint16_t time)
 {
 	debounceTime = time;
 }
 
+/**
+ * @brief Get the current debounced button state
+ *
+ * @return HIGH or LOW
+ */
 int ezButton::getState(void) const
 {
 	return config.flags.lastState;
 }
 
+/**
+ * @brief Get the raw (non-debounced) button state
+ *
+ * @return HIGH or LOW
+ */
 int ezButton::getStateRaw(void) const
 {
 	return digitalRead(config.btnPin);
 }
 
+/**
+ * @brief Check if the button was just pressed
+ *
+ * Returns true only once when the button is pressed.
+ *
+ * @return true if button was just pressed, false otherwise
+ */
 bool ezButton::isPressed(void) const
 {
 	return (config.flags.previousState == config.flags.unpressedState &&
 			config.flags.lastState == config.flags.pressedState);
 }
 
+/**
+ * @brief Check if the button was just released
+ *
+ * Returns true only once when the button is released.
+ *
+ * @return true if button was just released, false otherwise
+ */
 bool ezButton::isReleased(void) const
 {
 	return (config.flags.previousState == config.flags.pressedState &&
 			config.flags.lastState == config.flags.unpressedState);
 }
 
+/**
+ * @brief Configure the event counting mode
+ *
+ * @param mode COUNT_FALLING, COUNT_RISING, or COUNT_BOTH
+ */
 void ezButton::setCountMode(int mode)
 {
 	config.flags.countMode = mode;
 }
 
-unsigned long ezButton::getCount(void) const
+/**
+ * @brief Get the current event count
+ *
+ * @return Number of counted events
+ */
+uint16_t ezButton::getCount(void) const
 {
 	return count;
 }
 
+/**
+ * @brief Reset the event counter to zero
+ */
 void ezButton::resetCount(void)
 {
 	count = 0;
 }
 
+/**
+ * @brief Update button state (must be called regularly in loop)
+ *
+ * This method handles button debouncing and event counting.
+ * It must be called regularly in the main loop.
+ */
 void ezButton::loop(void)
 {
 	uint8_t currentState = digitalRead(config.btnPin);
-	uint32_t currentTime = millis();
+	uint16_t currentTime = millis();
 
 	if (currentState != config.flags.flickerState)
 	{

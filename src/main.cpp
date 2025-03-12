@@ -20,14 +20,42 @@ static constexpr uint16_t DELAY_FINAL_RESET = 1500;
 
 //================ Bluetooth Methods ==================
 
-static void softSerialErrorCallback(const __FlashStringHelper *errorMessage)
+static void printCallback(const __FlashStringHelper *msgProgmem,
+                          const char *msg)
 {
-  Serial.println(errorMessage);
+  if (msgProgmem == nullptr && msg == nullptr)
+  {
+    Serial.println();
+  }
+  else
+  {
+    if (msgProgmem != nullptr)
+    {
+      Serial.print(msgProgmem);
+    }
+    if (msg != nullptr)
+    {
+      Serial.print(msg);
+    }
+  }
+}
+
+static void printCallback(const __FlashStringHelper *msgProgmem,
+                          const __FlashStringHelper *msg)
+{
+  if (msgProgmem != nullptr)
+  {
+    Serial.print(msgProgmem);
+  }
+  if (msg != nullptr)
+  {
+    Serial.print(msg);
+  }
+  Serial.println();
 }
 
 static void bluetoothDataCallback(const char data)
 {
-  // Optimized to reduce flash usage - single check for data mode
   PipedStream &activeStream = hc05.isDataMode() ? streamBluetoothData : streamBluetoothCommand;
   activeStream.write(data);
 }
@@ -36,17 +64,13 @@ static void bluetoothCallback(const __FlashStringHelper *command, const bool res
 {
   if (result)
   {
-    Serial.print(F("BT ok "));
-    Serial.print(command);
-    Serial.println('.');
+    Serial.println(F("BT ok"));
   }
   else
   {
-    Serial.print(F("BT err "));
-    Serial.print(command);
-    Serial.print(F(": "));
+    Serial.print(F("BT err: "));
     Serial.print(response);
-    Serial.println('.');
+    Serial.println('#');
   }
 }
 
@@ -62,7 +86,7 @@ static void bluetoothResetCallback(const __FlashStringHelper *command, const boo
 static void sendBluetoothCommand(const char *cmd_progmem, HC05::CommandCallback callback, uint16_t delayMs)
 {
   HC05::Command cmd;
-  cmd.commandText = reinterpret_cast<const __FlashStringHelper *>(cmd_progmem);
+  cmd.commandText = PGMT(cmd_progmem);
   cmd.callback = callback;
   cmd.delayMs = delayMs;
   hc05.sendCommand(cmd);
@@ -123,7 +147,7 @@ static void handleBusinessLogic()
     {
       ledController.setState(LEDController::CONNECTING);
     }
-    
+
     if (currentConnectionState)
     {
       state = IDLE;
@@ -247,19 +271,24 @@ void setup()
     watchdogController.resetMCUForSelfProgramming();
   }
 
-  softwareSerial.setErrorCallback(softSerialErrorCallback);
-  softwareSerial.begin(38400, timer1Setup);
+  softwareSerial.setPrintCallback(printCallback);
+  softwareSerial.begin(timer1Setup, BAUD_38400);
 
-  Wire.begin();
-  Wire.setClock(400000);
+  crcPackageInterface.setErrorCallback(printCallback);
 
-  watchdogController.enable(WDTO_500MS);
+  I2c.begin();
+  I2c.setSpeed(true);
+
+  // watchdogController.enable(WDTO_500MS);
   statisticController.setup();
 
   rxLED.blink(1000, 1000);
   txLED.blink(1000, 1000, 1000);
 
+  watchdogController.loop();
+
   const bool checked = KeyboardController::isSeedChecked();
+  hc05.setPrintCallback(printCallback);
   hc05.begin();
   hc05.onDataReceived(bluetoothDataCallback);
   if (!checked)
@@ -276,18 +305,10 @@ void setup()
   watchdogController.loop();
 
   // Set statistic names.
-  watchdogControllerStatistic.setName(F("Watchdog"));
-  statisticControllerStatistic.setName(F("Statistic"));
-  ledControllerStatistic.setName(F("Led"));
-  rxTxLedStatistic.setName(F("Rx Tx Led"));
-  buttonControllerStatistic.setName(F("Button"));
-  keyboardControllerStatistic.setName(F("Keyboard"));
-  serialCommandsStatistic.setName(F("Serial Cmds"));
-  hc05Statistic.setName(F("HC-05"));
-  eepromControllerStatistic.setName(F("EEPROM"));
-  bluetoothCommandsStatistic.setName(F("BT Cmds"));
-  businessLogicStatistic.setName(F("Business Logic"));
-  loopStatistic.setName(F("Loop"));
+  systemStatistic.setName(F("System"));
+  peripheralStatistic.setName(F("Peripheral"));
+  communicationStatistic.setName(F("Communication"));
+  applicationStatistic.setName(F("Application"));
 
   Serial.print(F("K810 start: "));
   Serial.println(checked ? F("chk") : F("unchk"));
@@ -299,38 +320,24 @@ void setup()
 
 void loop()
 {
-  MEASURE_TIME(loopStatistic)
+  MEASURE_TIME(applicationStatistic)
   {
-    MEASURE_TIME(watchdogControllerStatistic)
+    MEASURE_TIME(systemStatistic)
     {
       watchdogController.loop();
-    }
-    MEASURE_TIME(statisticControllerStatistic)
-    {
       statisticController.loop(Serial, statistics, lengthOfStatistics);
     }
-    MEASURE_TIME(ledControllerStatistic)
+
+    MEASURE_TIME(peripheralStatistic)
     {
       ledController.loop();
-    }
-    MEASURE_TIME(rxTxLedStatistic)
-    {
       rxLED.loop();
       txLED.loop();
-    }
-    MEASURE_TIME(buttonControllerStatistic)
-    {
       buttonController.loop();
-    }
-    MEASURE_TIME(keyboardControllerStatistic)
-    {
       keyboardController.loop();
     }
-    MEASURE_TIME(serialCommandsStatistic)
-    {
-      serialCommands.readSerial();
-    }
-    MEASURE_TIME(hc05Statistic)
+
+    MEASURE_TIME(communicationStatistic)
     {
       softwareSerial.loop();
       hc05.loop();
@@ -352,16 +359,14 @@ void loop()
         }
       }
     }
-    MEASURE_TIME(bluetoothCommandsStatistic)
+
+    MEASURE_TIME(applicationStatistic)
     {
+      serialCommands.readSerial();
       bluetoothCommands.readSerial();
-    }
-    MEASURE_TIME(eepromControllerStatistic)
-    {
+
       eepromController.loop();
-    }
-    MEASURE_TIME(businessLogicStatistic)
-    {
+
       handleBusinessLogic();
     }
   }

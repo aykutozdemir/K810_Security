@@ -1,13 +1,15 @@
-/*
-    Author: Einar Arnason
-    email: einsiarna@gmail.com
-
-    A lightweight linked list type queue implementation,
-    meant for microcontrollers.
-
-    Usage and further info:
-    https://github.com/EinarArnason/ArduinoQueue
-*/
+/**
+ * @file ArduinoQueue.h
+ * @brief A lightweight queue implementation for Arduino.
+ *
+ * A lightweight linked list type queue implementation designed for microcontrollers.
+ * This queue provides standard FIFO operations with minimal memory overhead.
+ *
+ * @author Einar Arnason
+ * @author Modified by Aykut ÖZDEMİR
+ * @date 2025
+ * @see https://github.com/EinarArnason/ArduinoQueue
+ */
 
 #pragma once
 
@@ -21,23 +23,37 @@
 #define nullptr NULL
 #endif
 
+/**
+ * @brief Lightweight queue implementation for Arduino.
+ *
+ * @tparam T Type of items stored in the queue.
+ */
 template <typename T>
 class ArduinoQueue
 {
 private:
+  /**
+   * @brief Node structure for linked list implementation.
+   */
   struct Node
   {
-    T item;
-    Node *next;
+    T item;     ///< The stored item.
+    Node *next; ///< Pointer to the next node in the linked list.
   };
 
-  Node *head;
-  Node *tail;
-  uint16_t maxItems;
-  uint16_t maxMemory;
-  uint16_t count;
+  Node *head;         ///< Pointer to the first node in the queue.
+  Node *tail;         ///< Pointer to the last node in the queue.
+  uint16_t maxItems;  ///< Maximum number of items the queue can store.
+  uint16_t maxMemory; ///< Maximum memory (in bytes) the queue can use.
+  uint16_t count;     ///< Current number of items in the queue.
 
 public:
+  /**
+   * @brief Constructor with optional maximum sizes.
+   *
+   * @param maxItems Maximum number of items the queue can hold (default is UINT16_MAX).
+   * @param maxMemory Maximum memory (in bytes) the queue can use (default is UINT16_MAX).
+   */
   explicit ArduinoQueue(uint16_t maxItems = UINT16_MAX,
                         uint16_t maxMemory = UINT16_MAX)
   {
@@ -56,6 +72,9 @@ public:
     }
   }
 
+  /**
+   * @brief Destructor that cleans up all allocated nodes.
+   */
   ~ArduinoQueue()
   {
     for (Node *node = head; node != nullptr; node = head)
@@ -65,12 +84,12 @@ public:
     }
   }
 
-  /*
-    Push an item to the queue.
-    Returns false if memory is
-    full, or true if the item
-    was added to queue.
-  */
+  /**
+   * @brief Push an item to the queue.
+   *
+   * @param item The item to add to the queue.
+   * @return true if item was successfully added, false if the queue is full or memory allocation failed.
+   */
   bool enqueue(T item)
   {
     if (count == maxItems)
@@ -102,14 +121,11 @@ public:
     return true;
   }
 
-  /*
-    Pop the front of the queue.
-    Because exceptions are not
-    usually implemented for
-    microcontrollers, if queue
-    is empty, a dummy item is
-    returned.
-  */
+  /**
+   * @brief Pop the front item from the queue.
+   *
+   * @return The item at the front of the queue. Returns a default-constructed item if the queue is empty.
+   */
   T dequeue()
   {
     if ((count == 0) || (head == nullptr))
@@ -133,51 +149,53 @@ public:
     return item;
   }
 
-  /*
-    Returns true if the queue
-    is empty, false otherwise.
-  */
+  /**
+   * @brief Check if the queue is empty.
+   *
+   * @return true if the queue is empty, false otherwise.
+   */
   bool isEmpty() { return head == nullptr; }
 
-  /*
-    Returns true if the queue
-    is full, false otherwise.
-  */
+  /**
+   * @brief Check if the queue is full.
+   *
+   * @return true if the queue is full, false otherwise.
+   */
   bool isFull() { return count == maxItems; }
 
-  /*
-    Returns the number of items
-    currently in the queue.
-  */
+  /**
+   * @brief Get the current number of items in the queue.
+   *
+   * @return Number of items currently in the queue.
+   */
   unsigned int itemCount() { return count; }
 
-  /*
-    Returns the size of the
-    queue item in bytes.
-  */
+  /**
+   * @brief Get the size of a queue item in bytes.
+   *
+   * @return Size of a queue node in bytes.
+   */
   unsigned int itemSize() { return sizeof(Node); }
 
-  /*
-    Returns the size of the queue
-    (maximum number of items)
-  */
+  /**
+   * @brief Get the maximum number of items the queue can hold.
+   *
+   * @return Maximum number of items.
+   */
   unsigned int maxQueueSize() { return maxItems; }
 
-  /*
-    Returns the size of the queue
-    (maximum size in bytes)
-  */
+  /**
+   * @brief Get the maximum memory size the queue can use.
+   *
+   * @return Maximum memory size in bytes.
+   */
   unsigned int maxMemorySize() { return maxMemory; }
 
-  /*
-    Get the item in the front
-    of the queue.
-    Because exceptions are not
-    usually implemented for
-    microcontrollers, if queue
-    is empty, a dummy item is
-    returned.
-  */
+  /**
+   * @brief Get the item at the front of the queue without removing it.
+   *
+   * @return The front item. Returns a default-constructed item if the queue is empty.
+   */
   T getHead()
   {
     if ((count == 0) || (head == nullptr))
@@ -189,15 +207,11 @@ public:
     return item;
   }
 
-  /*
-    Get the item in the back
-    of the queue.
-    Because exceptions are not
-    usually implemented for
-    microcontrollers, if queue
-    is empty, a dummy item is
-    returned.
-  */
+  /**
+   * @brief Get the item at the back of the queue without removing it.
+   *
+   * @return The back item. Returns a default-constructed item if the queue is empty.
+   */
   T getTail()
   {
     if ((count == 0) || (head == nullptr))
@@ -209,6 +223,11 @@ public:
     return item;
   }
 
+  /**
+   * @brief Get a pointer to the item at the front of the queue.
+   *
+   * @return Pointer to the front item, or nullptr if the queue is empty.
+   */
   T *getHeadPtr()
   {
     if ((count == 0) || (head == nullptr))
@@ -219,6 +238,11 @@ public:
     return &(head->item);
   }
 
+  /**
+   * @brief Get a pointer to the item at the back of the queue.
+   *
+   * @return Pointer to the back item, or nullptr if the queue is empty.
+   */
   T *getTailPtr()
   {
     if ((count == 0) || (head == nullptr))

@@ -1,3 +1,15 @@
+/**
+ * @file FastPin.cpp
+ * @brief Implementation of the FastPin class.
+ *
+ * This file contains the implementation of the FastPin class methods for high-performance
+ * digital pin operations. It provides optimized read/write operations using direct port
+ * manipulation.
+ *
+ * @author Aykut ÖZDEMİR
+ * @date 2025
+ */
+
 #include "FastPin.h"
 
 FastPin::FastPin(const uint8_t pin, const bool isOutput, const bool pullup)

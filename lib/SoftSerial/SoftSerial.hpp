@@ -1,24 +1,117 @@
+/**
+ * @file SoftSerial.hpp
+ * @brief Implementation file for the SoftSerial class.
+ *
+ * This file contains the implementation of the SoftSerial class methods for software-based
+ * asynchronous serial communication. It handles bit-level operations, timing, and the
+ * interrupt service routine for transmitting and receiving data.
+ *
+ * @author Aykut ÖZDEMİR
+ * @date 2025
+ */
 #ifndef SOFTSERIAL_HPP
 #define SOFTSERIAL_HPP
 
 #include "SoftSerial.h"
 #include <SafeInterrupts.h>
+#include <Utilities.h>
 
+/** @brief Sampling constant for RX processing */
 constexpr uint8_t SAMPLE = 1;
+
+/** @brief Oversampling factor for increased accuracy */
 constexpr uint8_t OVERSAMPLE = 3;
+
+/** @brief Half of the oversample value for timing adjustments */
 constexpr uint8_t OVERSAMPLE_SHIFT = (OVERSAMPLE / 2);
+
+/** @brief Threshold for determining if a baud rate is too high */
 constexpr uint8_t OVERSAMPLE_THRESHOLD = 30;
 
+/** @brief Special index value indicating uninitialized state */
 constexpr uint8_t UNINITIALIZED_INDEX = 255;
+
+/** @brief Special index value indicating initialized but inactive state */
 constexpr uint8_t INITIALIZED_INDEX = 254;
+
+// Define PROGMEM strings for error messages
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_PREFIX[] PROGMEM = "SS: ";
+
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_BAUD_TOO_HIGH[] PROGMEM = "Baud too high";
+
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_START_BIT_ERR[] PROGMEM = "Start bit err";
+
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_STOP_BIT_ERR[] PROGMEM = "Stop bit err";
+
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_PARITY_ERR[] PROGMEM = "Parity err";
+
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_RX_BUF_FULL[] PROGMEM = "RX buf full";
+
+// Implementation of baud rate conversion methods
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+BaudRate SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::getBaudRateCode(const unsigned long baudRate)
+{
+  if (baudRate <= 1200)
+    return BAUD_1200;
+  if (baudRate <= 2400)
+    return BAUD_2400;
+  if (baudRate <= 4800)
+    return BAUD_4800;
+  if (baudRate <= 9600)
+    return BAUD_9600;
+  if (baudRate <= 19200)
+    return BAUD_19200;
+  if (baudRate <= 38400)
+    return BAUD_38400;
+  if (baudRate <= 57600)
+    return BAUD_57600;
+  return BAUD_115200;
+}
+
+template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
+unsigned long SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::getBaudRateValue(const BaudRate code)
+{
+  switch (code)
+  {
+  case BAUD_1200:
+    return 1200;
+  case BAUD_2400:
+    return 2400;
+  case BAUD_4800:
+    return 4800;
+  case BAUD_9600:
+    return 9600;
+  case BAUD_19200:
+    return 19200;
+  case BAUD_38400:
+    return 38400;
+  case BAUD_57600:
+    return 57600;
+  case BAUD_115200:
+    return 115200;
+  default:
+    return 9600;
+  }
+}
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin)
-    : m_rxPin(rxPin, false, true), m_txPin(txPin, true),
-      m_baudRate(9600), m_stopBits(1), m_parity(NONE), m_expectedBits(0), m_errorCallback(nullptr),
-      m_rxBitIndex(255), m_receivedData(0), m_rxIsrCounter(0), m_rxIsrTargetCounter(0),
-      m_txBitIndex(255), m_txIsrCounter(0)
+    : Stream(), DriverBase(), // Call both parent constructors
+      m_receivedData(0), m_rxBitIndex(255), m_txBitIndex(255), m_txIsrCounter(OVERSAMPLE), m_rxIsrCounter(SAMPLE), m_expectedBits(10),
+      m_rxPin(rxPin, false, true), m_txPin(txPin, true)
 {
+  // Initialize flags
+  m_flags.parityType = NONE;
+  m_flags.stopBitCount = 1;
+  m_flags.baudRate = BAUD_9600;
+
+  // Initialize bit changes array
   for (uint8_t i = 0; i < sizeof(m_txBitChanges); i++)
   {
     m_txBitChanges[i] = false;
@@ -26,26 +119,28 @@ inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPi
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned long baudRate,
-                                                              TimerSetupCallback timerSetupCallback,
-                                                              const uint8_t stopBits, const ParityMode parity)
+inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const TimerSetupCallback timerSetupCallback,
+                                                              const BaudRate baudRate,
+                                                              const uint8_t stopBits,
+                                                              const ParityMode parity)
 {
   SafeInterrupts::ScopedDisable guard;
 
-  m_baudRate = baudRate;
-  m_stopBits = stopBits;
-  m_parity = parity;
-  m_expectedBits = 1 /*start*/ + 8 /*data*/ + ((m_parity != NONE) ? 1 : 0) + m_stopBits;
+  // Store configuration in bit fields
+  m_flags.stopBitCount = stopBits;
+  m_flags.parityType = parity;
+  m_flags.baudRate = baudRate;
 
-  const uint32_t bitPeriod = (F_CPU + (baudRate / 2UL)) / baudRate;
+  // Calculate expected bits
+  m_expectedBits = 1 /*start*/ + 8 /*data*/ + ((parity != NONE) ? 1 : 0) + stopBits;
+
+  const unsigned long actualBaudRate = getBaudRateValue(static_cast<BaudRate>(m_flags.baudRate));
+  const uint32_t bitPeriod = (F_CPU + (actualBaudRate / 2UL)) / actualBaudRate;
   const uint16_t oversampleBitPeriod = ((bitPeriod + (OVERSAMPLE / 2UL)) / OVERSAMPLE) + 1;
 
   if (oversampleBitPeriod < OVERSAMPLE_THRESHOLD)
   {
-    if (m_errorCallback)
-    {
-      m_errorCallback(F("SS: Baud too high"));
-    }
+    printError(PGMT(SOFT_SERIAL_BAUD_TOO_HIGH));
     return;
   }
 
@@ -54,14 +149,11 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const unsigned lon
   m_rxTempQueue.clear();
 
   m_txPin.high();
-  m_rxIsrCounter = 0;
-  m_rxIsrTargetCounter = SAMPLE;
-  m_txIsrCounter = 0;
   m_txBitIndex = UNINITIALIZED_INDEX;
 
-  timerSetupCallback(oversampleBitPeriod);
-
   m_rxBitIndex = INITIALIZED_INDEX;
+
+  timerSetupCallback(oversampleBitPeriod);
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
@@ -74,6 +166,8 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::end()
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 {
+  DriverBase::loop();
+
   for (uint8_t i = 0; i < 8; i++)
   {
     uint16_t frame;
@@ -83,40 +177,23 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
         break;
     }
 
-    const uint8_t dataStartIndex = 1;
-    const uint8_t dataBits = 8;
-    uint8_t parityIndex = 0;
-    uint8_t stopIndex = 0;
-
-    if (m_parity != NONE)
-    {
-      parityIndex = dataStartIndex + dataBits;
-      stopIndex = parityIndex + 1;
-    }
-    else
-    {
-      stopIndex = dataStartIndex + dataBits;
-    }
-
     bool hasError = false;
 
     // Check start bit
-    if ((frame & 0x01) != 0)
+    if ((frame & (1 << (m_expectedBits - 1))) == 0)
     {
-      if (m_errorCallback)
-        m_errorCallback(F("SS: Start bit err"));
+      printError(PGMT(SOFT_SERIAL_START_BIT_ERR));
       hasError = true;
     }
 
     // Check stop bits
     if (!hasError)
     {
-      for (uint8_t s = 0; s < m_stopBits; s++)
+      for (uint8_t s = 0; s < m_flags.stopBitCount; s++)
       {
-        if (!((frame >> (stopIndex + s)) & 0x01))
+        if (!((frame >> s) & 0x01))
         {
-          if (m_errorCallback)
-            m_errorCallback(F("SS: Stop bit err"));
+          printError(PGMT(SOFT_SERIAL_STOP_BIT_ERR));
           hasError = true;
           break;
         }
@@ -126,47 +203,55 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
     if (hasError)
       continue;
 
-    const uint8_t data = (frame >> dataStartIndex) & 0xFF;
+    const uint8_t data = (frame >> (m_expectedBits - 8 - 1)) & 0xFF;
 
-    if (m_parity != NONE)
+    if (m_flags.parityType != NONE)
     {
-      const uint8_t parityBit = (frame >> parityIndex) & 0x01;
+      const uint8_t parityBit = (frame >> (m_expectedBits - 8 - 2)) & 0x01;
       bool computedParity = __builtin_parity(data);
-      if (m_parity == EVEN)
+      if (m_flags.parityType == EVEN)
         computedParity = !computedParity;
       if (parityBit != computedParity)
       {
-        if (m_errorCallback)
-          m_errorCallback(F("SS: Parity err"));
+        printError(PGMT(SOFT_SERIAL_PARITY_ERR));
         continue;
       }
     }
 
+    if (!m_rxQueue.push(data))
     {
-      SafeInterrupts::ScopedDisable guard;
-      if (!m_rxQueue.push(data) && m_errorCallback)
-        m_errorCallback(F("SS: RX buf full"));
+      printError(PGMT(SOFT_SERIAL_RX_BUF_FULL));
     }
   }
 
   if (m_txBitIndex == UNINITIALIZED_INDEX)
   {
     uint8_t data;
-    bool shouldProcess = false;
-    {
-      SafeInterrupts::ScopedDisable guard;
-      shouldProcess = m_txQueue.pop(data);
-    }
 
-    if (shouldProcess)
+    if (m_txQueue.pop(data))
     {
+      // Reset bit changes
       for (uint8_t i = 0; i < sizeof(m_txBitChanges); i++)
+      {
         m_txBitChanges[i] = false;
+      }
 
-      m_txBitChanges[0] = true;
+      // Set stop bits in reverse order
+      const uint8_t stopBitStart = (m_flags.parityType != NONE) ? 10 : 9;
+      m_txBitChanges[stopBitStart] = true;
 
-      bool currentState = false;
-      for (uint8_t i = 0; i < 8; i++)
+      // Set parity bit if needed
+      if (m_flags.parityType != NONE)
+      {
+        bool parityVal = __builtin_parity(data);
+        if (m_flags.parityType == EVEN)
+          parityVal = !parityVal;
+        m_txBitChanges[9] = parityVal;
+      }
+
+      // Set data bits in reverse order
+      bool currentState = true; // Start with stop bit state
+      for (int8_t i = 7; i >= 0; i--)
       {
         const bool bitVal = (data & (1 << i)) != 0;
         if (currentState != bitVal)
@@ -176,25 +261,10 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
         }
       }
 
-      if (m_parity != NONE)
-      {
-        bool parityVal = __builtin_parity(data);
-        if (m_parity == EVEN)
-          parityVal = !parityVal;
-        if (currentState != parityVal)
-        {
-          m_txBitChanges[9] = true;
-          currentState = parityVal;
-        }
-      }
+      // Set start bit
+      m_txBitChanges[0] = true;
 
-      const uint8_t stopBitStart = (m_parity != NONE) ? 10 : 9;
-      if (!currentState)
-        m_txBitChanges[stopBitStart] = true;
-
-      SafeInterrupts::ScopedDisable guard;
-      m_txBitIndex = 0;
-      m_txIsrCounter = 0;
+      m_txBitIndex = stopBitStart + m_flags.stopBitCount;
     }
   }
 }
@@ -202,76 +272,72 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
 {
-  if (m_rxBitIndex == UNINITIALIZED_INDEX)
+  register uint8_t rxBitIndex = m_rxBitIndex;
+
+  if (rxBitIndex == UNINITIALIZED_INDEX)
     return;
 
-  const uint16_t rxState = m_rxPin.read();
+  const uint8_t rxState = m_rxPin.read();
 
-  if (m_txBitIndex != UNINITIALIZED_INDEX)
+  register uint8_t txBitIndex = m_txBitIndex;
+  if (txBitIndex != UNINITIALIZED_INDEX)
   {
-    if (++m_txIsrCounter >= OVERSAMPLE)
+    if (--m_txIsrCounter == 0)
     {
-      m_txIsrCounter = 0;
+      m_txIsrCounter = OVERSAMPLE;
 
-      if (m_txBitIndex < m_expectedBits)
+      if (txBitIndex > 0)
       {
-        if (m_txBitChanges[m_txBitIndex])
+        if (m_txBitChanges[--txBitIndex])
         {
           m_txPin.toggle();
         }
-        m_txBitIndex++;
       }
       else
       {
         m_txPin.high();
-        m_txBitIndex = UNINITIALIZED_INDEX;
+        txBitIndex = UNINITIALIZED_INDEX;
       }
     }
+    m_txBitIndex = txBitIndex;
   }
 
-  if (++m_rxIsrCounter >= m_rxIsrTargetCounter)
+  if (--m_rxIsrCounter == 0)
   {
-    m_rxIsrCounter = 0;
-
-    if (m_rxBitIndex == INITIALIZED_INDEX)
+    if (rxBitIndex > 0)
     {
-      if (!rxState)
-      {
-        m_rxBitIndex = 0;
-        m_receivedData = 0;
-        m_rxIsrTargetCounter = OVERSAMPLE_SHIFT;
-      }
-    }
-    else if (m_rxBitIndex < m_expectedBits)
-    {
-      m_receivedData |= (rxState << m_rxBitIndex); // Directly use rxState
-      m_rxBitIndex++;
+      m_receivedData |= static_cast<uint16_t>(rxState) << (--rxBitIndex);
 
-      if (m_rxBitIndex < m_expectedBits)
+      if (rxBitIndex > 0)
       {
-        m_rxIsrTargetCounter = OVERSAMPLE;
+        m_rxIsrCounter = OVERSAMPLE;
       }
       else
       {
         m_rxTempQueue.push(m_receivedData);
-        m_rxBitIndex = INITIALIZED_INDEX;
-        m_rxIsrTargetCounter = SAMPLE;
+        rxBitIndex = INITIALIZED_INDEX;
+        m_rxIsrCounter = SAMPLE;
       }
     }
+    else if ((rxBitIndex == INITIALIZED_INDEX) && !rxState)
+    {
+      rxBitIndex = m_expectedBits;
+      m_receivedData = 0;
+      m_rxIsrCounter = OVERSAMPLE_SHIFT;
+    }
+    m_rxBitIndex = rxBitIndex;
   }
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::available()
 {
-  SafeInterrupts::ScopedDisable guard;
   return m_rxQueue.available();
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::read()
 {
-  SafeInterrupts::ScopedDisable guard;
   uint8_t data;
   return m_rxQueue.pop(data) ? data : -1;
 }
@@ -279,7 +345,6 @@ inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::read()
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline int SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::peek()
 {
-  SafeInterrupts::ScopedDisable guard;
   uint8_t data;
   return m_rxQueue.peek(data) ? data : -1;
 }
@@ -290,15 +355,17 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::flush() {}
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline size_t SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::write(uint8_t data)
 {
-  SafeInterrupts::ScopedDisable guard;
-
   return m_txQueue.push(data) ? 1 : 0;
 }
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::setErrorCallback(ErrorCallback callback)
+void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::printError(const __FlashStringHelper *errProgmem)
 {
-  m_errorCallback = callback;
+  if (errProgmem != nullptr)
+  {
+    debugPrint(PGMT(SOFT_SERIAL_PREFIX), nullptr, false);
+  }
+  debugPrint(errProgmem, nullptr, true);
 }
 
 #endif

@@ -3,8 +3,26 @@
  * ... existing copyright header ...
  */
 
+/**
+ * @file ezLED.cpp
+ * @brief Implementation of the ezLED library.
+ *
+ * This file contains the implementation of the ezLED class which provides
+ * non-blocking LED control including on/off, toggle, fade, and blink patterns.
+ *
+ * @author ArduinoGetStarted.com
+ * @author Modified by Aykut ÖZDEMİR
+ * @date 2025
+ */
+
 #include <ezLED.h>
 
+/**
+ * @brief Constructor for ezLED
+ *
+ * @param pin Arduino pin connected to the LED
+ * @param mode Control mode: CTRL_ANODE (default) or CTRL_CATHODE
+ */
 ezLED::ezLED(int pin, int mode)
 {
     _ledPin = pin;
@@ -25,7 +43,14 @@ ezLED::ezLED(int pin, int mode)
     pinMode(_ledPin, OUTPUT);
 }
 
-void ezLED::setBlink(unsigned long onTime, unsigned long offTime, unsigned long delayTime)
+/**
+ * @brief Configure blink parameters
+ *
+ * @param onTime Time LED stays on during blink (ms)
+ * @param offTime Time LED stays off during blink (ms)
+ * @param delayTime Delay before blinking starts (ms)
+ */
+void ezLED::setBlink(uint16_t onTime, uint16_t offTime, uint16_t delayTime)
 {
     _blink.onTime = onTime;
     _blink.offTime = offTime;
@@ -33,17 +58,34 @@ void ezLED::setBlink(unsigned long onTime, unsigned long offTime, unsigned long 
     _lastTime = millis();
 }
 
+/**
+ * @brief Update LED using analog write (for fading)
+ *
+ * Sets the LED brightness using analogWrite, taking into account
+ * the control mode (anode or cathode).
+ */
 void ezLED::updateAnalog()
 {
     analogWrite(_ledPin, flags._ctrlMode ? (255 - _brightness) : _brightness);
 }
 
+/**
+ * @brief Update LED using digital write
+ *
+ * Sets the LED state using digitalWrite, taking into account
+ * the control mode (anode or cathode).
+ */
 void ezLED::updateDigital()
 {
     digitalWrite(_ledPin, flags._ctrlMode ? !flags._outputState : flags._outputState);
 }
 
-void ezLED::turnON(unsigned long delayTime)
+/**
+ * @brief Turn the LED on
+ *
+ * @param delayTime Optional delay before turning on (ms)
+ */
+void ezLED::turnON(uint16_t delayTime)
 {
     _delayTime = delayTime;
     flags._ledMode = LED_MODE_ON;
@@ -61,7 +103,12 @@ void ezLED::turnON(unsigned long delayTime)
     loop();
 }
 
-void ezLED::turnOFF(unsigned long delayTime)
+/**
+ * @brief Turn the LED off
+ *
+ * @param delayTime Optional delay before turning off (ms)
+ */
+void ezLED::turnOFF(uint16_t delayTime)
 {
     _delayTime = delayTime;
     flags._ledMode = LED_MODE_OFF;
@@ -79,7 +126,12 @@ void ezLED::turnOFF(unsigned long delayTime)
     loop();
 }
 
-void ezLED::toggle(unsigned long delayTime)
+/**
+ * @brief Toggle the LED state
+ *
+ * @param delayTime Optional delay before toggling (ms)
+ */
+void ezLED::toggle(uint16_t delayTime)
 {
     _delayTime = delayTime;
     flags._ledMode = LED_MODE_TOGGLE;
@@ -97,7 +149,15 @@ void ezLED::toggle(unsigned long delayTime)
     loop();
 }
 
-void ezLED::fade(int fadeFrom, int fadeTo, unsigned long fadeTime, unsigned long delayTime)
+/**
+ * @brief Fade the LED from one brightness to another
+ *
+ * @param fadeFrom Start brightness (0-255)
+ * @param fadeTo End brightness (0-255)
+ * @param fadeTime Duration of fade in milliseconds
+ * @param delayTime Optional delay before fading starts (ms)
+ */
+void ezLED::fade(uint8_t fadeFrom, uint8_t fadeTo, uint32_t fadeTime, uint16_t delayTime)
 {
     _fade.from = fadeFrom;
     _fade.to = fadeTo;
@@ -114,7 +174,14 @@ void ezLED::fade(int fadeFrom, int fadeTo, unsigned long fadeTime, unsigned long
     loop();
 }
 
-void ezLED::blink(unsigned long onTime, unsigned long offTime, unsigned long delayTime)
+/**
+ * @brief Blink the LED continuously
+ *
+ * @param onTime Time LED stays on during blink (ms)
+ * @param offTime Time LED stays off during blink (ms)
+ * @param delayTime Optional delay before blinking starts (ms)
+ */
+void ezLED::blink(uint16_t onTime, uint16_t offTime, uint16_t delayTime)
 {
     setBlink(onTime, offTime, delayTime);
     flags._ledMode = LED_MODE_BLINK_FOREVER;
@@ -134,7 +201,15 @@ void ezLED::blink(unsigned long onTime, unsigned long offTime, unsigned long del
     loop();
 }
 
-void ezLED::blinkInPeriod(unsigned long onTime, unsigned long offTime, unsigned long blinkTime, unsigned long delayTime)
+/**
+ * @brief Blink the LED for a specific period of time
+ *
+ * @param onTime Time LED stays on during blink (ms)
+ * @param offTime Time LED stays off during blink (ms)
+ * @param blinkTime Total time to blink (ms)
+ * @param delayTime Optional delay before blinking starts (ms)
+ */
+void ezLED::blinkInPeriod(uint16_t onTime, uint16_t offTime, uint16_t blinkTime, uint16_t delayTime)
 {
     setBlink(onTime, offTime, delayTime);
     _blink.period = blinkTime;
@@ -156,7 +231,15 @@ void ezLED::blinkInPeriod(unsigned long onTime, unsigned long offTime, unsigned 
     loop();
 }
 
-void ezLED::blinkNumberOfTimes(unsigned long onTime, unsigned long offTime, unsigned int numberOfTimes, unsigned long delayTime)
+/**
+ * @brief Blink the LED a specific number of times
+ *
+ * @param onTime Time LED stays on during blink (ms)
+ * @param offTime Time LED stays off during blink (ms)
+ * @param numberOfTimes Number of times to blink
+ * @param delayTime Optional delay before blinking starts (ms)
+ */
+void ezLED::blinkNumberOfTimes(uint16_t onTime, uint16_t offTime, uint8_t numberOfTimes, uint16_t delayTime)
 {
     setBlink(onTime, offTime, delayTime);
     _blink.target = numberOfTimes;
@@ -178,16 +261,29 @@ void ezLED::blinkNumberOfTimes(unsigned long onTime, unsigned long offTime, unsi
     loop();
 }
 
+/**
+ * @brief Cancel current operation and turn LED off
+ */
 void ezLED::cancel(void)
 {
     turnOFF();
 }
 
+/**
+ * @brief Get current on/off state
+ *
+ * @return LED_ON or LED_OFF
+ */
 int ezLED::getOnOff(void)
 {
     return flags._outputState;
 }
 
+/**
+ * @brief Get current operating state
+ *
+ * @return LED_IDLE, LED_DELAY, LED_FADING, or LED_BLINKING
+ */
 int ezLED::getState(void)
 {
     switch (flags._ledState)
@@ -206,6 +302,12 @@ int ezLED::getState(void)
     }
 }
 
+/**
+ * @brief Update LED state (must be called regularly in loop)
+ *
+ * This is the core non-blocking state machine that manages all LED operations.
+ * It must be called regularly in the main loop.
+ */
 void ezLED::loop(void)
 {
     switch (flags._ledState)

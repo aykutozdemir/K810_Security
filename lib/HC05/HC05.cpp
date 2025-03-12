@@ -1,20 +1,84 @@
+/**
+ * @file HC05.cpp
+ * @brief Implementation of the HC05 Bluetooth module driver.
+ *
+ * This file contains the implementation of the HC05 class methods for communication
+ * with HC-05 Bluetooth modules, supporting both AT command mode and data mode.
+ *
+ * @author Aykut ÖZDEMİR
+ * @date 2025
+ */
+
 #include "HC05.h"
 #include <Arduino.h>
 
+// Define PROGMEM strings for common messages
+const char HC05::BT_PREFIX[] PROGMEM = "BT ";
+
+// Define common PROGMEM strings for repeated messages
+const char HC05::QUEUE_FULL_STR[] PROGMEM = "queue full";
+const char HC05::CMD_MODE_NO_DATA_STR[] PROGMEM = "cmd mode - no data";
+const char HC05::INIT_STR[] PROGMEM = "init...";
+const char HC05::OK_STR[] PROGMEM = "ok";
+const char HC05::AT_FAIL_STR[] PROGMEM = "AT fail: ";
+const char HC05::CMD_MODE_STR[] PROGMEM = "cmd mode";
+const char HC05::DATA_MODE_STR[] PROGMEM = "data mode";
+const char HC05::CMD_TIMEOUT_STR[] PROGMEM = "cmd timeout: ";
+const char HC05::CONN_STR[] PROGMEM = "conn";
+const char HC05::DISC_STR[] PROGMEM = "disc";
+const char HC05::CMD_STR[] PROGMEM = "cmd: ";
+const char HC05::ERROR_STR[] PROGMEM = "ERROR:";
+const char HC05::FAIL_STR[] PROGMEM = "FAIL";
+
+// Define a PROGMEM variable for the OK response string
+const char HC05::OK_RESPONSE[] PROGMEM = "OK\r\n";
+
+/**
+ * @brief Print a message with the BT prefix
+ *
+ * @param msgProgmem Message stored in PROGMEM
+ * @param msg Additional message string (nullptr if none)
+ * @param println Whether to add a newline at the end
+ */
+void HC05::printMessage(const __FlashStringHelper *msgProgmem,
+                        const char *msg,
+                        const bool println)
+{
+  if (msgProgmem != nullptr)
+  {
+    debugPrint(PGMT(BT_PREFIX), nullptr, false);
+  }
+  debugPrint(msgProgmem, msg, println);
+}
+
+/**
+ * @brief Constructor for the HC05 class
+ *
+ * @param stream Serial stream for communication with the HC-05 module
+ * @param keyPin Pin connected to the KEY/EN pin of the HC-05 module
+ * @param statePin Pin connected to the STATE pin of the HC-05 module
+ * @param resetPin Pin connected to the RESET pin of the HC-05 module
+ */
 HC05::HC05(Stream &stream,
            const uint8_t keyPin,
            const uint8_t statePin,
            const uint8_t resetPin)
-    : p_stream(&stream),
+    : DriverBase(), // Call the base class constructor
+      p_stream(&stream),
       m_keyPin(keyPin),
       m_statePin(statePin),
       m_resetPin(resetPin),
-      m_status{INITIALIZING, true, false},
-      m_stateStartTime(0),
+      m_status{true, false},
+      m_stateManager(INITIALIZING),
       m_dataReceivedCallback(nullptr)
 {
 }
 
+/**
+ * @brief Initialize the HC-05 module
+ *
+ * Sets up pins and begins initialization sequence
+ */
 void HC05::begin()
 {
   pinMode(m_statePin, INPUT);
@@ -24,14 +88,19 @@ void HC05::begin()
   digitalWrite(m_keyPin, HIGH);
   digitalWrite(m_resetPin, HIGH);
 
-  setState(INITIALIZING);
+  m_stateManager.setState(INITIALIZING);
 }
 
+/**
+ * @brief Send a command to the HC-05 module
+ *
+ * @param command The command to send
+ */
 void HC05::sendCommand(const Command &command)
 {
   if (m_commandQueue.isFull())
   {
-    Serial.println(F("BT queue full"));
+    printMessage(PGMT(QUEUE_FULL_STR));
     return;
   }
 
@@ -39,6 +108,11 @@ void HC05::sendCommand(const Command &command)
   m_commandQueue.enqueue(newCommand);
 }
 
+/**
+ * @brief Clear the command queue
+ *
+ * Removes all pending commands from the queue
+ */
 void HC05::clearCommandQueue()
 {
   while (!m_commandQueue.isEmpty())
@@ -48,42 +122,71 @@ void HC05::clearCommandQueue()
   }
 }
 
+/**
+ * @brief Send string data over Bluetooth
+ *
+ * @param data The string to send
+ */
 void HC05::sendData(const String &data)
 {
   if (m_status.inCommandMode)
   {
-    Serial.println(F("BT cmd mode - no data"));
+    printMessage(PGMT(CMD_MODE_NO_DATA_STR));
     return;
   }
   p_stream->print(data);
 }
 
+/**
+ * @brief Send a single character over Bluetooth
+ *
+ * @param data The character to send
+ */
 void HC05::sendData(const char data)
 {
   if (m_status.inCommandMode)
   {
-    Serial.println(F("BT cmd mode - no data"));
+    printMessage(PGMT(CMD_MODE_NO_DATA_STR));
     return;
   }
   p_stream->print(data);
 }
 
+/**
+ * @brief Set callback for received data
+ *
+ * @param callback Function to call when data is received
+ */
 void HC05::onDataReceived(const DataCallback callback)
 {
   m_dataReceivedCallback = callback;
 }
 
+/**
+ * @brief Check if the module is connected
+ *
+ * @return true if connected to another Bluetooth device
+ */
 bool HC05::isConnected()
 {
   return m_status.connected;
 }
 
+/**
+ * @brief Check if the module is in data mode
+ *
+ * @return true if in data mode
+ */
 bool HC05::isDataMode()
 {
-  return m_status.currentState == DATA_MODE;
+  return m_stateManager.state() == DATA_MODE;
 }
 
 //---------------- Helper Sub-Methods ----------------//
+
+/**
+ * @brief Append available data from stream to response buffer
+ */
 void HC05::appendStreamData()
 {
   while (p_stream->available())
@@ -93,6 +196,9 @@ void HC05::appendStreamData()
   }
 }
 
+/**
+ * @brief Clear response buffer and flush stream
+ */
 void HC05::clearResponseBuffer()
 {
   while (p_stream->available())
@@ -102,21 +208,22 @@ void HC05::clearResponseBuffer()
   m_responseBuffer.clear();
 }
 
-bool HC05::isStateTimeElapsed(const uint16_t timeMs)
-{
-  return ((millis() - m_stateStartTime) > timeMs);
-}
-
+/**
+ * @brief Process response buffer for command completion
+ *
+ * @return true if command response was successfully processed
+ */
 bool HC05::processResponseBufferForCommand()
 {
   bool success = false;
   bool errorDetected = false;
 
-  if (m_responseBuffer.endsWith(F("OK\r\n")))
+  if (m_responseBuffer.endsWith(PGMT(OK_RESPONSE)))
   {
     success = true;
   }
-  else if (m_responseBuffer.indexOf(F("ERROR:")) != -1 || m_responseBuffer.indexOf(F("FAIL")) != -1)
+  else if (m_responseBuffer.indexOf(PGMT(ERROR_STR)) != -1 ||
+           m_responseBuffer.indexOf(PGMT(FAIL_STR)) != -1)
   {
     errorDetected = true;
   }
@@ -133,15 +240,15 @@ bool HC05::processResponseBufferForCommand()
           command->callback(command->commandText, success, m_responseBuffer.toString());
         }
 
-        if (success && (m_status.currentState == WAITING_FOR_RESPONSE))
+        if (success && (m_stateManager.state() == WAITING_FOR_RESPONSE))
         {
           m_commandDelayTimer.setInterval(command->delayMs);
           m_commandDelayTimer.reset();
-          setState(WAITING_FOR_COMMAND_DELAY);
+          m_stateManager.setState(WAITING_FOR_COMMAND_DELAY);
         }
         else
         {
-          setState(IDLE);
+          m_stateManager.setState(IDLE);
         }
 
         delete command;
@@ -155,82 +262,126 @@ bool HC05::processResponseBufferForCommand()
 
 //---------------- State Handler Methods ----------------//
 
+/**
+ * @brief Handle initializing state
+ *
+ * Prints initialization message and resets the module
+ */
 void HC05::handleInitializing()
 {
-  Serial.println(F("BT init..."));
+  printMessage(PGMT(INIT_STR));
   reset();
 }
 
+/**
+ * @brief Handle resetting state
+ *
+ * Waits for reset delay then transitions to initializing wait state
+ */
 void HC05::handleResetting()
 {
-  if (isStateTimeElapsed(RESET_DELAY_MS))
+  if (m_stateManager.isStateTimeElapsed(RESET_DELAY_MS))
   {
     digitalWrite(m_keyPin, HIGH);
     digitalWrite(m_resetPin, HIGH);
-    setState(INITIALIZING_WAIT);
+    m_stateManager.setState(INITIALIZING_WAIT);
   }
 }
 
+/**
+ * @brief Handle permanent resetting state
+ *
+ * Additional handling for permanent reset operations
+ */
 void HC05::handleResettingPermanently()
 {
   // Additional permanent reset handling can be added here.
 }
 
+/**
+ * @brief Handle initializing wait state
+ *
+ * Waits for initialization delay then transitions to checking AT mode
+ */
 void HC05::handleInitializingWait()
 {
-  if (isStateTimeElapsed(INIT_WAIT_DELAY_MS))
+  if (m_stateManager.isStateTimeElapsed(INIT_WAIT_DELAY_MS))
   {
-    setState(CHECKING_AT_MODE);
+    m_stateManager.setState(CHECKING_AT_MODE);
   }
 }
 
+/**
+ * @brief Handle checking AT mode state
+ *
+ * Sends AT command to check if module is in command mode
+ */
 void HC05::handleCheckingATMode()
 {
   clearResponseBuffer();
   p_stream->println(F("AT"));
-  setState(WAITING_FOR_AT_RESPONSE);
+  m_stateManager.setState(WAITING_FOR_AT_RESPONSE);
 }
 
+/**
+ * @brief Handle waiting for AT response state
+ *
+ * Waits for response to AT command to verify command mode
+ */
 void HC05::handleWaitingForATResponse()
 {
   appendStreamData();
-  if (m_responseBuffer.endsWith(F("OK\r\n")))
+  if (m_responseBuffer.endsWith(PGMT(OK_RESPONSE)))
   {
     m_commandDelayTimer.setInterval(DEFAULT_COMMAND_DELAY_MS);
-    setState(WAITING_FOR_COMMAND_DELAY);
-    Serial.println(F("BT ok"));
+    m_stateManager.setState(WAITING_FOR_COMMAND_DELAY);
+    printMessage(PGMT(OK_STR));
     return;
   }
-  if (isStateTimeElapsed(AT_RESPONSE_TIMEOUT_MS))
+  if (m_stateManager.isStateTimeElapsed(AT_RESPONSE_TIMEOUT_MS))
   {
-    Serial.print(F("BT AT fail: "));
-    Serial.println(m_responseBuffer.toString());
-    setState(RESETTING);
+    printMessage(PGMT(AT_FAIL_STR), m_responseBuffer.toString().c_str());
+    m_stateManager.setState(RESETTING);
   }
 }
 
+/**
+ * @brief Handle waiting for command mode state
+ *
+ * Waits for command mode to be activated
+ */
 void HC05::handleWaitingForCommandMode()
 {
   digitalWrite(m_keyPin, HIGH);
-  if (isStateTimeElapsed(COMMAND_MODE_DELAY_MS))
+  if (m_stateManager.isStateTimeElapsed(COMMAND_MODE_DELAY_MS))
   {
     m_status.inCommandMode = true;
-    setState(IDLE);
-    Serial.println(F("BT cmd mode"));
+    m_stateManager.setState(IDLE);
+    printMessage(PGMT(CMD_MODE_STR));
   }
 }
 
+/**
+ * @brief Handle waiting for data mode state
+ *
+ * Waits for data mode to be activated
+ */
 void HC05::handleWaitingForDataMode()
 {
   digitalWrite(m_keyPin, LOW);
-  if (isStateTimeElapsed(DATA_MODE_DELAY_MS))
+  if (m_stateManager.isStateTimeElapsed(DATA_MODE_DELAY_MS))
   {
     m_status.inCommandMode = false;
-    setState(DATA_MODE);
-    Serial.println(F("BT data mode"));
+    m_stateManager.setState(DATA_MODE);
+    printMessage(PGMT(DATA_MODE_STR));
   }
 }
 
+/**
+ * @brief Handle waiting for response state
+ *
+ * Waits for response to a sent command
+ */
 void HC05::handleWaitingForResponse()
 {
   appendStreamData();
@@ -239,22 +390,31 @@ void HC05::handleWaitingForResponse()
     if (processResponseBufferForCommand())
       return;
   }
-  if (isStateTimeElapsed(COMMAND_RESPONSE_TIMEOUT_MS))
+  if (m_stateManager.isStateTimeElapsed(COMMAND_RESPONSE_TIMEOUT_MS))
   {
-    Serial.print(F("BT cmd timeout: "));
-    Serial.println(m_responseBuffer.toString());
-    setState(RESETTING);
+    printMessage(PGMT(CMD_TIMEOUT_STR), m_responseBuffer.toString().c_str());
+    m_stateManager.setState(RESETTING);
   }
 }
 
+/**
+ * @brief Handle waiting for command delay state
+ *
+ * Waits for delay between commands
+ */
 void HC05::handleWaitingForCommandDelay()
 {
   if (m_commandDelayTimer.isReady())
   {
-    setState(IDLE);
+    m_stateManager.setState(IDLE);
   }
 }
 
+/**
+ * @brief Handle data mode state
+ *
+ * Processes incoming data and checks if commands need to be sent
+ */
 void HC05::handleDataMode()
 {
   while (p_stream->available())
@@ -267,10 +427,15 @@ void HC05::handleDataMode()
   }
   if (!m_commandQueue.isEmpty())
   {
-    setState(WAITING_FOR_COMMAND_MODE);
+    m_stateManager.setState(WAITING_FOR_COMMAND_MODE);
   }
 }
 
+/**
+ * @brief Handle idle state
+ *
+ * Processes any pending commands or transitions to data mode
+ */
 void HC05::handleIdle()
 {
   if (!m_commandQueue.isEmpty())
@@ -279,17 +444,25 @@ void HC05::handleIdle()
   }
   else
   {
-    setState(WAITING_FOR_DATA_MODE);
+    m_stateManager.setState(WAITING_FOR_DATA_MODE);
   }
 }
 
 //---------------- Main Loop and Utility Methods ----------------//
 
+/**
+ * @brief Main loop function for the HC05 module
+ *
+ * Should be called regularly to handle state machine updates
+ */
 void HC05::loop()
 {
+  // Call the base class loop method
+  DriverBase::loop();
+
   updateConnectionState();
 
-  switch (m_status.currentState)
+  switch (m_stateManager.state())
   {
   case INITIALIZING:
     handleInitializing();
@@ -330,53 +503,69 @@ void HC05::loop()
   }
 }
 
+/**
+ * @brief Reset the HC-05 module
+ *
+ * @param permanent Whether to perform a permanent reset
+ */
 void HC05::reset(const bool permanent)
 {
   digitalWrite(m_resetPin, LOW);
 
-  setState(permanent ? RESETTING_PERMANENTLY : RESETTING);
+  m_stateManager.setState(permanent ? RESETTING_PERMANENTLY : RESETTING);
 }
 
+/**
+ * @brief Check if the module is in permanent reset state
+ *
+ * @return true if permanent reset is in progress
+ */
 bool HC05::isResettingPermanently() const
 {
-  return m_status.currentState == RESETTING_PERMANENTLY;
+  return m_stateManager.state() == RESETTING_PERMANENTLY;
 }
 
+/**
+ * @brief Force the module into data mode
+ *
+ * Sets KEY pin LOW and transitions to data mode
+ */
 void HC05::forceDataMode()
 {
   digitalWrite(m_keyPin, LOW);
   m_status.inCommandMode = false;
-  setState(WAITING_FOR_DATA_MODE);
+  m_stateManager.setState(WAITING_FOR_DATA_MODE);
 }
 
-void HC05::setState(State newState)
-{
-  if (m_status.currentState != newState)
-  {
-    m_status.currentState = newState;
-    m_stateStartTime = millis();
-  }
-}
-
+/**
+ * @brief Process the next command in the queue
+ *
+ * Sends the next command to the HC-05 module
+ */
 void HC05::processNextCommand()
 {
   if (!m_commandQueue.isEmpty())
   {
     const Command *const nextCommand = m_commandQueue.getHead();
     clearResponseBuffer();
-    Serial.print(F("BT cmd: "));
-    Serial.println(nextCommand->commandText);
+    printMessage(PGMT(CMD_STR), nullptr, false);
+    debugPrint(nextCommand->commandText);
     p_stream->println(nextCommand->commandText);
-    setState(WAITING_FOR_RESPONSE);
+    m_stateManager.setState(WAITING_FOR_RESPONSE);
   }
 }
 
+/**
+ * @brief Update the connection state based on STATE pin
+ *
+ * Checks the STATE pin and updates connected status
+ */
 void HC05::updateConnectionState()
 {
   const bool connectionStatus = (digitalRead(m_statePin) == HIGH);
   if (connectionStatus != m_status.connected)
   {
     m_status.connected = connectionStatus;
-    Serial.println(m_status.connected ? F("BT conn") : F("BT disc"));
+    printMessage(connectionStatus ? PGMT(CONN_STR) : PGMT(DISC_STR));
   }
 }

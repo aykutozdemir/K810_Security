@@ -4,14 +4,38 @@ License        : BSD
 Repository     : https://github.com/naszly/Arduino-StaticSerialCommands
 -----------------------------------------------------------------------*/
 
+/**
+ * @file Parse.h
+ * @brief String parsing utilities for StaticSerialCommands.
+ *
+ * This file provides utility functions for parsing string values into
+ * different numeric types safely, with error checking.
+ *
+ * @author naszly
+ * @author Modified by Aykut ÖZDEMİR
+ * @date 2025
+ */
+
 #ifndef STATIC_SERIAL_COMMANDS_PARSE_H
 #define STATIC_SERIAL_COMMANDS_PARSE_H
 
 #include <Arduino.h>
 
+/**
+ * @brief Namespace containing string parsing utilities.
+ */
 namespace parse
 {
-
+  /**
+   * @brief Parse a string into an unsigned integer.
+   *
+   * This function safely parses a string representation of an unsigned integer,
+   * checking for overflow and invalid characters.
+   *
+   * @param str The input string to parse.
+   * @param out Pointer to store the parsed value.
+   * @return true if parsing was successful, false on error.
+   */
   bool strtou(const char *str, uint32_t *out)
   {
     uint32_t value = 0;
@@ -29,6 +53,16 @@ namespace parse
     return true;
   }
 
+  /**
+   * @brief Parse a string into a signed integer.
+   *
+   * This function safely parses a string representation of a signed integer,
+   * handling negative values, checking for overflow and invalid characters.
+   *
+   * @param str The input string to parse.
+   * @param out Pointer to store the parsed value.
+   * @return true if parsing was successful, false on error.
+   */
   bool strtoi(const char *str, int32_t *out)
   {
     int32_t value = 0;
@@ -58,6 +92,16 @@ namespace parse
     return true;
   }
 
+  /**
+   * @brief Parse a string into a floating point value.
+   *
+   * This function uses the standard library strtod function to parse a
+   * string representation of a floating point number.
+   *
+   * @param str The input string to parse.
+   * @param out Pointer to store the parsed value.
+   * @return true if parsing was successful, false on error.
+   */
   bool strtof(const char *str, float *out)
   {
     char *str_end = nullptr;

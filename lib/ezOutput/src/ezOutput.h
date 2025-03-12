@@ -29,53 +29,141 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file ezOutput.h
+ * @brief Non-blocking digital output control library for Arduino.
+ *
+ * The ezOutput library provides a non-blocking way to control digital outputs
+ * with features including toggle, pulse, and various blinking patterns.
+ *
+ * @author ArduinoGetStarted.com
+ * @author Modified by Aykut ÖZDEMİR
+ * @date 2025
+ * @see https://arduinogetstarted.com/tutorials/arduino-output-library
+ */
+
 #ifndef ezOutput_h
 #define ezOutput_h
 
 #include <Arduino.h>
 
-// Use enum instead of defines to save program space
+/**
+ * @brief Constants for output blink states
+ */
 enum BlinkState
 {
-	BLINK_STATE_DISABLE = 0,
-	BLINK_STATE_DELAY = 1,
-	BLINK_STATE_BLINK = 2
+	BLINK_STATE_DISABLE = 0, ///< Blinking is disabled
+	BLINK_STATE_DELAY = 1,	 ///< In delay state before blinking
+	BLINK_STATE_BLINK = 2	 ///< Currently blinking
 };
 
+/**
+ * @brief Non-blocking digital output control class
+ *
+ * This class provides an easy-to-use interface for controlling digital outputs
+ * with built-in support for various patterns without blocking the main program execution.
+ */
 class ezOutput
 {
 private:
-	const uint8_t _outputPin;
+	const uint8_t _outputPin; ///< Arduino pin connected to the output
 
 	// Pack states into a bit field structure
 	struct
 	{
-		uint8_t outputState : 1; // 1 bit for HIGH/LOW
-		uint8_t blinkState : 2;	 // 2 bits for DISABLE/DELAY/BLINK
-		uint8_t unused : 5;		 // unused bits
+		uint8_t outputState : 1; ///< Current output state (HIGH/LOW)
+		uint8_t blinkState : 2;	 ///< Current blink state (DISABLE/DELAY/BLINK)
+		uint8_t unused : 5;		 ///< Unused bits for future expansion
 	} _states;
 
-	uint32_t _highTime;
-	uint32_t _lowTime;
-	uint32_t _startTime;
-	int16_t _blinkTimes;
-	uint32_t _lastBlinkTime;
+	uint32_t _highTime;		 ///< Duration for output to stay HIGH during blink (ms)
+	uint32_t _lowTime;		 ///< Duration for output to stay LOW during blink (ms)
+	uint32_t _startTime;	 ///< Delay time before blinking starts (ms)
+	int16_t _blinkTimes;	 ///< Number of times to blink (-1 for infinite)
+	uint32_t _lastBlinkTime; ///< Last time the output was toggled
 
 public:
+	/**
+	 * @brief Constructor
+	 *
+	 * @param pin Arduino pin number the output is connected to
+	 */
 	explicit ezOutput(uint8_t pin);
+
+	/**
+	 * @brief Set the output to HIGH
+	 */
 	void high();
+
+	/**
+	 * @brief Set the output to LOW
+	 */
 	void low();
+
+	/**
+	 * @brief Toggle the output state immediately
+	 */
 	void toggle();
+
+	/**
+	 * @brief Toggle the output state after a delay
+	 *
+	 * @param delayTime Delay time in milliseconds
+	 */
 	void toggle(uint32_t delayTime);
 
+	/**
+	 * @brief Generate a single pulse on the output
+	 *
+	 * @param pulseTime Duration of the pulse in milliseconds
+	 */
 	void pulse(uint32_t pulseTime);
+
+	/**
+	 * @brief Generate a single pulse on the output after a delay
+	 *
+	 * @param pulseTime Duration of the pulse in milliseconds
+	 * @param delayTime Delay before the pulse starts in milliseconds
+	 */
 	void pulse(uint32_t pulseTime, uint32_t delayTime);
 
+	/**
+	 * @brief Blink the output continuously
+	 *
+	 * @param lowTime Duration for output to stay LOW during each blink (ms)
+	 * @param highTime Duration for output to stay HIGH during each blink (ms)
+	 */
 	void blink(uint32_t lowTime, uint32_t highTime);
+
+	/**
+	 * @brief Blink the output continuously after a delay
+	 *
+	 * @param lowTime Duration for output to stay LOW during each blink (ms)
+	 * @param highTime Duration for output to stay HIGH during each blink (ms)
+	 * @param delayTime Delay before blinking starts in milliseconds
+	 */
 	void blink(uint32_t lowTime, uint32_t highTime, uint32_t delayTime);
+
+	/**
+	 * @brief Blink the output a specific number of times
+	 *
+	 * @param lowTime Duration for output to stay LOW during each blink (ms)
+	 * @param highTime Duration for output to stay HIGH during each blink (ms)
+	 * @param delayTime Delay before blinking starts in milliseconds
+	 * @param blinkTimes Number of times to blink (-1 for infinite)
+	 */
 	void blink(uint32_t lowTime, uint32_t highTime, uint32_t delayTime, int16_t blinkTimes);
 
+	/**
+	 * @brief Get the current output state
+	 *
+	 * @return HIGH or LOW
+	 */
 	uint8_t getState() const;
+
+	/**
+	 * @brief Update output state (must be called regularly in loop)
+	 */
 	void loop();
 };
 
