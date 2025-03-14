@@ -163,33 +163,33 @@ c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_umulhisi3.o)
                               c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_muluhisi3.o) (__umulhisi3)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_mulsi3.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__mulsi3)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__mulsi3)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_udivmodhi4.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__udivmodhi4)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__udivmodhi4)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_divmodhi4.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__divmodhi4)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__divmodhi4)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_tablejump2.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__tablejump2__)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__tablejump2__)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_ctors.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__do_global_ctors)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__do_global_ctors)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_dtors.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__do_global_dtors)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__do_global_dtors)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_parityhi2.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__parityhi2)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__parityhi2)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_adddi3.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__adddi3)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__adddi3)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_cmpdi2.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__cmpdi2)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__cmpdi2)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libm.a(gesf2.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (__gesf2)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (__gesf2)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(realloc.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (realloc)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (realloc)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(abort.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (abort)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (abort)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcpy.o)
                               c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(realloc.o) (memcpy)
 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strcpy.o)
-                              C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o (strcpy)
+                              C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o (strcpy)
 
 Allocating common symbols
 Common symbol       size              file
@@ -203,7 +203,7 @@ Discarded input sections
  .data          0x00000000        0x0 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5/crtatmega32u4.o
  .bss           0x00000000        0x0 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5/crtatmega32u4.o
  .text          0x00000000        0x0 .pio\build\promicro16\src\ButtonController.cpp.o (symbol from plugin)
- .avr.prop      0x00000000       0x31 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .avr.prop      0x00000000       0x31 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  .text          0x00000000        0x0 .pio\build\promicro16\src\CommandCallbacks.cpp.o (symbol from plugin)
  .gnu.linkonce.t._ZN14SerialCommands12listCommandsEv
                 0x00000000        0x0 .pio\build\promicro16\src\CommandCallbacks.cpp.o (symbol from plugin)
@@ -395,6 +395,8 @@ Discarded input sections
  .gnu.linkonce.t._ZN10SoftSerialILh32ELh32EE5beginEPFvmE8BaudRateh10ParityMode
                 0x00000000        0x0 .pio\build\promicro16\src\main.cpp.o (symbol from plugin)
  .gnu.linkonce.t._ZN10SoftSerialILh32ELh32EE25SOFT_SERIAL_BAUD_TOO_HIGHE
+                0x00000000        0x0 .pio\build\promicro16\src\main.cpp.o (symbol from plugin)
+ .gnu.linkonce.t._ZNK17FastCircularQueueIhLh32EE6isFullEv
                 0x00000000        0x0 .pio\build\promicro16\src\main.cpp.o (symbol from plugin)
  .gnu.linkonce.t._ZN17FastCircularQueueIjLh32EE3popERj
                 0x00000000        0x0 .pio\build\promicro16\src\main.cpp.o (symbol from plugin)
@@ -1032,7 +1034,7 @@ Linker script and memory map
 Address of section .data set to 0x800100
 LOAD c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5/crtatmega32u4.o
 LOAD .pio\build\promicro16\src\ButtonController.cpp.o
-LOAD C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+LOAD C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
 LOAD .pio\build\promicro16\src\CommandCallbacks.cpp.o
 LOAD .pio\build\promicro16\src\EEPROMController.cpp.o
 LOAD .pio\build\promicro16\src\Globals.cpp.o
@@ -1166,7 +1168,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0x6a98
+.text           0x00000000     0x6b1a
  *(.vectors)
  .vectors       0x00000000       0xac c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5/crtatmega32u4.o
                 0x00000000                __vector_default
@@ -1184,9 +1186,9 @@ END GROUP
  .progmem.data  0x000000ac       0x3b c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strtod.o)
  *(.progmem*)
  .progmem.data.str1.1
-                0x000000e7      0x52b C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+                0x000000e7      0x52b C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
                                 0x538 (size before relaxing)
- .progmem.data  0x00000612      0x2da C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .progmem.data  0x00000612      0x2da C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
                 0x000008ec                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
@@ -1194,11 +1196,11 @@ END GROUP
  *(.lowtext*)
                 0x000008ec                __ctors_start = .
  *(.ctors)
- .ctors         0x000008ec        0x2 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .ctors         0x000008ec        0x2 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
                 0x000008ee                __ctors_end = .
                 0x000008ee                __dtors_start = .
  *(.dtors)
- .dtors         0x000008ee        0x2 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .dtors         0x000008ee        0x2 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
                 0x000008f0                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
@@ -1272,175 +1274,175 @@ END GROUP
                 0x00000940                __vector_18
                 0x00000940                __vector_20
                 0x00000940                __vector_42
- .text          0x00000944     0x3c28 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .text          0x00000944     0x3c40 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
                 0x00003e3a                __vector_23
                 0x00003ece                __vector_10
                 0x00003fc8                __vector_11
                 0x0000442c                __vector_17
-                0x0000454c                __vector_12
-                0x0000456c                . = ALIGN (0x2)
+                0x00004564                __vector_12
+                0x00004584                . = ALIGN (0x2)
  *(.text.*)
- .text.startup  0x0000456c     0x1820 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
-                0x00004dbc                main
+ .text.startup  0x00004584     0x188a C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
+                0x00004dd4                main
  .text.unlikely
-                0x00005d8c       0x62 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
- .text.exit     0x00005dee       0x56 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+                0x00005e0e       0x62 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
+ .text.exit     0x00005e70       0x56 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  .text.avr-libc
-                0x00005e44      0x24a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(malloc.o)
-                0x00005e44                malloc
-                0x00005f7c                free
+                0x00005ec6      0x24a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(malloc.o)
+                0x00005ec6                malloc
+                0x00005ffe                free
  .text.avr-libc
-                0x0000608e       0xb8 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(rand.o)
-                0x00006120                rand_r
-                0x00006126                rand
-                0x00006130                srand
+                0x00006110       0xb8 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(rand.o)
+                0x000061a2                rand_r
+                0x000061a8                rand
+                0x000061b2                srand
  .text.avr-libc
-                0x00006146      0x2a0 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strtod.o)
-                0x00006146                strtod
+                0x000061c8      0x2a0 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strtod.o)
+                0x000061c8                strtod
  .text.avr-libc
-                0x000063e6       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(isspace.o)
-                0x000063e6                isspace
+                0x00006468       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(isspace.o)
+                0x00006468                isspace
  .text.avr-libc
-                0x000063f8       0x1a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcmp_P.o)
-                0x000063f8                memcmp_P
+                0x0000647a       0x1a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcmp_P.o)
+                0x0000647a                memcmp_P
  .text.avr-libc
-                0x00006412       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
-                0x00006412                memcpy_P
+                0x00006494       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
+                0x00006494                memcpy_P
  .text.avr-libc
-                0x00006424       0x30 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strncasecmp_P.o)
-                0x00006424                strncasecmp_P
+                0x000064a6       0x30 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strncasecmp_P.o)
+                0x000064a6                strncasecmp_P
  .text.avr-libc
-                0x00006454       0x16 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strnlen_P.o)
-                0x00006454                strnlen_P
+                0x000064d6       0x16 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strnlen_P.o)
+                0x000064d6                strnlen_P
  .text.avr-libc.fplib
-                0x0000646a        0xa c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(cmpsf2.o)
-                0x0000646a                __nesf2
-                0x0000646a                __eqsf2
-                0x0000646a                __cmpsf2
-                0x0000646a                __ltsf2
-                0x0000646a                __lesf2
+                0x000064ec        0xa c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(cmpsf2.o)
+                0x000064ec                __nesf2
+                0x000064ec                __eqsf2
+                0x000064ec                __cmpsf2
+                0x000064ec                __ltsf2
+                0x000064ec                __lesf2
  .text.avr-libc.fplib
-                0x00006474       0x7a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(floatsisf.o)
-                0x00006474                __floatunsisf
-                0x00006478                __floatsisf
+                0x000064f6       0x7a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(floatsisf.o)
+                0x000064f6                __floatunsisf
+                0x000064fa                __floatsisf
  .text.avr-libc.fplib
-                0x000064ee       0x48 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_cmp.o)
-                0x000064ee                __fp_cmp
+                0x00006570       0x48 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_cmp.o)
+                0x00006570                __fp_cmp
  .text.avr-libc.fplib
-                0x00006536        0x8 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(mulsf3.o)
-                0x00006536                __mulsf3
+                0x000065b8        0x8 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(mulsf3.o)
+                0x000065b8                __mulsf3
  .text.avr-libc.fplib
-                0x0000653e       0xd2 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(mulsf3x.o)
-                0x0000655c                __mulsf3x
-                0x00006562                __mulsf3_pse
+                0x000065c0       0xd2 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(mulsf3x.o)
+                0x000065de                __mulsf3x
+                0x000065e4                __mulsf3_pse
  .text.avr-libc
-                0x00006610        0x6 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(cty_isfalse.o)
-                0x00006610                __ctype_isfalse
-                0x00006614                __ctype_istrue
+                0x00006692        0x6 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(cty_isfalse.o)
+                0x00006692                __ctype_isfalse
+                0x00006696                __ctype_istrue
  .text.avr-libc.fplib
-                0x00006616        0xc c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_inf.o)
-                0x00006616                __fp_inf
+                0x00006698        0xc c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_inf.o)
+                0x00006698                __fp_inf
  .text.avr-libc.fplib
-                0x00006622        0x6 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_nan.o)
-                0x00006622                __fp_nan
+                0x000066a4        0x6 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_nan.o)
+                0x000066a4                __fp_nan
  .text.avr-libc.fplib
-                0x00006628        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_pscA.o)
-                0x00006628                __fp_pscA
+                0x000066aa        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_pscA.o)
+                0x000066aa                __fp_pscA
  .text.avr-libc.fplib
-                0x00006636        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_pscB.o)
-                0x00006636                __fp_pscB
+                0x000066b8        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_pscB.o)
+                0x000066b8                __fp_pscB
  .text.avr-libc.fplib
-                0x00006644       0x22 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_round.o)
-                0x00006644                __fp_round
+                0x000066c6       0x22 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_round.o)
+                0x000066c6                __fp_round
  .text.avr-libc.fplib
-                0x00006666       0x44 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_split3.o)
-                0x00006666                __fp_split3
-                0x00006676                __fp_splitA
+                0x000066e8       0x44 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_split3.o)
+                0x000066e8                __fp_split3
+                0x000066f8                __fp_splitA
  .text.avr-libc.fplib
-                0x000066aa        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_zero.o)
-                0x000066aa                __fp_zero
-                0x000066ac                __fp_szero
+                0x0000672c        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(fp_zero.o)
+                0x0000672c                __fp_zero
+                0x0000672e                __fp_szero
  .text.avr-libc
-                0x000066b8       0x10 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libatmega32u4.a(eerd_byte.o)
-                0x000066b8                eeprom_read_byte
+                0x0000673a       0x10 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libatmega32u4.a(eerd_byte.o)
+                0x0000673a                eeprom_read_byte
  .text.avr-libc
-                0x000066c8       0x1c c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libatmega32u4.a(eewr_byte.o)
-                0x000066c8                eeprom_write_byte
-                0x000066ca                eeprom_write_r18
+                0x0000674a       0x1c c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libatmega32u4.a(eewr_byte.o)
+                0x0000674a                eeprom_write_byte
+                0x0000674c                eeprom_write_r18
  .text.libgcc.div
-                0x000066e4       0x2e c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_divmodsi4.o)
-                0x000066e4                __divmodsi4
+                0x00006766       0x2e c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_divmodsi4.o)
+                0x00006766                __divmodsi4
  .text.libgcc.div
-                0x00006712       0x10 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_negsi2.o)
-                0x00006712                __negsi2
+                0x00006794       0x10 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_negsi2.o)
+                0x00006794                __negsi2
  .text.libgcc.mul
-                0x00006722       0x16 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_muluhisi3.o)
-                0x00006722                __muluhisi3
+                0x000067a4       0x16 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_muluhisi3.o)
+                0x000067a4                __muluhisi3
  .text.libgcc.mul
-                0x00006738       0x10 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_mulshisi3.o)
-                0x00006738                __mulshisi3
-                0x0000673e                __mulohisi3
+                0x000067ba       0x10 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_mulshisi3.o)
+                0x000067ba                __mulshisi3
+                0x000067c0                __mulohisi3
  .text.libgcc.prologue
-                0x00006748       0x38 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_prologue.o)
-                0x00006748                __prologue_saves__
+                0x000067ca       0x38 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_prologue.o)
+                0x000067ca                __prologue_saves__
  .text.libgcc.prologue
-                0x00006780       0x36 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_epilogue.o)
-                0x00006780                __epilogue_restores__
+                0x00006802       0x36 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_epilogue.o)
+                0x00006802                __epilogue_restores__
  .text.libgcc.div
-                0x000067b6       0x44 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_udivmodsi4.o)
-                0x000067b6                __udivmodsi4
+                0x00006838       0x44 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_udivmodsi4.o)
+                0x00006838                __udivmodsi4
  .text.libgcc.mul
-                0x000067fa       0x1e c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_umulhisi3.o)
-                0x000067fa                __umulhisi3
+                0x0000687c       0x1e c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_umulhisi3.o)
+                0x0000687c                __umulhisi3
  .text.libgcc.mul
-                0x00006818       0x20 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_mulsi3.o)
-                0x00006818                __mulsi3
+                0x0000689a       0x20 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_mulsi3.o)
+                0x0000689a                __mulsi3
  .text.libgcc.div
-                0x00006838       0x28 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_udivmodhi4.o)
-                0x00006838                __udivmodhi4
+                0x000068ba       0x28 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_udivmodhi4.o)
+                0x000068ba                __udivmodhi4
  .text.libgcc.div
-                0x00006860       0x28 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_divmodhi4.o)
-                0x00006860                _div
-                0x00006860                __divmodhi4
- .text.libgcc   0x00006888        0xc c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_tablejump2.o)
-                0x00006888                __tablejump2__
+                0x000068e2       0x28 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_divmodhi4.o)
+                0x000068e2                _div
+                0x000068e2                __divmodhi4
+ .text.libgcc   0x0000690a        0xc c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_tablejump2.o)
+                0x0000690a                __tablejump2__
  .text.libgcc.builtins
-                0x00006894       0x18 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_parityhi2.o)
-                0x00006894                __parityhi2
-                0x00006896                __parityqi2
- .text.libgcc   0x000068ac       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_adddi3.o)
-                0x000068ac                __adddi3
- .text.libgcc   0x000068be       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_cmpdi2.o)
-                0x000068be                __cmpdi2
+                0x00006916       0x18 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_parityhi2.o)
+                0x00006916                __parityhi2
+                0x00006918                __parityqi2
+ .text.libgcc   0x0000692e       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_adddi3.o)
+                0x0000692e                __adddi3
+ .text.libgcc   0x00006940       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_cmpdi2.o)
+                0x00006940                __cmpdi2
  .text.avr-libc.fplib
-                0x000068d0        0xa c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libm.a(gesf2.o)
-                0x000068d0                __gesf2
-                0x000068d0                __gtsf2
+                0x00006952        0xa c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libm.a(gesf2.o)
+                0x00006952                __gesf2
+                0x00006952                __gtsf2
  .text.avr-libc
-                0x000068da      0x17a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(realloc.o)
-                0x000068da                realloc
+                0x0000695c      0x17a c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(realloc.o)
+                0x0000695c                realloc
  .text.avr-libc
-                0x00006a54        0xa c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(abort.o)
-                0x00006a54                abort
+                0x00006ad6        0xa c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(abort.o)
+                0x00006ad6                abort
  .text.avr-libc
-                0x00006a5e       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcpy.o)
-                0x00006a5e                memcpy
+                0x00006ae0       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(memcpy.o)
+                0x00006ae0                memcpy
  .text.avr-libc
-                0x00006a70        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strcpy.o)
-                0x00006a70                strcpy
-                0x00006a7e                . = ALIGN (0x2)
+                0x00006af2        0xe c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(strcpy.o)
+                0x00006af2                strcpy
+                0x00006b00                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x00006a7e        0x0 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_exit.o)
-                0x00006a7e                _exit
-                0x00006a7e                exit
+ .fini9         0x00006b00        0x0 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_exit.o)
+                0x00006b00                _exit
+                0x00006b00                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
  *(.fini7)
  *(.fini7)
  *(.fini6)
- .fini6         0x00006a7e       0x16 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_dtors.o)
-                0x00006a7e                __do_global_dtors
+ .fini6         0x00006b00       0x16 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_dtors.o)
+                0x00006b00                __do_global_dtors
  *(.fini6)
  *(.fini5)
  *(.fini5)
@@ -1453,14 +1455,14 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x00006a94        0x4 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_exit.o)
+ .fini0         0x00006b16        0x4 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avr5\libgcc.a(_exit.o)
  *(.fini0)
-                0x00006a98                _etext = .
+                0x00006b1a                _etext = .
 
-.data           0x00800100       0x96 load address 0x00006a98
+.data           0x00800100       0x96 load address 0x00006b1a
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
- .data          0x00800100       0x15 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .data          0x00800100       0x15 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  .data          0x00800115        0x6 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(malloc.o)
                 0x00800115                __malloc_heap_end
                 0x00800117                __malloc_heap_start
@@ -1469,10 +1471,10 @@ END GROUP
  *(.data*)
  *(.gnu.linkonce.d*)
  *(.rodata)
- .rodata        0x0080011f       0x73 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .rodata        0x0080011f       0x73 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  *(.rodata*)
  .rodata.str1.1
-                0x00800192        0x3 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+                0x00800192        0x3 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  *(.gnu.linkonce.r*)
                 0x00800196                . = ALIGN (0x2)
  *fill*         0x00800195        0x1 
@@ -1482,7 +1484,7 @@ END GROUP
 .bss            0x00800196      0x44b
                 0x00800196                PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x00800196      0x445 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .bss           0x00800196      0x445 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  *(.bss*)
  *(COMMON)
  COMMON         0x008005db        0x4 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(malloc.o)
@@ -1491,13 +1493,13 @@ END GROUP
  COMMON         0x008005df        0x2 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(errno.o)
                 0x008005df                errno
                 0x008005e1                PROVIDE (__bss_end, .)
-                0x00006a98                __data_load_start = LOADADDR (.data)
-                0x00006b2e                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x00006b1a                __data_load_start = LOADADDR (.data)
+                0x00006bb0                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x008005e1        0x1
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
- .noinit        0x008005e1        0x1 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .noinit        0x008005e1        0x1 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
                 [!provide]                PROVIDE (__noinit_end, .)
                 0x008005e2                _end = .
                 0x008005e2                PROVIDE (__heap_start, .)
@@ -1541,7 +1543,7 @@ END GROUP
 
 .comment        0x00000000       0x11
  *(.comment)
- .comment       0x00000000       0x12 C:\Users\aykut\AppData\Local\Temp\ccgoFp6j.ltrans0.ltrans.o
+ .comment       0x00000000       0x12 C:\Users\aykut\AppData\Local\Temp\cc4pgBwb.ltrans0.ltrans.o
  .comment       0x00000000       0x11 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(malloc.o)
                                  0x12 (size before relaxing)
  .comment       0x00000011       0x12 c:/users/aykut/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avr5\libc.a(rand.o)

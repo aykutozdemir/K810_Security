@@ -103,7 +103,8 @@ unsigned long SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::getBaudRateValue(const
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin)
     : Stream(), DriverBase(), // Call both parent constructors
-      m_receivedData(0), m_rxBitIndex(255), m_txBitIndex(255), m_txIsrCounter(OVERSAMPLE), m_rxIsrCounter(SAMPLE), m_expectedBits(10),
+      m_receivedData(0), m_rxBitIndex(UNINITIALIZED_INDEX), m_txBitIndex(UNINITIALIZED_INDEX),
+      m_txIsrCounter(OVERSAMPLE), m_rxIsrCounter(SAMPLE), m_expectedBits(10),
       m_rxPin(rxPin, false, true), m_txPin(txPin, true)
 {
   // Initialize flags
@@ -168,7 +169,7 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 {
   DriverBase::loop();
 
-  for (uint8_t i = 0; i < 8; i++)
+  for (uint8_t i = 0; (i < 8) && !m_rxQueue.isFull(); i++)
   {
     uint16_t frame;
     {
@@ -179,19 +180,26 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 
     bool hasError = false;
 
-    // Check start bit
-    if ((frame & (1 << (m_expectedBits - 1))) == 0)
+    // In the ISR, bits are stored with decreasing rxBitIndex:
+    // - Start bit is stored at position (m_expectedBits-1) [highest bit]
+    // - Data bits are at positions (m_expectedBits-2) down to (m_expectedBits-9)
+    // - Parity bit (if present) is at position (m_expectedBits-10)
+    // - Stop bits are at positions (m_expectedBits-11) and lower [lowest bits]
+
+    // Check start bit - should be 0 (low)
+    if ((frame & (1 << (m_expectedBits - 1))) != 0)
     {
       printError(PGMT(SOFT_SERIAL_START_BIT_ERR));
       hasError = true;
     }
 
-    // Check stop bits
+    // Check stop bits - should be 1 (high)
     if (!hasError)
     {
       for (uint8_t s = 0; s < m_flags.stopBitCount; s++)
       {
-        if (!((frame >> s) & 0x01))
+        // Stop bits are at the lowest positions
+        if ((frame & (1 << s)) == 0)
         {
           printError(PGMT(SOFT_SERIAL_STOP_BIT_ERR));
           hasError = true;
@@ -203,14 +211,30 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
     if (hasError)
       continue;
 
-    const uint8_t data = (frame >> (m_expectedBits - 8 - 1)) & 0xFF;
+    // Extract data bits and reverse their order (UART sends LSB first)
+    uint8_t data = 0;
+    for (uint8_t bitIndex = 0; bitIndex < 8; bitIndex++)
+    {
+      // Data bits are at positions (m_expectedBits-2) to (m_expectedBits-9)
+      const uint8_t isrBitPos = m_expectedBits - 2 - bitIndex;
+
+      // The bit position in the data byte (reverse order because UART sends LSB first)
+      if ((frame & (static_cast<uint16_t>(1) << isrBitPos)) != 0)
+      {
+        data |= (1 << bitIndex);
+      }
+    }
 
     if (m_flags.parityType != NONE)
     {
-      const uint8_t parityBit = (frame >> (m_expectedBits - 8 - 2)) & 0x01;
+      // Parity bit is at position (m_expectedBits-10)
+      const uint8_t parityBitPos = m_expectedBits - 10;
+      const uint8_t parityBit = (frame & (1 << parityBitPos)) ? 1 : 0;
+
       bool computedParity = __builtin_parity(data);
       if (m_flags.parityType == EVEN)
         computedParity = !computedParity;
+
       if (parityBit != computedParity)
       {
         printError(PGMT(SOFT_SERIAL_PARITY_ERR));
@@ -227,7 +251,6 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
   if (m_txBitIndex == UNINITIALIZED_INDEX)
   {
     uint8_t data;
-
     if (m_txQueue.pop(data))
     {
       // Reset bit changes
@@ -236,35 +259,56 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
         m_txBitChanges[i] = false;
       }
 
-      // Set stop bits in reverse order
-      const uint8_t stopBitStart = (m_flags.parityType != NONE) ? 10 : 9;
-      m_txBitChanges[stopBitStart] = true;
+      // The ISR processes txBitIndex from high to low (m_expectedBits down to 0)
+      // and toggles the pin when m_txBitChanges[txBitIndex] is true.
+      // We need to populate m_txBitChanges to create the correct UART signal.
+      uint8_t currentBit = m_expectedBits;
 
-      // Set parity bit if needed
+      // Initialize with current pin state (high for idle)
+      bool currentState = true;
+
+      // Start bit always requires a transition (high→low)
+      m_txBitChanges[--currentBit] = true;
+      currentState = false; // Pin state after start bit is low
+
+      // Set transitions for data bits (LSB first in UART)
+      for (uint8_t i = 0; i < 8; i++)
+      {
+        const bool bitVal = (data & (1 << i)) != 0;
+        currentBit--;
+        if (bitVal != currentState)
+        {
+          m_txBitChanges[currentBit] = true;
+          currentState = bitVal;
+        }
+      }
+
+      // Set transition for parity bit if needed
       if (m_flags.parityType != NONE)
       {
         bool parityVal = __builtin_parity(data);
         if (m_flags.parityType == EVEN)
           parityVal = !parityVal;
-        m_txBitChanges[9] = parityVal;
-      }
 
-      // Set data bits in reverse order
-      bool currentState = true; // Start with stop bit state
-      for (int8_t i = 7; i >= 0; i--)
-      {
-        const bool bitVal = (data & (1 << i)) != 0;
-        if (currentState != bitVal)
+        currentBit--;
+        if (parityVal != currentState)
         {
-          m_txBitChanges[i + 1] = true;
-          currentState = bitVal;
+          m_txBitChanges[currentBit] = true;
+          currentState = parityVal;
         }
       }
 
-      // Set start bit
-      m_txBitChanges[0] = true;
+      // First stop bit always transitions to high if not already high
+      currentBit--;
+      if (!currentState)
+      {
+        m_txBitChanges[currentBit] = true;
+        currentState = true;
+      }
 
-      m_txBitIndex = stopBitStart + m_flags.stopBitCount;
+      // TX is processed in reverse order in the ISR, so we need to set the
+      // index to the highest position in our transition array
+      m_txBitIndex = m_expectedBits;
     }
   }
 }
@@ -298,13 +342,24 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
         m_txPin.high();
         txBitIndex = UNINITIALIZED_INDEX;
       }
+      m_txBitIndex = txBitIndex;
     }
-    m_txBitIndex = txBitIndex;
   }
 
   if (--m_rxIsrCounter == 0)
   {
-    if (rxBitIndex > 0)
+    m_rxIsrCounter = SAMPLE;
+
+    if (rxBitIndex == INITIALIZED_INDEX)
+    {
+      if (rxState == LOW)
+      {
+        rxBitIndex = m_expectedBits;
+        m_receivedData = 0;
+        m_rxIsrCounter = OVERSAMPLE_SHIFT;
+      }
+    }
+    else if (rxBitIndex > 0)
     {
       m_receivedData |= static_cast<uint16_t>(rxState) << (--rxBitIndex);
 
@@ -316,14 +371,7 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::processISR()
       {
         m_rxTempQueue.push(m_receivedData);
         rxBitIndex = INITIALIZED_INDEX;
-        m_rxIsrCounter = SAMPLE;
       }
-    }
-    else if ((rxBitIndex == INITIALIZED_INDEX) && !rxState)
-    {
-      rxBitIndex = m_expectedBits;
-      m_receivedData = 0;
-      m_rxIsrCounter = OVERSAMPLE_SHIFT;
     }
     m_rxBitIndex = rxBitIndex;
   }
