@@ -27,7 +27,7 @@ void EEPROMController::format()
 {
   if (m_state == IDLE)
   {
-    m_state = FORMATTING_EXTERNAL;
+    m_state = FORMATTING_INTERNAL; //TODO: Change to external
     m_currentCounter = 0;
   } // end if
 } // end format

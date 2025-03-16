@@ -103,6 +103,7 @@ void commandGenSalt(SerialCommands &sender, Args &args)
     return;
   const byte salt = KeyboardController::generateSalt();
   Utilities::printHexByte(sender, salt);
+  sender.getSerial().println();
   Utilities::printOK(sender);
 }
 
@@ -118,6 +119,7 @@ void commandGenSeed(SerialCommands &sender, Args &args)
   {
     Utilities::printHexByte(sender, seed[i]);
   }
+  sender.getSerial().println();
   Utilities::printOK(sender);
 }
 
