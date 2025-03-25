@@ -65,6 +65,8 @@
  * @author Modified by Aykut ÖZDEMİR
  * @date 2025
  */
+#ifndef I2C_h
+#define I2C_h
 
 #if (ARDUINO >= 100)
 #include <Arduino.h>
@@ -73,9 +75,7 @@
 #endif
 
 #include <inttypes.h>
-
-#ifndef I2C_h
-#define I2C_h
+#include "Traceable.h"
 
 /**
  * @name TWI Status Codes
@@ -110,7 +110,7 @@
  * conditions, timeouts to detect and recover from bus lockups, and utility functions
  * for common I2C operations.
  */
-class I2C
+class I2C : public Traceable
 {
 public:
   /**

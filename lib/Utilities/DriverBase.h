@@ -14,24 +14,20 @@
 
 #include <Arduino.h>
 #include "Utilities.h"
+#include "Traceable.h"
 
 /**
  * @brief Base class for all drivers
  *
  * This class provides common functionality for all drivers, reducing code duplication and flash usage.
  */
-class DriverBase
+class DriverBase : public Traceable
 {
 public:
     /**
-     * @brief Print callback function type
-     */
-    typedef void (*PrintCallback)(const __FlashStringHelper *, const char *);
-
-    /**
      * @brief Default constructor
      */
-    DriverBase() : m_printCallback(nullptr) {}
+    DriverBase(const __FlashStringHelper *const functionName) : Traceable(functionName) {}
 
     /**
      * @brief Destructor
@@ -47,26 +43,6 @@ public:
      * @brief Loop method to be called in the main loop
      */
     void loop() {}
-
-    /**
-     * @brief Sets the print callback function
-     *
-     * @param callback The callback function to use for printing
-     */
-    void setPrintCallback(const PrintCallback callback)
-    {
-        m_printCallback = callback;
-    }
-
-    /**
-     * @brief Gets the current print callback function
-     *
-     * @return The current print callback function
-     */
-    PrintCallback getPrintCallback() const
-    {
-        return m_printCallback;
-    }
 
 protected:
     /**
@@ -136,39 +112,6 @@ protected:
         T m_state;                      // Current state
         unsigned long m_lastChangeTime; // Time of last state change
     };
-
-    /**
-     * @brief Prints a debug message with a value
-     *
-     * @param msgProgmem The message to print (stored in flash)
-     * @param msg The msg to print
-     * @param println Whether to print a newline after the value
-     */
-    void debugPrint(const __FlashStringHelper *msgProgmem,
-                    const char *msg = nullptr,
-                    const bool println = true)
-    {
-        if (m_printCallback)
-        {
-            if (msgProgmem != nullptr)
-            {
-                m_printCallback(msgProgmem, nullptr);
-            }
-
-            if (msg != nullptr)
-            {
-                m_printCallback(nullptr, msg);
-            }
-
-            if (println)
-            {
-                m_printCallback(nullptr, nullptr); // For newline
-            }
-        }
-    }
-
-private:
-    PrintCallback m_printCallback;
 };
 
 #endif // DRIVER_BASE_H

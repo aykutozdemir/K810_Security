@@ -11,45 +11,28 @@
 
 #include "HC05.h"
 #include <Arduino.h>
+#include "../../include/TraceLevel.h"
 
-// Define PROGMEM strings for common messages
-const char HC05::BT_PREFIX[] PROGMEM = "BT ";
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_HC05
 
 // Define common PROGMEM strings for repeated messages
-const char HC05::QUEUE_FULL_STR[] PROGMEM = "queue full";
-const char HC05::CMD_MODE_NO_DATA_STR[] PROGMEM = "cmd mode - no data";
-const char HC05::INIT_STR[] PROGMEM = "init...";
-const char HC05::OK_STR[] PROGMEM = "ok";
+const char HC05::QUEUE_FULL_STR[] PROGMEM = "Queue full";
+const char HC05::CMD_MODE_NO_DATA_STR[] PROGMEM = "Command mode - no data";
+const char HC05::INIT_STR[] PROGMEM = "Init...";
+const char HC05::OK_STR[] PROGMEM = "OK";
 const char HC05::AT_FAIL_STR[] PROGMEM = "AT fail: ";
-const char HC05::CMD_MODE_STR[] PROGMEM = "cmd mode";
-const char HC05::DATA_MODE_STR[] PROGMEM = "data mode";
-const char HC05::CMD_TIMEOUT_STR[] PROGMEM = "cmd timeout: ";
-const char HC05::CONN_STR[] PROGMEM = "conn";
-const char HC05::DISC_STR[] PROGMEM = "disc";
-const char HC05::CMD_STR[] PROGMEM = "cmd: ";
+const char HC05::CMD_MODE_STR[] PROGMEM = "Command mode";
+const char HC05::DATA_MODE_STR[] PROGMEM = "Data mode";
+const char HC05::CMD_TIMEOUT_STR[] PROGMEM = "Command timeout: ";
+const char HC05::CONN_STR[] PROGMEM = "Connected";
+const char HC05::DISC_STR[] PROGMEM = "Disconnected";
+const char HC05::CMD_STR[] PROGMEM = "Command: ";
 const char HC05::ERROR_STR[] PROGMEM = "ERROR:";
 const char HC05::FAIL_STR[] PROGMEM = "FAIL";
 
 // Define a PROGMEM variable for the OK response string
 const char HC05::OK_RESPONSE[] PROGMEM = "OK\r\n";
-
-/**
- * @brief Print a message with the BT prefix
- *
- * @param msgProgmem Message stored in PROGMEM
- * @param msg Additional message string (nullptr if none)
- * @param println Whether to add a newline at the end
- */
-void HC05::printMessage(const __FlashStringHelper *msgProgmem,
-                        const char *msg,
-                        const bool println)
-{
-  if (msgProgmem != nullptr)
-  {
-    debugPrint(PGMT(BT_PREFIX), nullptr, false);
-  }
-  debugPrint(msgProgmem, msg, println);
-}
 
 /**
  * @brief Constructor for the HC05 class
@@ -63,7 +46,7 @@ HC05::HC05(Stream &stream,
            const uint8_t keyPin,
            const uint8_t statePin,
            const uint8_t resetPin)
-    : DriverBase(), // Call the base class constructor
+    : DriverBase(F("HC05")), // Call the base class constructor
       p_stream(&stream),
       m_keyPin(keyPin),
       m_statePin(statePin),
@@ -100,7 +83,10 @@ void HC05::sendCommand(const Command &command)
 {
   if (m_commandQueue.isFull())
   {
-    printMessage(PGMT(QUEUE_FULL_STR));
+    TRACE_ERROR()
+        << PGMT(QUEUE_FULL_STR)
+        << endl;
+
     return;
   }
 
@@ -131,7 +117,10 @@ void HC05::sendData(const String &data)
 {
   if (m_status.inCommandMode)
   {
-    printMessage(PGMT(CMD_MODE_NO_DATA_STR));
+    TRACE_ERROR()
+        << PGMT(CMD_MODE_NO_DATA_STR)
+        << endl;
+
     return;
   }
   p_stream->print(data);
@@ -146,7 +135,10 @@ void HC05::sendData(const char data)
 {
   if (m_status.inCommandMode)
   {
-    printMessage(PGMT(CMD_MODE_NO_DATA_STR));
+    TRACE_ERROR()
+        << PGMT(CMD_MODE_NO_DATA_STR)
+        << endl;
+
     return;
   }
   p_stream->print(data);
@@ -269,7 +261,10 @@ bool HC05::processResponseBufferForCommand()
  */
 void HC05::handleInitializing()
 {
-  printMessage(PGMT(INIT_STR));
+  TRACE_INFO()
+      << PGMT(INIT_STR)
+      << endl;
+
   reset();
 }
 
@@ -335,12 +330,20 @@ void HC05::handleWaitingForATResponse()
   {
     m_commandDelayTimer.setInterval(DEFAULT_COMMAND_DELAY_MS);
     m_stateManager.setState(WAITING_FOR_COMMAND_DELAY);
-    printMessage(PGMT(OK_STR));
+
+    TRACE_INFO()
+        << PGMT(OK_STR)
+        << endl;
+
     return;
   }
   if (m_stateManager.isStateTimeElapsed(AT_RESPONSE_TIMEOUT_MS))
   {
-    printMessage(PGMT(AT_FAIL_STR), m_responseBuffer.toString().c_str());
+    TRACE_ERROR()
+        << PGMT(AT_FAIL_STR)
+        << m_responseBuffer.toString().c_str()
+        << endl;
+
     m_stateManager.setState(RESETTING);
   }
 }
@@ -357,7 +360,10 @@ void HC05::handleWaitingForCommandMode()
   {
     m_status.inCommandMode = true;
     m_stateManager.setState(IDLE);
-    printMessage(PGMT(CMD_MODE_STR));
+
+    TRACE_INFO()
+        << PGMT(CMD_MODE_STR)
+        << endl;
   }
 }
 
@@ -373,7 +379,10 @@ void HC05::handleWaitingForDataMode()
   {
     m_status.inCommandMode = false;
     m_stateManager.setState(DATA_MODE);
-    printMessage(PGMT(DATA_MODE_STR));
+
+    TRACE_INFO()
+        << PGMT(DATA_MODE_STR)
+        << endl;
   }
 }
 
@@ -392,7 +401,11 @@ void HC05::handleWaitingForResponse()
   }
   if (m_stateManager.isStateTimeElapsed(COMMAND_RESPONSE_TIMEOUT_MS))
   {
-    printMessage(PGMT(CMD_TIMEOUT_STR), m_responseBuffer.toString().c_str());
+    TRACE_ERROR()
+        << PGMT(CMD_TIMEOUT_STR)
+        << m_responseBuffer.toString().c_str()
+        << endl;
+
     m_stateManager.setState(RESETTING);
   }
 }
@@ -548,8 +561,10 @@ void HC05::processNextCommand()
   {
     const Command *const nextCommand = m_commandQueue.getHead();
     clearResponseBuffer();
-    printMessage(PGMT(CMD_STR), nullptr, false);
-    debugPrint(nextCommand->commandText);
+    TRACE_INFO()
+        << PGMT(CMD_STR)
+        << nextCommand->commandText
+        << endl;
     p_stream->println(nextCommand->commandText);
     m_stateManager.setState(WAITING_FOR_RESPONSE);
   }
@@ -566,6 +581,8 @@ void HC05::updateConnectionState()
   if (connectionStatus != m_status.connected)
   {
     m_status.connected = connectionStatus;
-    printMessage(connectionStatus ? PGMT(CONN_STR) : PGMT(DISC_STR));
+    TRACE_INFO()
+        << (connectionStatus ? PGMT(CONN_STR) : PGMT(DISC_STR))
+        << endl;
   }
 }

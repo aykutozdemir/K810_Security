@@ -12,6 +12,7 @@
 #define EEPROMCONTROLLER_H
 
 #include "I2C.h"
+#include "Traceable.h"
 
 /**
  * @brief Class for managing operations on EEPROM memory.
@@ -19,7 +20,7 @@
  * This class provides functionality to interact with EEPROM memory via I2C,
  * including formatting operations for both internal and external memory areas.
  */
-class EEPROMController final
+class EEPROMController final : public Traceable
 {
 public:
   /**

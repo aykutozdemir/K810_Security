@@ -13,8 +13,12 @@
 #define SOFTSERIAL_HPP
 
 #include "SoftSerial.h"
+#include "TraceLevel.h"
 #include <SafeInterrupts.h>
 #include <Utilities.h>
+
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_SOFT_SERIAL
 
 /** @brief Sampling constant for RX processing */
 constexpr uint8_t SAMPLE = 1;
@@ -35,9 +39,6 @@ constexpr uint8_t UNINITIALIZED_INDEX = 255;
 constexpr uint8_t INITIALIZED_INDEX = 254;
 
 // Define PROGMEM strings for error messages
-template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_PREFIX[] PROGMEM = "SS: ";
-
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 const char SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SOFT_SERIAL_BAUD_TOO_HIGH[] PROGMEM = "Baud too high";
 
@@ -102,7 +103,7 @@ unsigned long SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::getBaudRateValue(const
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin)
-    : Stream(), DriverBase(), // Call both parent constructors
+    : Stream(), DriverBase(F("SoftSerial")), // Call both parent constructors
       m_receivedData(0), m_rxBitIndex(UNINITIALIZED_INDEX), m_txBitIndex(UNINITIALIZED_INDEX),
       m_txIsrCounter(OVERSAMPLE), m_rxIsrCounter(SAMPLE), m_expectedBits(10),
       m_rxPin(rxPin, false, true), m_txPin(txPin, true)
@@ -141,7 +142,10 @@ inline void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::begin(const TimerSetupCa
 
   if (oversampleBitPeriod < OVERSAMPLE_THRESHOLD)
   {
-    printError(PGMT(SOFT_SERIAL_BAUD_TOO_HIGH));
+    TRACE_ERROR()
+        << PGMT(SOFT_SERIAL_BAUD_TOO_HIGH)
+        << endl;
+
     return;
   }
 
@@ -189,7 +193,10 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
     // Check start bit - should be 0 (low)
     if ((frame & (1 << (m_expectedBits - 1))) != 0)
     {
-      printError(PGMT(SOFT_SERIAL_START_BIT_ERR));
+      TRACE_ERROR()
+          << PGMT(SOFT_SERIAL_START_BIT_ERR)
+          << endl;
+
       hasError = true;
     }
 
@@ -201,7 +208,10 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
         // Stop bits are at the lowest positions
         if ((frame & (1 << s)) == 0)
         {
-          printError(PGMT(SOFT_SERIAL_STOP_BIT_ERR));
+          TRACE_ERROR()
+              << PGMT(SOFT_SERIAL_STOP_BIT_ERR)
+              << endl;
+
           hasError = true;
           break;
         }
@@ -237,14 +247,19 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
 
       if (parityBit != computedParity)
       {
-        printError(PGMT(SOFT_SERIAL_PARITY_ERR));
+        TRACE_ERROR()
+            << PGMT(SOFT_SERIAL_PARITY_ERR)
+            << endl;
+
         continue;
       }
     }
 
     if (!m_rxQueue.push(data))
     {
-      printError(PGMT(SOFT_SERIAL_RX_BUF_FULL));
+      TRACE_ERROR()
+          << PGMT(SOFT_SERIAL_RX_BUF_FULL)
+          << endl;
     }
   }
 
@@ -404,16 +419,6 @@ template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline size_t SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::write(uint8_t data)
 {
   return m_txQueue.push(data) ? 1 : 0;
-}
-
-template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
-void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::printError(const __FlashStringHelper *errProgmem)
-{
-  if (errProgmem != nullptr)
-  {
-    debugPrint(PGMT(SOFT_SERIAL_PREFIX), nullptr, false);
-  }
-  debugPrint(errProgmem, nullptr, true);
 }
 
 #endif

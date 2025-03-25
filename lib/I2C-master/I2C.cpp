@@ -59,15 +59,18 @@
 #include <WProgram.h>
 #endif
 
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_I2C
+
 #include <inttypes.h>
 #include "I2C.h"
-
+#include "../../include/TraceLevel.h"
 uint8_t I2C::bytesAvailable = 0;
 uint8_t I2C::bufferIndex = 0;
 uint8_t I2C::totalBytes = 0;
 uint16_t I2C::timeOutDelay = 0;
 
-I2C::I2C()
+I2C::I2C() : Traceable(F("I2C"))
 {
 }
 
@@ -223,8 +226,11 @@ void I2C::scan()
   uint16_t tempTime = timeOutDelay;
   timeOut(80);
   uint8_t totalDevicesFound = 0;
-  Serial.println(F("Scanning for devices...please wait"));
-  Serial.println();
+
+  TRACE_INFO()
+      << F("Scanning for devices...please wait")
+      << endl;
+
   for (uint8_t s = 0; s <= 0x7F; s++)
   {
     returnStatus = 0;
@@ -237,24 +243,33 @@ void I2C::scan()
     {
       if (returnStatus == 1)
       {
-        Serial.println(F("There is a problem with the bus, could not complete scan"));
+        TRACE_ERROR()
+            << F("There is a problem with the bus, could not complete scan")
+            << endl;
+
         timeOutDelay = tempTime;
         return;
       }
     }
     else
     {
-      Serial.print(F("Found device at address - "));
-      Serial.print(F(" 0x"));
-      Serial.println(s, HEX);
+      TRACE_INFO()
+          << F("Found device at address - ")
+          << F(" 0x")
+          << HEX
+          << s
+          << endl;
       totalDevicesFound++;
     }
     _stop();
   }
   if (!totalDevicesFound)
   {
-    Serial.println(F("No devices found"));
+    TRACE_INFO()
+        << F("No devices found")
+        << endl;
   }
+
   timeOutDelay = tempTime;
 }
 

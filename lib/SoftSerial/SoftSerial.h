@@ -141,19 +141,11 @@ private:
   } __attribute__((packed));
 
   // Declare PROGMEM strings for error messages
-  static const char SOFT_SERIAL_PREFIX[] PROGMEM;        ///< Prefix for error messages
   static const char SOFT_SERIAL_BAUD_TOO_HIGH[] PROGMEM; ///< Error message for baud rate too high
   static const char SOFT_SERIAL_START_BIT_ERR[] PROGMEM; ///< Error message for start bit error
   static const char SOFT_SERIAL_STOP_BIT_ERR[] PROGMEM;  ///< Error message for stop bit error
   static const char SOFT_SERIAL_PARITY_ERR[] PROGMEM;    ///< Error message for parity error
   static const char SOFT_SERIAL_RX_BUF_FULL[] PROGMEM;   ///< Error message for RX buffer full
-
-  /**
-   * @brief Prints an error message.
-   *
-   * @param errProgmem The error message stored in program memory.
-   */
-  void printError(const __FlashStringHelper *errProgmem);
 
   /**
    * @brief Helper method to convert between baud rate and code.

@@ -2,10 +2,14 @@
 #include "EEPROMController.h"
 #include <EEPROM.h>
 #include "Utilities.h"
+#include "TraceLevel.h"
 
 // Arduino core
 #include <Arduino.h>
 #include <USBAPI.h>
+
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_EEPROM_CONTROLLER
 
 // Constants
 constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50 >> 1;
@@ -14,7 +18,7 @@ constexpr uint16_t EXT_EEPROM_TOTAL_SIZE = 8192;
 constexpr uint8_t INT_EEPROM_PAGE_SIZE = 32;
 
 EEPROMController::EEPROMController(I2C &i2c)
-    : p_i2c(&i2c), m_state(IDLE), m_currentCounter(0)
+    : Traceable(F("EEPROMController")), p_i2c(&i2c), m_state(IDLE), m_currentCounter(0)
 {
 } // end EEPROMController
 
@@ -27,7 +31,7 @@ void EEPROMController::format()
 {
   if (m_state == IDLE)
   {
-    m_state = FORMATTING_INTERNAL; //TODO: Change to external
+    m_state = FORMATTING_INTERNAL; // TODO: Change to external
     m_currentCounter = 0;
   } // end if
 } // end format
@@ -49,7 +53,9 @@ void EEPROMController::loop()
     {
       m_state = FORMATTING_INTERNAL;
       m_currentCounter = 0;
-      Serial.println(F("Ext eeprom frmt done"));
+      TRACE_INFO()
+          << F("External eeprom formatting done")
+          << endl;
       break;
     }
 
@@ -61,7 +67,9 @@ void EEPROMController::loop()
     {
       m_state = IDLE;
       m_currentCounter = 0;
-      Serial.println(F("Int eeprom frmt done"));
+      TRACE_INFO()
+          << F("Internal eeprom formatting done")
+          << endl;
       break;
     }
 
@@ -84,9 +92,10 @@ void EEPROMController::formatExternalPage()
 
   p_i2c->write16(EXT_EEPROM_I2C_ADDRESS, startAddress, pageData, EXT_EEPROM_PAGE_SIZE);
 
-  Serial.print(F("Ext eeprom pg: "));
-  Serial.print(m_currentCounter, HEX);
-  Serial.println();
+  TRACE_DEBUG()
+      << F("External eeprom page: ")
+      << m_currentCounter
+      << endl;
 
   ++m_currentCounter;
 }
@@ -99,7 +108,8 @@ void EEPROMController::formatInternalPages()
     ++m_currentCounter;
   }
 
-  Serial.print(F("Int eeprom cnt: "));
-  Serial.print(m_currentCounter - 1, HEX);
-  Serial.println();
+  TRACE_DEBUG()
+      << F("Internal eeprom counter: ")
+      << m_currentCounter
+      << endl;
 }

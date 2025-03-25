@@ -17,6 +17,11 @@ def run_avr_nm(file_path):
     result = subprocess.run(['avr-nm', '-S', file_path], capture_output=True, text=True)
     return result.stdout
 
+def demangle_name(mangled_name):
+    # Use c++filt to demangle the name
+    result = subprocess.run(['c++filt', mangled_name], capture_output=True, text=True)
+    return result.stdout.strip()
+
 def parse_nm_output(nm_output):
     # Regular expression to match the nm output lines
     pattern = re.compile(r'([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s+([tTbBdD])\s+(.+)')
@@ -29,7 +34,8 @@ def parse_nm_output(nm_output):
             address_dec = int(address_hex, 16)
             size_dec = int(size_hex, 16)
             type_name = type_names.get(symbol_type, 'Unknown')
-            symbols.append((address_dec, size_dec, type_name, name))
+            demangled_name = demangle_name(name)  # Demangle every symbol name
+            symbols.append((address_dec, size_dec, type_name, demangled_name))
 
     return symbols
 

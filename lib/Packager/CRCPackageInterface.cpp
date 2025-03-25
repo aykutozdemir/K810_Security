@@ -3,25 +3,25 @@
  * @brief Implementation of reliable packet protocol with CRC validation
  * @author Aykut ÖZDEMİR
  * @date 2025
- * 
+ *
  * @details Implements a robust communication protocol optimized for embedded systems:
- * 
+ *
  * Protocol Features:
  * - Fixed 15-byte packet format (4B header + 8B payload + 3B footer)
  * - CRC-16-CCITT error detection
  * - Automatic retransmission
  * - Connection state monitoring
- * 
+ *
  * Implementation Highlights:
  * - Zero-copy buffer management
  * - Flash string optimization
  * - Minimal RAM usage
  * - Non-blocking operation
- * 
+ *
  * State Machines:
  * - Outgoing: READ_DATA → SEND_PACKAGE → WAIT_FOR_ACK_OR_NACK
  * - Incoming: WAIT_FOR_START_BYTE → READ_INCOMING_DATA → PROCESS_INCOMING_DATA
- * 
+ *
  * Error Handling:
  * - Comprehensive validation
  * - Detailed error reporting
@@ -31,48 +31,52 @@
 #include "CRCPackageInterface.h"
 #include "PipedStream.h"
 #include "Utilities.h"
+#include "../../include/TraceLevel.h"
+
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_CRC_PACKAGE
 
 // Flash String Constants
 // Error message prefixes stored in flash memory to minimize RAM usage
-const char CRCPackageInterface::PREFIX_CRC_O_STR[] PROGMEM = "CRC:O:";     ///< Outgoing channel errors
-const char CRCPackageInterface::PREFIX_CRC_I_STR[] PROGMEM = "CRC:I:";     ///< Incoming channel errors
-const char CRCPackageInterface::PREFIX_CRC_STR[] PROGMEM = "CRC:";         ///< General protocol errors
+const char CRCPackageInterface::PREFIX_I_STR[] PROGMEM = "I:"; ///< Incoming channel errors
+const char CRCPackageInterface::PREFIX_O_STR[] PROGMEM = "O:"; ///< Outgoing protocol errors
+const char CRCPackageInterface::PREFIX_STR[] PROGMEM = "X:";   ///< General protocol errors
 
 // Error message details stored in flash memory
-const char CRCPackageInterface::BUFFER_FULL_STR[] PROGMEM = "BufFull";     ///< Buffer capacity exceeded
-const char CRCPackageInterface::MAX_RETRY_STR[] PROGMEM = "MaxRetry";      ///< Max retransmissions reached
-const char CRCPackageInterface::RETRY_STR[] PROGMEM = "Retry";             ///< Packet retransmission
-const char CRCPackageInterface::NACK_STR[] PROGMEM = "NACK";              ///< NACK received
-const char CRCPackageInterface::UNKNOWN_STATE_STR[] PROGMEM = "UnkState";  ///< Invalid state detected
-const char CRCPackageInterface::INVALID_CRC_STR[] PROGMEM = "BadCRC";      ///< CRC validation failed
-const char CRCPackageInterface::UNKNOWN_ERR_STR[] PROGMEM = "UnkErr";      ///< Unclassified error
-const char CRCPackageInterface::MAX_STATE_CHG_STR[] PROGMEM = "MaxStChg";  ///< Too many state transitions
-const char CRCPackageInterface::INVALID_START_STOP_STR[] PROGMEM = "InvStrtStp"; ///< Frame marker error
-const char CRCPackageInterface::INVALID_TYPE_STR[] PROGMEM = "InvTyp";     ///< Invalid packet type
-const char CRCPackageInterface::INVALID_LENGTH_STR[] PROGMEM = "InvLen";   ///< Invalid payload length
-const char CRCPackageInterface::RESET_NUM_STR[] PROGMEM = "ResetNum";     ///< Sequence number reset
+const char CRCPackageInterface::BUFFER_FULL_STR[] PROGMEM = "Buffer full";               ///< Buffer capacity exceeded
+const char CRCPackageInterface::MAX_RETRY_STR[] PROGMEM = "Max retry";                   ///< Max retransmissions reached
+const char CRCPackageInterface::RETRY_STR[] PROGMEM = "Retry";                           ///< Packet retransmission
+const char CRCPackageInterface::NACK_STR[] PROGMEM = "NACK";                             ///< NACK received
+const char CRCPackageInterface::UNKNOWN_STATE_STR[] PROGMEM = "Unknown state";           ///< Invalid state detected
+const char CRCPackageInterface::INVALID_CRC_STR[] PROGMEM = "Bad CRC";                   ///< CRC validation failed
+const char CRCPackageInterface::UNKNOWN_ERR_STR[] PROGMEM = "Unknown error";             ///< Unclassified error
+const char CRCPackageInterface::MAX_STATE_CHG_STR[] PROGMEM = "Max state change";        ///< Too many state transitions
+const char CRCPackageInterface::INVALID_START_STOP_STR[] PROGMEM = "Invalid start stop"; ///< Frame marker error
+const char CRCPackageInterface::INVALID_TYPE_STR[] PROGMEM = "Invalid type";             ///< Invalid packet type
+const char CRCPackageInterface::INVALID_LENGTH_STR[] PROGMEM = "Invalid length";         ///< Invalid payload length
+const char CRCPackageInterface::RESET_NUM_STR[] PROGMEM = "Reset number";                ///< Sequence number reset
 
 /**
  * @brief Constructor implementation
- * 
+ *
  * @details Initializes protocol state:
  * - Packet counters (out: 1, in: 0)
  * - State machines (READ_DATA, WAIT_FOR_START_BYTE)
  * - Timers (data, ACK/NACK, reset)
  * - Message queues (cleared)
  * - Packet buffers (zeroed)
- * 
+ *
  * Note: Starting packet number is 1 (not 0) for outgoing packets
  * to distinguish from reset packets.
  */
 CRCPackageInterface::CRCPackageInterface(PipedStreamPair &pipedStreamPair, const uint16_t encodedBufferSize)
     : PackageInterface(pipedStreamPair, encodedBufferSize),
+      Traceable(F("CRCPackageInterface")),
       m_outgoingTimer(OUTGOING_DATA_READ_TIMEOUT),
       m_incomingTimer(INCOMING_DATA_WAIT_TIMEOUT),
       m_resetDetectionTimer(RESET_DETECTION_TIMEOUT),
       m_outgoingPacketNumber(1),
-      m_lastIncomingPacketNumber(0),
-      m_errorCallback(nullptr)
+      m_lastIncomingPacketNumber(0)
 {
     // Zero packet buffers
     memset(&m_outgoingPackage, 0, sizeof(m_outgoingPackage));
@@ -91,36 +95,24 @@ CRCPackageInterface::CRCPackageInterface(PipedStreamPair &pipedStreamPair, const
 }
 
 /**
- * @brief Destructor implementation
- * 
- * @details Performs cleanup:
- * - Nullifies callback pointer
- * - State machines and buffers cleared by member destructors
- */
-CRCPackageInterface::~CRCPackageInterface()
-{
-    m_errorCallback = nullptr;
-}
-
-/**
  * @brief Main protocol processing loop
- * 
+ *
  * @details Performs one iteration of protocol processing:
- * 
+ *
  * 1. Connection Monitoring:
  *    - Checks reset detection timer
  *    - Resets protocol if timeout
- * 
+ *
  * 2. Outgoing Channel:
  *    - Processes state machine
  *    - Limits state transitions
  *    - Reports excessive transitions
- * 
+ *
  * 3. Incoming Channel:
  *    - Processes state machine
  *    - Limits state transitions
  *    - Reports excessive transitions
- * 
+ *
  * Note: State machine transitions are limited to prevent
  * infinite loops in case of corruption.
  */
@@ -149,7 +141,10 @@ void CRCPackageInterface::loop()
         // Report if limit reached
         if (outgoingStateChanges == MAX_REPLAY_COUNT)
         {
-            reportError(PGMT(PREFIX_CRC_O_STR), PGMT(MAX_STATE_CHG_STR));
+            TRACE_WARN()
+                << PGMT(PREFIX_O_STR)
+                << PGMT(MAX_STATE_CHG_STR)
+                << endl;
         }
     }
 
@@ -169,36 +164,22 @@ void CRCPackageInterface::loop()
         // Report if limit reached
         if (incomingStateChanges == MAX_REPLAY_COUNT)
         {
-            reportError(PGMT(PREFIX_CRC_I_STR), PGMT(MAX_STATE_CHG_STR));
+            TRACE_WARN()
+                << PGMT(PREFIX_I_STR)
+                << PGMT(MAX_STATE_CHG_STR)
+                << endl;
         }
     }
 }
 
 /**
- * @brief Registers error callback handler
- * 
- * @details The callback will be invoked for:
- * - Protocol errors (CRC, framing)
- * - Buffer overflows
- * - Timeout conditions
- * - State machine errors
- * 
- * All error messages are stored in flash memory to minimize RAM usage.
- * The callback must be prepared to handle flash strings.
- */
-void CRCPackageInterface::setErrorCallback(const ErrorCallback callback)
-{
-    m_errorCallback = callback;
-}
-
-/**
  * @brief Initiates connection reset
- * 
+ *
  * @details Performs connection reset sequence:
  * 1. Checks buffer capacity
  * 2. Sends RESET packet (type: 3, number: 0)
  * 3. Resets local protocol state
- * 
+ *
  * Used to recover from:
  * - Connection loss
  * - Protocol desynchronization
@@ -211,7 +192,10 @@ void CRCPackageInterface::sendResetPacket()
     // Verify buffer capacity
     if (PACKAGE_LENGTH > encodedStream.availableForWrite())
     {
-        reportError(PGMT(PREFIX_CRC_O_STR), PGMT(BUFFER_FULL_STR));
+        TRACE_WARN()
+            << PGMT(PREFIX_O_STR)
+            << PGMT(BUFFER_FULL_STR)
+            << endl;
         return;
     }
 
@@ -227,13 +211,13 @@ void CRCPackageInterface::sendResetPacket()
 
 /**
  * @brief Resets protocol state
- * 
+ *
  * @details Performs complete protocol reset:
  * 1. Resets packet counters (out: 1, in: 0)
  * 2. Clears message queues
  * 3. Resets state machines
  * 4. Reports reset event
- * 
+ *
  * Note: Only resets if outgoing number isn't already 1
  * to avoid unnecessary operations.
  */
@@ -253,17 +237,20 @@ void CRCPackageInterface::resetPacketNumbering()
     resetOutgoingState();
     resetIncomingState();
 
-    reportError(PGMT(PREFIX_CRC_STR), PGMT(RESET_NUM_STR));
+    TRACE_INFO()
+        << PGMT(PREFIX_STR)
+        << PGMT(RESET_NUM_STR)
+        << endl;
 }
 
 /**
  * @brief Calculates CRC-16-CCITT checksum
- * 
+ *
  * @details Implements CRC-16-CCITT algorithm:
  * - Polynomial: 0x1021 (x^16 + x^12 + x^5 + 1)
  * - Initial value: 0xFFFF
  * - No final XOR
- * 
+ *
  * Algorithm steps:
  * 1. Initialize CRC to 0xFFFF
  * 2. For each byte:
@@ -271,7 +258,7 @@ void CRCPackageInterface::resetPacketNumbering()
  *    - For each bit:
  *      - If MSB set: shift left and XOR with polynomial
  *      - If MSB clear: shift left only
- * 
+ *
  * @param data Input data buffer
  * @param length Number of bytes to process
  * @return uint16_t Calculated CRC-16 value
@@ -293,14 +280,14 @@ uint16_t CRCPackageInterface::crc16(const uint8_t *const data, const uint8_t len
 
 /**
  * @brief Stores CRC value with endianness handling
- * 
+ *
  * @details Ensures consistent byte order:
  * - MSB stored first (big-endian)
  * - LSB stored second
- * 
+ *
  * This approach works correctly regardless of
  * platform endianness.
- * 
+ *
  * @param dest Destination CRC variable
  * @param src Source CRC value
  */
@@ -313,14 +300,14 @@ inline void storeCRC(uint16_t &dest, const uint16_t src)
 
 /**
  * @brief Retrieves CRC value with endianness handling
- * 
+ *
  * @details Reconstructs CRC value:
  * - MSB from first byte
  * - LSB from second byte
- * 
+ *
  * This approach works correctly regardless of
  * platform endianness.
- * 
+ *
  * @param src Source CRC variable
  * @return uint16_t Retrieved CRC value
  */
@@ -331,71 +318,40 @@ inline uint16_t retrieveCRC(const uint16_t &src)
 }
 
 /**
- * @brief Reports error through callback
- * 
- * @details Delivers error information if callback registered:
- * - Category prefix (from flash)
- * - Error message (from flash)
- * - No heap allocations
- * 
- * @param prefix Error category (flash string)
- * @param errorMessage Error details (flash string)
- */
-void CRCPackageInterface::reportError(const __FlashStringHelper *const prefix, const __FlashStringHelper *const errorMessage) const
-{
-    if (m_errorCallback)
-    {
-        m_errorCallback(prefix, errorMessage);
-    }
-}
-
-/**
- * @brief Reports NACK reason through callback
- * 
- * @details Maps NACK reason to human-readable message:
- * - INVALID_CRC → "BadCRC"
- * - INVALID_START_STOP → "InvStrtStp"
- * - INVALID_TYPE → "InvTyp"
- * - INVALID_LENGTH → "InvLen"
- * - Others → "UnkErr"
- * 
- * All messages are stored in flash memory.
- * 
- * @param prefix Error category (flash string)
+ * @brief Converts NACK reason to human-readable string
+ *
  * @param reason NACK reason code
+ * @return const __FlashStringHelper* Human-readable string
  */
-void CRCPackageInterface::reportNackReason(const __FlashStringHelper *const prefix, const NackReason reason) const
+const __FlashStringHelper *CRCPackageInterface::toString(const NackReason reason) const
 {
-    if (m_errorCallback)
+    const __FlashStringHelper *errorMessage;
+
+    switch (reason)
     {
-        const __FlashStringHelper *errorMessage;
-
-        switch (reason)
-        {
-        case NackReason::INVALID_CRC:
-            errorMessage = PGMT(INVALID_CRC_STR);
-            break;
-        case NackReason::INVALID_START_STOP:
-            errorMessage = PGMT(INVALID_START_STOP_STR);
-            break;
-        case NackReason::INVALID_TYPE:
-            errorMessage = PGMT(INVALID_TYPE_STR);
-            break;
-        case NackReason::INVALID_LENGTH:
-            errorMessage = PGMT(INVALID_LENGTH_STR);
-            break;
-        default:
-            errorMessage = PGMT(UNKNOWN_ERR_STR);
-            break;
-        }
-
-        reportError(prefix, errorMessage);
+    case NackReason::INVALID_CRC:
+        errorMessage = PGMT(INVALID_CRC_STR);
+        break;
+    case NackReason::INVALID_START_STOP:
+        errorMessage = PGMT(INVALID_START_STOP_STR);
+        break;
+    case NackReason::INVALID_TYPE:
+        errorMessage = PGMT(INVALID_TYPE_STR);
+        break;
+    case NackReason::INVALID_LENGTH:
+        errorMessage = PGMT(INVALID_LENGTH_STR);
+        break;
+    default:
+        errorMessage = PGMT(UNKNOWN_ERR_STR);
+        break;
     }
+
+    return errorMessage;
 }
 
 /**
  * @brief Resets outgoing channel state
- * 
+ *
  * @details Performs complete outgoing reset:
  * 1. Clears packet buffer
  * 2. Resets state to READ_DATA
@@ -413,7 +369,7 @@ void CRCPackageInterface::resetOutgoingState()
 
 /**
  * @brief Resets incoming channel state
- * 
+ *
  * @details Performs complete incoming reset:
  * 1. Clears packet buffer
  * 2. Resets byte counter
@@ -431,7 +387,7 @@ void CRCPackageInterface::resetIncomingState()
 
 /**
  * @brief Prepares packet for transmission
- * 
+ *
  * @details Assembles a complete packet:
  * 1. Sets header fields
  *    - Start byte (0xAA)
@@ -442,7 +398,7 @@ void CRCPackageInterface::resetIncomingState()
  * 3. Sets footer fields
  *    - CRC-16 over header+data
  *    - Stop byte (0x55)
- * 
+ *
  * @param package Packet structure to prepare
  * @param type Packet type (DATA/ACK/NACK/RESET)
  * @param packetNumber Sequence number
@@ -474,7 +430,7 @@ void CRCPackageInterface::preparePackage(Package &package, const uint8_t type, c
 
 /**
  * @brief Validates received packet
- * 
+ *
  * @details Performs comprehensive validation:
  * 1. Frame markers (0xAA/0x55)
  * 2. Packet type (0-3)
@@ -484,7 +440,7 @@ void CRCPackageInterface::preparePackage(Package &package, const uint8_t type, c
  *    - NACK: 1 byte
  *    - RESET: 0 bytes
  * 4. CRC-16 integrity
- * 
+ *
  * @param package Packet to validate
  * @return NackReason Error code (NO_ERROR if valid)
  */
@@ -528,12 +484,12 @@ CRCPackageInterface::NackReason CRCPackageInterface::validatePackage(const Packa
 
 /**
  * @brief Transmits packet over encoded stream
- * 
+ *
  * @details Sends complete packet:
  * 1. Serializes to byte array
  * 2. Writes to encoded stream
  * 3. No buffering/queueing
- * 
+ *
  * @param package Prepared packet to send
  */
 void CRCPackageInterface::sendPackage(const Package &package)
@@ -543,23 +499,23 @@ void CRCPackageInterface::sendPackage(const Package &package)
 
 /**
  * @brief Processes complete received packet
- * 
+ *
  * @details Handles packet based on type:
- * 
+ *
  * DATA:
  * 1. Validate packet
  * 2. Check sequence number
  * 3. Store payload
  * 4. Send ACK
- * 
+ *
  * ACK/NACK:
  * 1. Verify packet number
  * 2. Queue for outgoing state machine
- * 
+ *
  * RESET:
  * 1. Reset protocol state
  * 2. Send ACK
- * 
+ *
  * @return true if processing successful
  * @return false if error occurred
  */
@@ -581,7 +537,10 @@ bool CRCPackageInterface::processPackage()
             // Check buffer space for response
             if (PACKAGE_LENGTH > encodedStream.availableForWrite())
             {
-                reportError(PGMT(PREFIX_CRC_I_STR), PGMT(BUFFER_FULL_STR));
+                TRACE_WARN()
+                    << PGMT(PREFIX_I_STR)
+                    << PGMT(BUFFER_FULL_STR)
+                    << endl;
                 return false;
             }
 
@@ -593,7 +552,10 @@ bool CRCPackageInterface::processPackage()
                 // Check buffer space for payload
                 if (safeLength > plainStream.availableForWrite())
                 {
-                    reportError(PGMT(PREFIX_CRC_I_STR), PGMT(BUFFER_FULL_STR));
+                    TRACE_WARN()
+                        << PGMT(PREFIX_I_STR)
+                        << PGMT(BUFFER_FULL_STR)
+                        << endl;
                     return false;
                 }
 
@@ -611,7 +573,11 @@ bool CRCPackageInterface::processPackage()
         else if (m_incomingPackage.header.type == RESET_TYPE)
         {
             // Handle reset request
-            reportError(PGMT(PREFIX_CRC_I_STR), PGMT(RESET_NUM_STR));
+            TRACE_INFO()
+                << PGMT(PREFIX_I_STR)
+                << PGMT(RESET_NUM_STR)
+                << endl;
+
             resetPacketNumbering();
 
             // Send ACK
@@ -637,7 +603,10 @@ bool CRCPackageInterface::processPackage()
             if (m_incomingPackage.header.length > 0)
             {
                 nackReason = static_cast<NackReason>(m_incomingPackage.data[0]);
-                reportNackReason(PGMT(PREFIX_CRC_O_STR), static_cast<NackReason>(nackReason));
+                TRACE_ERROR()
+                    << PGMT(PREFIX_O_STR)
+                    << toString(nackReason)
+                    << endl;
             }
 
             // Queue NACK
@@ -651,14 +620,21 @@ bool CRCPackageInterface::processPackage()
     else
     {
         // Report validation failure
-        reportNackReason(PGMT(PREFIX_CRC_I_STR), validationResult);
+        TRACE_ERROR()
+            << PGMT(PREFIX_I_STR)
+            << toString(validationResult)
+            << endl;
 
         // Send NACK if DATA packet
         if (m_incomingPackage.header.type == DATA_TYPE)
         {
             if (PACKAGE_LENGTH > encodedStream.availableForWrite())
             {
-                reportError(PGMT(PREFIX_CRC_I_STR), PGMT(BUFFER_FULL_STR));
+                TRACE_WARN()
+                    << PGMT(PREFIX_I_STR)
+                    << PGMT(BUFFER_FULL_STR)
+                    << endl;
+
                 return false;
             }
 
@@ -676,25 +652,25 @@ bool CRCPackageInterface::processPackage()
 
 /**
  * @brief Handles outgoing state machine
- * 
+ *
  * @details Processes one state machine iteration:
- * 
+ *
  * READ_DATA:
  * - Collect data until timeout or buffer full
  * - Reset timer on first byte
  * - Move to SEND_PACKAGE when ready
- * 
+ *
  * SEND_PACKAGE:
  * - Prepare packet with CRC
  * - Transmit over encoded stream
  * - Move to WAIT_FOR_ACK_OR_NACK
- * 
+ *
  * WAIT_FOR_ACK_OR_NACK:
  * - Wait for response with timeout
  * - On ACK: Increment sequence, reset state
  * - On NACK: Retry if attempts remain
  * - On timeout: Retry if attempts remain
- * 
+ *
  * @return true if state changed
  * @return false if no state change
  */
@@ -713,6 +689,15 @@ bool CRCPackageInterface::handleOutgoingState()
         {
             // Process ACK - advance sequence and reset state
             m_outgoingPacketNumber++;
+            if (m_outgoingPacketNumber == 0) // Handle overflow
+            {
+                m_outgoingPacketNumber = 1;
+                m_lastIncomingPacketNumber = 0;
+                TRACE_INFO()
+                    << PGMT(PREFIX_O_STR)
+                    << PGMT(RESET_NUM_STR)
+                    << endl;
+            }
             resetOutgoingState();
             return true;
         }
@@ -722,7 +707,10 @@ bool CRCPackageInterface::handleOutgoingState()
         {
             // Process NACK - retry if attempts remain
             m_outgoingFlags.m_retryCount++;
-            reportError(PGMT(PREFIX_CRC_O_STR), PGMT(NACK_STR));
+            TRACE_ERROR()
+                << PGMT(PREFIX_O_STR)
+                << PGMT(NACK_STR)
+                << endl;
             m_outgoingFlags.m_currentState = OutgoingState::SEND_PACKAGE;
             return true;
         }
@@ -756,7 +744,10 @@ bool CRCPackageInterface::handleOutgoingState()
         // Verify buffer space
         if (PACKAGE_LENGTH > encodedStream.availableForWrite())
         {
-            reportError(PGMT(PREFIX_CRC_O_STR), PGMT(BUFFER_FULL_STR));
+            TRACE_WARN()
+                << PGMT(PREFIX_O_STR)
+                << PGMT(BUFFER_FULL_STR)
+                << endl;
             return false;
         }
 
@@ -778,14 +769,20 @@ bool CRCPackageInterface::handleOutgoingState()
             if (m_outgoingFlags.m_retryCount >= MAX_RETRY_COUNT)
             {
                 // Max retries reached - reset state
-                reportError(PGMT(PREFIX_CRC_O_STR), PGMT(MAX_RETRY_STR));
+                TRACE_ERROR()
+                    << PGMT(PREFIX_O_STR)
+                    << PGMT(MAX_RETRY_STR)
+                    << endl;
                 resetOutgoingState();
             }
             else
             {
                 // Retry transmission
                 m_outgoingFlags.m_retryCount++;
-                reportError(PGMT(PREFIX_CRC_O_STR), PGMT(RETRY_STR));
+                TRACE_ERROR()
+                    << PGMT(PREFIX_O_STR)
+                    << PGMT(RETRY_STR)
+                    << endl;
                 m_outgoingFlags.m_currentState = OutgoingState::SEND_PACKAGE;
             }
             return true;
@@ -794,7 +791,10 @@ bool CRCPackageInterface::handleOutgoingState()
 
     default:
         // Invalid state - reset
-        reportError(PGMT(PREFIX_CRC_O_STR), PGMT(UNKNOWN_STATE_STR));
+        TRACE_ERROR()
+            << PGMT(PREFIX_O_STR)
+            << PGMT(UNKNOWN_STATE_STR)
+            << endl;
         resetOutgoingState();
         return true;
     }
@@ -803,24 +803,24 @@ bool CRCPackageInterface::handleOutgoingState()
 
 /**
  * @brief Handles incoming state machine
- * 
+ *
  * @details Processes one state machine iteration:
- * 
+ *
  * WAIT_FOR_START_BYTE:
  * - Discard bytes until 0xAA found
  * - Move to READ_INCOMING_DATA
  * - Reset timeout timer
- * 
+ *
  * READ_INCOMING_DATA:
  * - Collect bytes until complete packet
  * - Handle timeout if reception stalls
  * - Move to PROCESS_INCOMING_DATA when done
- * 
+ *
  * PROCESS_INCOMING_DATA:
  * - Validate packet integrity
  * - Handle based on packet type
  * - Send ACK/NACK as appropriate
- * 
+ *
  * @return true if state changed
  * @return false if no state change
  */
@@ -874,7 +874,10 @@ bool CRCPackageInterface::handleIncomingState()
 
     default:
         // Invalid state - reset
-        reportError(PGMT(PREFIX_CRC_I_STR), PGMT(UNKNOWN_STATE_STR));
+        TRACE_ERROR()
+            << PGMT(PREFIX_I_STR)
+            << PGMT(UNKNOWN_STATE_STR)
+            << endl;
         resetIncomingState();
         return true;
     }

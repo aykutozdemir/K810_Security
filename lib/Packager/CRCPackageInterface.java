@@ -121,10 +121,10 @@ public class CRCPackageInterface {
     /**
      * Initializes communication interface
      * 
-     * @param inputStream Stream for receiving data
+     * @param inputStream  Stream for receiving data
      * @param outputStream Stream for sending data
      */
-    public CRCPackageInterface(InputStream inputStream, OutputStream outputStream) {
+    public CRCPackageInterface(final InputStream inputStream, final OutputStream outputStream) {
         this.inputStream = inputStream;
         this.outputStream = outputStream;
         this.outgoingDataQueue = new ConcurrentLinkedQueue<>();
@@ -151,7 +151,8 @@ public class CRCPackageInterface {
      */
     public void start() {
         synchronized (threadLock) {
-            if (isRunning.get()) return;
+            if (isRunning.get())
+                return;
             isRunning.set(true);
             communicationThread = new Thread(new CommunicationRunnable());
             communicationThread.setName("CRC-Communication-Thread");
@@ -211,7 +212,8 @@ public class CRCPackageInterface {
         boolean outgoingChanged;
         do {
             outgoingChanged = handleOutgoingState();
-            if (outgoingChanged) outgoingStateChanges++;
+            if (outgoingChanged)
+                outgoingStateChanges++;
         } while (outgoingChanged && outgoingStateChanges < MAX_REPLAY_COUNT);
 
         if (outgoingStateChanges == MAX_REPLAY_COUNT) {
@@ -223,7 +225,8 @@ public class CRCPackageInterface {
         boolean incomingChanged;
         do {
             incomingChanged = handleIncomingState();
-            if (incomingChanged) incomingStateChanges++;
+            if (incomingChanged)
+                incomingStateChanges++;
         } while (incomingChanged && incomingStateChanges < MAX_REPLAY_COUNT);
 
         if (incomingStateChanges == MAX_REPLAY_COUNT) {
@@ -236,7 +239,7 @@ public class CRCPackageInterface {
      * 
      * @param callback Function to receive error notifications
      */
-    public void setErrorCallback(ErrorCallback callback) {
+    public void setErrorCallback(final ErrorCallback callback) {
         this.errorCallback = callback;
     }
 
@@ -246,15 +249,16 @@ public class CRCPackageInterface {
      * Splits data into chunks of maximum payload size
      * and queues for transmission.
      * 
-     * @param data Data buffer to send
+     * @param data   Data buffer to send
      * @param length Number of bytes to send
      */
-    public void sendData(byte[] data, int length) {
-        if (data == null || length <= 0) return;
+    public void sendData(final byte[] data, final int length) {
+        if (data == null || length <= 0)
+            return;
         int offset = 0;
         while (offset < length) {
-            int chunkSize = Math.min(MAX_DATA_LENGTH, length - offset);
-            byte[] chunk = new byte[chunkSize];
+            final int chunkSize = Math.min(MAX_DATA_LENGTH, length - offset);
+            final byte[] chunk = new byte[chunkSize];
             System.arraycopy(data, offset, chunk, 0, chunkSize);
             outgoingDataQueue.offer(chunk);
             offset += chunkSize;
@@ -269,14 +273,17 @@ public class CRCPackageInterface {
      * @return Combined received data or null if none
      */
     public byte[] readData() {
-        if (incomingDataQueue.isEmpty()) return null;
+        if (incomingDataQueue.isEmpty())
+            return null;
         int totalSize = 0;
-        for (byte[] chunk : incomingDataQueue) totalSize += chunk.length;
-        byte[] combined = new byte[totalSize];
+        for (final byte[] chunk : incomingDataQueue)
+            totalSize += chunk.length;
+        final byte[] combined = new byte[totalSize];
         int offset = 0;
         while (!incomingDataQueue.isEmpty()) {
-            byte[] chunk = incomingDataQueue.poll();
-            if (chunk == null) continue;
+            final byte[] chunk = incomingDataQueue.poll();
+            if (chunk == null)
+                continue;
             System.arraycopy(chunk, 0, combined, offset, chunk.length);
             offset += chunk.length;
         }
@@ -291,7 +298,7 @@ public class CRCPackageInterface {
      * @throws IOException on communication error
      */
     public void sendResetPacket() throws IOException {
-        Package resetPackage = new Package();
+        final Package resetPackage = new Package();
         preparePackage(resetPackage, RESET_TYPE, (byte) 0, (byte) 0, null);
         sendPackage(resetPackage);
         resetPacketNumbering();
@@ -304,7 +311,8 @@ public class CRCPackageInterface {
      * and resets state machines.
      */
     private void resetPacketNumbering() {
-        if (outgoingPacketNumber == 1) return;
+        if (outgoingPacketNumber == 1)
+            return;
         outgoingPacketNumber = 1;
         lastIncomingPacketNumber = 0;
         messageQueue.clear();
@@ -347,13 +355,14 @@ public class CRCPackageInterface {
      * Sets header fields, copies payload,
      * and calculates CRC.
      * 
-     * @param pkg Packet to prepare
-     * @param type Packet type
+     * @param pkg          Packet to prepare
+     * @param type         Packet type
      * @param packetNumber Sequence number
-     * @param dataLength Payload length
-     * @param data Optional payload data
+     * @param dataLength   Payload length
+     * @param data         Optional payload data
      */
-    private void preparePackage(Package pkg, byte type, byte packetNumber, byte dataLength, byte[] data) {
+    private void preparePackage(final Package pkg, final byte type, final byte packetNumber,
+            final byte dataLength, final byte[] data) {
         pkg.header.startByte = START_BYTE;
         pkg.header.packetNumber = packetNumber;
         pkg.header.type = type;
@@ -373,8 +382,8 @@ public class CRCPackageInterface {
      * @param pkg Packet to send
      * @throws IOException on communication error
      */
-    private void sendPackage(Package pkg) throws IOException {
-        byte[] buffer = pkg.toByteArray();
+    private void sendPackage(final Package pkg) throws IOException {
+        final byte[] buffer = pkg.toByteArray();
         outputStream.write(buffer);
         outputStream.flush();
     }
@@ -387,15 +396,15 @@ public class CRCPackageInterface {
      * @param pkg Packet to checksum
      * @return Calculated CRC value
      */
-    private int calculateCRC16(Package pkg) {
-        byte[] data = pkg.toByteArray();
+    private int calculateCRC16(final Package pkg) {
+        final byte[] data = pkg.toByteArray();
         int crc = 0xFFFF;
         for (int i = 1; i < (data.length - 3); i++) {
-            int currentByte = data[i] & 0xFF;
+            final int currentByte = data[i] & 0xFF;
             crc ^= (currentByte << 8);
             crc &= 0xFFFF;
             for (int bit = 0; bit < 8; bit++) {
-                int msb = crc & 0x8000;
+                final int msb = crc & 0x8000;
                 crc = (crc << 1) & 0xFFFF;
                 if (msb != 0) {
                     crc ^= 0x1021;
@@ -418,12 +427,17 @@ public class CRCPackageInterface {
      * @throws IOException on communication error
      */
     private boolean handleOutgoingState() throws IOException {
-        PendingMessage message = messageQueue.poll();
+        final PendingMessage message = messageQueue.poll();
         if (message != null) {
             if (message.type == PendingMessageType.ACK_RECEIVED &&
                     message.packetNumber == outgoingPacketNumber &&
                     outgoingState == OutgoingState.WAIT_FOR_ACK_OR_NACK) {
                 outgoingPacketNumber++;
+                if (outgoingPacketNumber == 0) { // Handle overflow
+                    outgoingPacketNumber = 1;
+                    lastIncomingPacketNumber = 0;
+                    reportError("CRC:O:", "ResetNum");
+                }
                 resetOutgoingState();
                 return true;
             } else if (message.type == PendingMessageType.NACK_RECEIVED &&
@@ -439,7 +453,7 @@ public class CRCPackageInterface {
         switch (outgoingState) {
             case READ_DATA:
                 if (!outgoingDataQueue.isEmpty()) {
-                    byte[] nextChunk = outgoingDataQueue.poll();
+                    final byte[] nextChunk = outgoingDataQueue.poll();
                     if (nextChunk != null) {
                         retryCount = 0;
                         System.arraycopy(nextChunk, 0, outgoingPackage.data, 0, nextChunk.length);
@@ -491,7 +505,7 @@ public class CRCPackageInterface {
         switch (incomingState) {
             case WAIT_FOR_START_BYTE:
                 if (inputStream.available() > 0) {
-                    int b = inputStream.read();
+                    final int b = inputStream.read();
                     if ((byte) b == START_BYTE) {
                         incomingState = IncomingState.READ_INCOMING_DATA;
                         incomingTimer.reset();
@@ -509,8 +523,8 @@ public class CRCPackageInterface {
                 }
 
                 while (inputStream.available() > 0 && incomingDataLength < PACKAGE_LENGTH) {
-                    int b = inputStream.read();
-                    byte[] packageBytes = incomingPackage.toByteArray();
+                    final int b = inputStream.read();
+                    final byte[] packageBytes = incomingPackage.toByteArray();
                     packageBytes[incomingDataLength++] = (byte) b;
                     rebuildPackageFromArray(incomingPackage, packageBytes);
                 }
@@ -535,7 +549,7 @@ public class CRCPackageInterface {
      * @param pkg Packet to rebuild
      * @param raw Raw packet bytes
      */
-    private void rebuildPackageFromArray(Package pkg, byte[] raw) {
+    private void rebuildPackageFromArray(final Package pkg, final byte[] raw) {
         pkg.header.startByte = raw[0];
         pkg.header.packetNumber = raw[1];
         pkg.header.type = raw[2];
@@ -558,34 +572,34 @@ public class CRCPackageInterface {
      */
     private boolean processPackage() throws IOException {
         resetDetectionTimer.reset();
-        NackReason validationResult = validatePackage(incomingPackage);
+        final NackReason validationResult = validatePackage(incomingPackage);
 
         if (validationResult == NackReason.NO_ERROR) {
             switch (incomingPackage.header.type) {
                 case DATA_TYPE:
                     if (incomingPackage.header.packetNumber > lastIncomingPacketNumber) {
                         if (incomingPackage.header.length > 0) {
-                            byte[] chunk = Arrays.copyOfRange(incomingPackage.data, 0,
+                            final byte[] chunk = Arrays.copyOfRange(incomingPackage.data, 0,
                                     Math.min(incomingPackage.header.length, MAX_DATA_LENGTH));
                             incomingDataQueue.offer(chunk);
                         }
                         lastIncomingPacketNumber = incomingPackage.header.packetNumber;
                     }
-                    Package ackPackage = new Package();
+                    final Package ackPackage = new Package();
                     preparePackage(ackPackage, ACK_TYPE, incomingPackage.header.packetNumber, (byte) 0, null);
                     sendPackage(ackPackage);
                     break;
 
                 case RESET_TYPE:
                     resetPacketNumbering();
-                    Package resetAckPackage = new Package();
+                    final Package resetAckPackage = new Package();
                     preparePackage(resetAckPackage, ACK_TYPE, (byte) 0, (byte) 0, null);
                     sendPackage(resetAckPackage);
                     break;
 
                 case ACK_TYPE:
                     if (incomingPackage.header.packetNumber == outgoingPacketNumber) {
-                        PendingMessage message = new PendingMessage();
+                        final PendingMessage message = new PendingMessage();
                         message.type = PendingMessageType.ACK_RECEIVED;
                         message.packetNumber = incomingPackage.header.packetNumber;
                         messageQueue.offer(message);
@@ -594,7 +608,7 @@ public class CRCPackageInterface {
 
                 case NACK_TYPE:
                     if (incomingPackage.header.packetNumber == outgoingPacketNumber) {
-                        PendingMessage message = new PendingMessage();
+                        final PendingMessage message = new PendingMessage();
                         message.type = PendingMessageType.NACK_RECEIVED;
                         message.packetNumber = incomingPackage.header.packetNumber;
                         message.nackReason = incomingPackage.header.length > 0
@@ -607,8 +621,8 @@ public class CRCPackageInterface {
         } else {
             reportError("CRC:I:", validationResult.toString());
             if (incomingPackage.header.type == DATA_TYPE) {
-                Package nackPackage = new Package();
-                byte[] reasonData = new byte[]{(byte) validationResult.ordinal()};
+                final Package nackPackage = new Package();
+                final byte[] reasonData = new byte[] { (byte) validationResult.ordinal() };
                 preparePackage(nackPackage, NACK_TYPE, incomingPackage.header.packetNumber,
                         (byte) 1, reasonData);
                 sendPackage(nackPackage);
@@ -631,7 +645,7 @@ public class CRCPackageInterface {
      * @param pkg Packet to validate
      * @return Error code (NO_ERROR if valid)
      */
-    private NackReason validatePackage(Package pkg) {
+    private NackReason validatePackage(final Package pkg) {
         if (pkg.header.startByte != START_BYTE || pkg.footer.stopByte != STOP_BYTE) {
             return NackReason.INVALID_START_STOP;
         }
@@ -657,9 +671,9 @@ public class CRCPackageInterface {
      * Reports error through callback
      * 
      * @param prefix Error category
-     * @param error Error message
+     * @param error  Error message
      */
-    private void reportError(String prefix, String error) {
+    private void reportError(final String prefix, final String error) {
         if (errorCallback != null) {
             errorCallback.onError(prefix + error);
         }
@@ -722,6 +736,7 @@ public class CRCPackageInterface {
     public interface ErrorCallback {
         /**
          * Called when protocol error occurs
+         * 
          * @param error Error message with prefix
          */
         void onError(String error);
@@ -732,11 +747,11 @@ public class CRCPackageInterface {
      */
     private static class Package {
         /** Packet header (4 bytes) */
-        Header header;
+        final Header header;
         /** Packet payload (8 bytes max) */
-        byte[] data;
+        final byte[] data;
         /** Packet footer (3 bytes) */
-        Footer footer;
+        final Footer footer;
 
         /**
          * Creates empty packet with zeroed fields
@@ -749,10 +764,11 @@ public class CRCPackageInterface {
 
         /**
          * Serializes packet to byte array
+         * 
          * @return Raw packet bytes
          */
         byte[] toByteArray() {
-            byte[] result = new byte[PACKAGE_LENGTH];
+            final byte[] result = new byte[PACKAGE_LENGTH];
             // Copy header fields
             result[0] = header.startByte;
             result[1] = header.packetNumber;
@@ -773,13 +789,20 @@ public class CRCPackageInterface {
      */
     private static class Header {
         /** Start of packet marker */
-        byte startByte;
+        final byte startByte;
         /** Packet sequence number */
-        byte packetNumber;
+        final byte packetNumber;
         /** Packet type identifier */
-        byte type;
+        final byte type;
         /** Payload length */
-        byte length;
+        final byte length;
+
+        Header() {
+            startByte = 0;
+            packetNumber = 0;
+            type = 0;
+            length = 0;
+        }
     }
 
     /**
@@ -787,9 +810,14 @@ public class CRCPackageInterface {
      */
     private static class Footer {
         /** CRC-16 checksum */
-        short crc;
+        final short crc;
         /** End of packet marker */
-        byte stopByte;
+        final byte stopByte;
+
+        Footer() {
+            crc = 0;
+            stopByte = 0;
+        }
     }
 
     /**
@@ -797,11 +825,17 @@ public class CRCPackageInterface {
      */
     private static class PendingMessage {
         /** Message type (ACK/NACK) */
-        PendingMessageType type;
+        final PendingMessageType type;
         /** Associated packet number */
-        byte packetNumber;
+        final byte packetNumber;
         /** Error code if NACK */
-        NackReason nackReason;
+        final NackReason nackReason;
+
+        PendingMessage() {
+            type = null;
+            packetNumber = 0;
+            nackReason = null;
+        }
     }
 
     /**
@@ -815,18 +849,20 @@ public class CRCPackageInterface {
 
         /**
          * Creates timer with specified interval
+         * 
          * @param interval Timer duration (ms)
          */
-        Timer(long interval) {
+        Timer(final long interval) {
             this.interval = interval;
             reset();
         }
 
         /**
          * Updates timer duration
+         * 
          * @param interval New duration (ms)
          */
-        void setInterval(long interval) {
+        void setInterval(final long interval) {
             this.interval = interval;
         }
 
@@ -839,6 +875,7 @@ public class CRCPackageInterface {
 
         /**
          * Checks if timer has expired
+         * 
          * @return true if interval elapsed
          */
         boolean isReady() {
@@ -853,25 +890,21 @@ public class CRCPackageInterface {
         @Override
         public void run() {
             try {
-                // Main protocol loop
                 while (isRunning.get() && !Thread.currentThread().isInterrupted()) {
                     try {
-                        // Process one protocol iteration
                         loop();
-                        // Delay before next iteration
                         Thread.sleep(LOOP_DELAY_MS);
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         reportError("CRC:Thread", "IO Error: " + e.getMessage());
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         Thread.currentThread().interrupt();
                         break;
                     }
                 }
             } finally {
                 try {
-                    // Clean up on thread exit
                     resetPacketNumbering();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     reportError("CRC:Thread", "Cleanup Error: " + e.getMessage());
                 }
             }

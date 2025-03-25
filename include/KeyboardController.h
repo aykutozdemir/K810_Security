@@ -16,6 +16,7 @@
 
 // Third-party libraries
 #include <FastPin.h>
+#include <Traceable.h>
 
 /**
  * @brief Length of the seed used for encryption/decryption operations.
@@ -29,7 +30,7 @@
  * manage locking/unlocking, and handle encryption/decryption of data for secure
  * communication with the keyboard.
  */
-class KeyboardController final
+class KeyboardController final : public Traceable
 {
 public:
   /**

@@ -4,7 +4,7 @@
 #include "PackageInterface.h"
 #include "SimpleTimer.h"
 #include "FastCircularQueue.h"
-
+#include "Traceable.h"
 /**
  * @file CRCPackageInterface.h
  * @brief Reliable packet-based communication protocol with CRC-16 validation
@@ -26,24 +26,24 @@
  * @brief High-reliability packet protocol with error detection
  *
  * @details Provides a complete communication stack with the following features:
- * 
+ *
  * Protocol Structure:
  * - Fixed 15-byte packet format (4B header + 8B payload + 3B footer)
  * - CRC-16-CCITT error detection (polynomial: 0x1021)
  * - Start/stop byte framing (0xAA/0x55)
- * 
+ *
  * Reliability Features:
  * - Automatic packet acknowledgment (ACK/NACK)
  * - Configurable retry mechanism
  * - Sequence number tracking
  * - Connection state monitoring
- * 
+ *
  * Performance Optimizations:
  * - Zero-copy buffer management
  * - Interrupt-safe operation
  * - Minimal memory footprint
  * - Flash string support for embedded systems
- * 
+ *
  * Error Handling:
  * - Comprehensive error detection
  * - Detailed error reporting
@@ -53,26 +53,13 @@
  * @note Designed for single-threaded environments with interrupt safety
  * @note All packet operations are non-blocking
  */
-class CRCPackageInterface : public PackageInterface
+class CRCPackageInterface : public PackageInterface, public Traceable
 {
 public:
     /**
-     * @typedef ErrorCallback
-     * @brief Function pointer for error event handling
-     * 
-     * @details Callback interface for error reporting and logging. The callback
-     * receives both a category prefix and detailed message stored in flash memory
-     * to minimize RAM usage in embedded systems.
-     * 
-     * @param prefix Category/source of the error (stored in flash)
-     * @param errorMessage Detailed error description (stored in flash)
-     */
-    typedef void (*ErrorCallback)(const __FlashStringHelper *prefix, const __FlashStringHelper *errorMessage);
-
-    /**
      * @enum NackReason
      * @brief Error codes for packet rejection
-     * 
+     *
      * @details Comprehensive set of error codes indicating why a packet was rejected.
      * Used in NACK responses to inform the sender about specific validation failures,
      * enabling targeted recovery actions.
@@ -90,13 +77,13 @@ public:
     /**
      * @struct PackageHeader
      * @brief Packet framing and control information
-     * 
+     *
      * @details Fixed 4-byte header structure containing:
      * - Frame start marker (1B)
      * - Sequence number for ordering (1B)
      * - Packet type identifier (1B)
      * - Payload length indicator (1B)
-     * 
+     *
      * Memory layout is guaranteed by packed attribute for cross-platform compatibility.
      */
     struct __attribute__((packed)) PackageHeader
@@ -110,11 +97,11 @@ public:
     /**
      * @struct PackageFooter
      * @brief Packet integrity verification
-     * 
+     *
      * @details Fixed 3-byte footer containing:
      * - CRC-16-CCITT checksum covering header and payload
      * - Frame end marker
-     * 
+     *
      * Memory layout is guaranteed by packed attribute for cross-platform compatibility.
      */
     struct __attribute__((packed)) PackageFooter
@@ -129,12 +116,12 @@ public:
     /**
      * @struct Package
      * @brief Complete packet structure
-     * 
+     *
      * @details Represents a complete protocol packet with:
      * - 4-byte header (framing, control)
      * - 8-byte payload (data)
      * - 3-byte footer (integrity check)
-     * 
+     *
      * Total packet size is fixed at 15 bytes for predictable behavior.
      * Memory layout is guaranteed by packed attribute for cross-platform compatibility.
      */
@@ -150,13 +137,13 @@ public:
 
     /**
      * @brief Constructs a new CRC package interface
-     * 
+     *
      * @details Initializes the communication interface with:
      * - Separate incoming/outgoing channels
      * - Message queues for ACK/NACK handling
      * - State machines for both channels
      * - Timers for timeout management
-     * 
+     *
      * @param pipedStreamPair Bidirectional stream for raw/encoded data
      * @param encodedBufferSize Size of encoded data buffer (default: PACKAGE_LENGTH)
      */
@@ -166,43 +153,30 @@ public:
      * @brief Destructor
      * @details Ensures proper cleanup of resources and nullifies callbacks
      */
-    virtual ~CRCPackageInterface();
+    virtual ~CRCPackageInterface() = default;
 
     /**
      * @brief Main protocol processing loop
-     * 
+     *
      * @details Performs one iteration of protocol processing:
      * 1. Checks for connection timeouts
      * 2. Processes outgoing channel state machine
      * 3. Processes incoming channel state machine
      * 4. Handles error conditions
-     * 
+     *
      * This method should be called regularly in the application's main loop.
      */
     virtual void loop() override;
 
     /**
-     * @brief Registers error callback handler
-     * 
-     * @details The callback will be invoked for:
-     * - Protocol errors (CRC, framing)
-     * - Buffer overflows
-     * - Timeout conditions
-     * - State machine errors
-     * 
-     * @param callback Function to handle error events
-     */
-    void setErrorCallback(const ErrorCallback callback);
-
-    /**
      * @brief Initiates connection reset
-     * 
+     *
      * @details Performs the following sequence:
      * 1. Sends RESET packet to peer
      * 2. Resets local packet numbering
      * 3. Clears message queues
      * 4. Resets state machines
-     * 
+     *
      * Use this to recover from:
      * - Connection loss
      * - Protocol desynchronization
@@ -212,24 +186,24 @@ public:
 
 private:
     // Protocol Constants
-    static constexpr uint8_t START_BYTE = 0xAA;    ///< Packet frame start marker
-    static constexpr uint8_t STOP_BYTE = 0x55;     ///< Packet frame end marker
+    static constexpr uint8_t START_BYTE = 0xAA; ///< Packet frame start marker
+    static constexpr uint8_t STOP_BYTE = 0x55;  ///< Packet frame end marker
 
     // Packet Types
-    static constexpr uint8_t DATA_TYPE = 0;        ///< Data packet (with payload)
-    static constexpr uint8_t ACK_TYPE = 1;         ///< Positive acknowledgment
-    static constexpr uint8_t NACK_TYPE = 2;        ///< Negative acknowledgment
-    static constexpr uint8_t RESET_TYPE = 3;       ///< Connection reset request
+    static constexpr uint8_t DATA_TYPE = 0;  ///< Data packet (with payload)
+    static constexpr uint8_t ACK_TYPE = 1;   ///< Positive acknowledgment
+    static constexpr uint8_t NACK_TYPE = 2;  ///< Negative acknowledgment
+    static constexpr uint8_t RESET_TYPE = 3; ///< Connection reset request
 
     // Protocol Parameters
-    static constexpr uint8_t MAX_PENDING_MESSAGES = 4;  ///< ACK/NACK queue size
-    static constexpr uint8_t MAX_RETRY_COUNT = 5;       ///< Max retransmission attempts
-    static constexpr uint8_t MAX_REPLAY_COUNT = PACKAGE_LENGTH + 2;  ///< Max state transitions per loop
+    static constexpr uint8_t MAX_PENDING_MESSAGES = 4;              ///< ACK/NACK queue size
+    static constexpr uint8_t MAX_RETRY_COUNT = 5;                   ///< Max retransmission attempts
+    static constexpr uint8_t MAX_REPLAY_COUNT = PACKAGE_LENGTH + 2; ///< Max state transitions per loop
 
     /**
      * @enum PendingMessageType
      * @brief Message types for ACK/NACK queue
-     * 
+     *
      * @details Classifies queued acknowledgment messages for the state machine.
      * Used to track responses to outgoing packets and trigger appropriate actions.
      */
@@ -243,7 +217,7 @@ private:
     /**
      * @struct PendingMessage
      * @brief ACK/NACK queue entry
-     * 
+     *
      * @details Stores acknowledgment information including:
      * - Message type (ACK/NACK)
      * - Associated packet number
@@ -257,9 +231,10 @@ private:
     };
 
     // Error Message Strings (stored in flash)
-    static const char PREFIX_CRC_O_STR[] PROGMEM;       ///< "CRC:O:" - Outgoing channel
-    static const char PREFIX_CRC_I_STR[] PROGMEM;       ///< "CRC:I:" - Incoming channel
-    static const char PREFIX_CRC_STR[] PROGMEM;         ///< "CRC:" - General
+    static const char PREFIX_O_STR[] PROGMEM; ///< "O:" - Outgoing channel
+    static const char PREFIX_I_STR[] PROGMEM; ///< "I:" - Incoming channel
+    static const char PREFIX_STR[] PROGMEM;   ///< "X:" - General protocol errors
+
     static const char BUFFER_FULL_STR[] PROGMEM;        ///< Buffer capacity exceeded
     static const char MAX_RETRY_STR[] PROGMEM;          ///< Max retransmissions reached
     static const char RETRY_STR[] PROGMEM;              ///< Packet retransmission
@@ -274,14 +249,14 @@ private:
     static const char RESET_NUM_STR[] PROGMEM;          ///< Sequence number reset
 
     // Protocol Timeouts (milliseconds)
-    static constexpr uint16_t OUTGOING_DATA_READ_TIMEOUT = 100;      ///< Max time to collect outgoing data
-    static constexpr uint16_t OUTGOING_DATA_ACK_NACK_TIMEOUT = 500;  ///< Max time to wait for ACK/NACK
-    static constexpr uint16_t INCOMING_DATA_WAIT_TIMEOUT = 500;      ///< Max time to receive complete packet
-    static constexpr uint16_t RESET_DETECTION_TIMEOUT = 10000;       ///< Connection timeout threshold
+    static constexpr uint16_t OUTGOING_DATA_READ_TIMEOUT = 100;     ///< Max time to collect outgoing data
+    static constexpr uint16_t OUTGOING_DATA_ACK_NACK_TIMEOUT = 500; ///< Max time to wait for ACK/NACK
+    static constexpr uint16_t INCOMING_DATA_WAIT_TIMEOUT = 500;     ///< Max time to receive complete packet
+    static constexpr uint16_t RESET_DETECTION_TIMEOUT = 10000;      ///< Connection timeout threshold
 
     // Packet Structure Constants
-    static constexpr uint8_t HEADER_LENGTH = sizeof(PackageHeader);   ///< Header size (4B)
-    static constexpr uint8_t FOOTER_LENGTH = sizeof(PackageFooter);   ///< Footer size (3B)
+    static constexpr uint8_t HEADER_LENGTH = sizeof(PackageHeader); ///< Header size (4B)
+    static constexpr uint8_t FOOTER_LENGTH = sizeof(PackageFooter); ///< Footer size (3B)
 
     /**
      * @brief CRC calculation scope
@@ -295,7 +270,7 @@ private:
     /**
      * @enum OutgoingState
      * @brief State machine for outgoing packets
-     * 
+     *
      * @details Controls the transmission sequence:
      * 1. READ_DATA: Collect data until timeout or buffer full
      * 2. SEND_PACKAGE: Transmit packet with CRC
@@ -311,7 +286,7 @@ private:
     /**
      * @enum IncomingState
      * @brief State machine for incoming packets
-     * 
+     *
      * @details Controls the reception sequence:
      * 1. WAIT_FOR_START_BYTE: Frame synchronization
      * 2. READ_INCOMING_DATA: Receive complete packet
@@ -327,11 +302,11 @@ private:
     /**
      * @struct OutgoingFlags
      * @brief Packed status flags for outgoing channel
-     * 
+     *
      * @details Bit-field structure containing:
      * - Retry counter (3 bits, 0-7)
      * - Current state (2 bits, 0-3)
-     * 
+     *
      * Memory layout is guaranteed by packed attribute.
      */
     struct __attribute__((packed)) OutgoingFlags
@@ -343,11 +318,11 @@ private:
     /**
      * @struct IncomingFlags
      * @brief Packed status flags for incoming channel
-     * 
+     *
      * @details Bit-field structure containing:
      * - Current state (2 bits, 0-3)
      * - Received data length (5 bits, 0-31)
-     * 
+     *
      * Memory layout is guaranteed by packed attribute.
      */
     struct __attribute__((packed)) IncomingFlags
@@ -358,12 +333,12 @@ private:
 
     /**
      * @brief Handles outgoing state machine
-     * 
+     *
      * @details Processes one state machine iteration:
      * - READ_DATA: Collect/batch data
      * - SEND_PACKAGE: Transmit packet
      * - WAIT_FOR_ACK_OR_NACK: Handle response
-     * 
+     *
      * @return true if state changed
      * @return false if no state change
      */
@@ -371,12 +346,12 @@ private:
 
     /**
      * @brief Handles incoming state machine
-     * 
+     *
      * @details Processes one state machine iteration:
      * - WAIT_FOR_START_BYTE: Frame sync
      * - READ_INCOMING_DATA: Receive packet
      * - PROCESS_INCOMING_DATA: Handle packet
-     * 
+     *
      * @return true if state changed
      * @return false if no state change
      */
@@ -384,7 +359,7 @@ private:
 
     /**
      * @brief Resets packet sequence numbers
-     * 
+     *
      * @details Performs a complete protocol reset:
      * 1. Resets packet counters (out: 1, in: 0)
      * 2. Clears message queues
@@ -395,12 +370,12 @@ private:
 
     /**
      * @brief Calculates CRC-16-CCITT checksum
-     * 
+     *
      * @details Implements CRC-16-CCITT algorithm:
      * - Polynomial: 0x1021 (x^16 + x^12 + x^5 + 1)
      * - Initial value: 0xFFFF
      * - No final XOR
-     * 
+     *
      * @param data Input data buffer
      * @param length Number of bytes to process
      * @return uint16_t Calculated CRC-16 value
@@ -409,13 +384,13 @@ private:
 
     /**
      * @brief Validates received packet
-     * 
+     *
      * @details Performs comprehensive packet validation:
      * 1. Frame markers (start/stop bytes)
      * 2. Packet type validity
      * 3. Length constraints
      * 4. CRC-16 integrity
-     * 
+     *
      * @param package Packet to validate
      * @return NackReason Error code (NO_ERROR if valid)
      */
@@ -423,13 +398,13 @@ private:
 
     /**
      * @brief Prepares packet for transmission
-     * 
+     *
      * @details Assembles a complete packet:
      * 1. Sets header fields
      * 2. Copies payload data
      * 3. Calculates CRC-16
      * 4. Sets footer fields
-     * 
+     *
      * @param package Packet structure to prepare
      * @param type Packet type (DATA/ACK/NACK/RESET)
      * @param packetNumber Sequence number
@@ -440,34 +415,16 @@ private:
                         const uint8_t dataLength = 0, const uint8_t *const data = nullptr) const;
 
     /**
-     * @brief Reports error through callback
-     * 
-     * @details Formats and delivers error information:
-     * - Category prefix (from flash)
-     * - Error message (from flash)
-     * - No heap allocations
-     * 
-     * @param prefix Error category (flash string)
-     * @param errorMessage Error details (flash string)
-     */
-    void reportError(const __FlashStringHelper *const prefix, const __FlashStringHelper *const errorMessage) const;
-
-    /**
-     * @brief Reports NACK reason through callback
-     * 
-     * @details Converts NACK reason to human-readable form:
-     * - Maps reason code to message
-     * - Adds appropriate prefix
-     * - Reports through callback
-     * 
-     * @param prefix Error category (flash string)
+     * @brief Converts NACK reason to human-readable string
+     *
      * @param reason NACK reason code
+     * @return const __FlashStringHelper* Human-readable string
      */
-    void reportNackReason(const __FlashStringHelper *const prefix, const NackReason reason) const;
+    const __FlashStringHelper *toString(const NackReason reason) const;
 
     /**
      * @brief Resets outgoing channel state
-     * 
+     *
      * @details Performs complete outgoing reset:
      * 1. Clears packet buffer
      * 2. Resets state to READ_DATA
@@ -478,7 +435,7 @@ private:
 
     /**
      * @brief Resets incoming channel state
-     * 
+     *
      * @details Performs complete incoming reset:
      * 1. Clears packet buffer
      * 2. Resets byte counter
@@ -489,24 +446,24 @@ private:
 
     /**
      * @brief Transmits packet over encoded stream
-     * 
+     *
      * @details Sends complete packet:
      * 1. Serializes to byte array
      * 2. Writes to encoded stream
      * 3. No buffering/queueing
-     * 
+     *
      * @param package Prepared packet to send
      */
     void sendPackage(const Package &package);
 
     /**
      * @brief Processes complete received packet
-     * 
+     *
      * @details Handles received packet based on type:
      * - DATA: Validate, store, send ACK
      * - ACK/NACK: Queue for outgoing state machine
      * - RESET: Reset protocol state, send ACK
-     * 
+     *
      * @return true if processing successful
      * @return false if error occurred
      */
@@ -527,8 +484,6 @@ private:
     IncomingFlags m_incomingFlags; /**< State flags for incoming channel */
 
     FastCircularQueue<PendingMessage, MAX_PENDING_MESSAGES> m_messageQueue; /**< Queue for ACK/NACK messages */
-
-    ErrorCallback m_errorCallback; /**< Callback for error reporting */
 };
 
 #endif

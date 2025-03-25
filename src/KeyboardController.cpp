@@ -4,9 +4,13 @@
 // Project headers
 #include "KeyboardController.h"
 #include "Globals.h"
+#include "TraceLevel.h"
+
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_KEYBOARD_CONTROLLER
 
 KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
-    : m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)
+    : Traceable(F("KeyboardController")), m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)
 {
   m_keyboardPowerOutput.low();
 } // end KeyboardController
@@ -22,7 +26,9 @@ void KeyboardController::lock()
   {
     m_state = LOCKED;
     m_keyboardPowerOutput.low();
-    Serial.println(F("KB locked"));
+    TRACE_INFO()
+        << F("Keyboard locked")
+        << endl;
   } // end if
 } // end lock
 
@@ -32,7 +38,9 @@ void KeyboardController::unlock()
   {
     m_state = UNLOCKED;
     m_keyboardPowerOutput.high();
-    Serial.println(F("KB unlocked"));
+    TRACE_INFO()
+        << F("Keyboard unlocked")
+        << endl;
   } // end if
 } // end unlock
 

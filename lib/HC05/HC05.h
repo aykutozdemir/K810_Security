@@ -168,9 +168,6 @@ private:
   // Declare a static PROGMEM variable for the OK response string
   static const char OK_RESPONSE[] PROGMEM; ///< OK response pattern
 
-  // Declare a static PROGMEM variable for the common prefix
-  static const char BT_PREFIX[] PROGMEM; ///< Bluetooth message prefix
-
   // Declare common PROGMEM strings for repeated messages
   static const char QUEUE_FULL_STR[] PROGMEM;       ///< Queue full message
   static const char CMD_MODE_NO_DATA_STR[] PROGMEM; ///< Command mode - no data message
@@ -216,17 +213,6 @@ private:
   };
 
   /**
-   * @brief Print a message with BT prefix
-   *
-   * @param msgProgmem Message in PROGMEM
-   * @param msg Additional message (optional)
-   * @param println Whether to add newline (default true)
-   */
-  void printMessage(const __FlashStringHelper *msgProgmem,
-                    const char *msg = nullptr,
-                    const bool println = true);
-
-  /**
    * @brief Process next command in queue
    */
   void processNextCommand();
@@ -266,12 +252,12 @@ private:
   void handleResetting();
 
   /**
-   * @brief Handle permanent resetting state
+   * @brief Handle permanent reset state
    */
   void handleResettingPermanently();
 
   /**
-   * @brief Handle initializing wait state
+   * @brief Handle initialization wait state
    */
   void handleInitializingWait();
 
@@ -325,7 +311,6 @@ private:
   Status m_status;                                     ///< Current status flags
   StateManager<State> m_stateManager{INITIALIZING};    ///< State manager
   DataCallback m_dataReceivedCallback;                 ///< Callback for received data
-  PrintCallback m_printCallback;                       ///< Callback for debug printing
   SimpleTimer<uint16_t> m_commandDelayTimer;           ///< Timer for command delays
 };
 
