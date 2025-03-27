@@ -7,11 +7,17 @@
  */
 
 #include "Globals.h"
-#include "TraceLevel.h"
 #include "K810Security.h"
 
+#include "TraceLevel.h"
 #undef CLASS_TRACE_LEVEL
 #define CLASS_TRACE_LEVEL DEBUG_K810_SECURITY
+#include "TraceHelper.h"
+
+/**
+ * @brief Name of the class
+ */
+const char PROGMEM K810Security::CLASS_NAME[] = "K810Security";
 
 // Bluetooth AT command constants stored in program memory
 const char PROGMEM K810Security::CMD_RMAAD[] = "AT+RMAAD";         ///< Factory reset command
@@ -27,7 +33,7 @@ const char PROGMEM K810Security::CMD_RESET[] = "AT+RESET";         ///< Reset co
  * @brief Constructor implementation
  * Initializes the device in IDLE state and sets up Bluetooth connection timeout
  */
-K810Security::K810Security() : Traceable(F("K810Security")), state(IDLE), bluetoothConnectionTimeout(120000) {}
+K810Security::K810Security() : Traceable(PGMT(CLASS_NAME)), state(IDLE), bluetoothConnectionTimeout(120000) {}
 
 //================ Bluetooth Methods ==================
 
@@ -54,11 +60,11 @@ void K810Security::bluetoothCallback(const __FlashStringHelper *command, const b
 {
     if (result)
     {
-        TRACE_INFO_STATIC(F("K810Security")) << F("Bluetooth OK") << endl;
+        TRACE_INFO_STATIC(PGMT(CLASS_NAME)) << F("Bluetooth OK") << endl;
     }
     else
     {
-        TRACE_ERROR_STATIC(F("K810Security")) << F("Bluetooth ERROR: ") << response << '#' << endl;
+        TRACE_ERROR_STATIC(PGMT(CLASS_NAME)) << F("Bluetooth ERROR: ") << response << '#' << endl;
     }
 }
 
@@ -180,7 +186,7 @@ void K810Security::handleBusinessLogic()
     if (state == FORMATTING)
     {
         if (eepromController.state() == EEPROMController::IDLE)
-        {
+        {            
             TRACE_INFO() << F("Formatting done, resetting...") << endl;
             watchdogController.resetMCU();
         }

@@ -2,15 +2,15 @@
 #include "EEPROMController.h"
 #include <EEPROM.h>
 #include "Utilities.h"
-#include "TraceLevel.h"
 
 // Arduino core
 #include <Arduino.h>
 #include <USBAPI.h>
 
+#include "TraceLevel.h"
 #undef CLASS_TRACE_LEVEL
 #define CLASS_TRACE_LEVEL DEBUG_EEPROM_CONTROLLER
-
+#include "TraceHelper.h"
 // Constants
 constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50 >> 1;
 constexpr uint8_t EXT_EEPROM_PAGE_SIZE = 32;

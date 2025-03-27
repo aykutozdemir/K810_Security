@@ -13,12 +13,14 @@
 #define SOFTSERIAL_HPP
 
 #include "SoftSerial.h"
-#include "TraceLevel.h"
 #include <SafeInterrupts.h>
 #include <Utilities.h>
 
+#include "TraceLevel.h"
 #undef CLASS_TRACE_LEVEL
 #define CLASS_TRACE_LEVEL DEBUG_SOFT_SERIAL
+#include "TraceHelper.h"
+
 
 /** @brief Sampling constant for RX processing */
 constexpr uint8_t SAMPLE = 1;
@@ -420,5 +422,7 @@ inline size_t SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::write(uint8_t data)
 {
   return m_txQueue.push(data) ? 1 : 0;
 }
+
+#undef CLASS_TRACE_LEVEL
 
 #endif

@@ -22,65 +22,9 @@ static const char LEVEL_5[] PROGMEM = "TRACE";
 
 static const char *const LEVEL_NAMES[] PROGMEM = {
     LEVEL_0, LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5};
-
-// -------------------------
-// Settings implementation
-// -------------------------
-
-Traceable::Settings::Settings(Print *const printer, const Level level)
-    : printer(printer), level(level) {}
-
-Print *const Traceable::Settings::getPrinter() const
-{
-    return printer;
-}
-
-void Traceable::Settings::setPrinter(Print *printer)
-{
-    this->printer = printer;
-}
-
-Traceable::Level Traceable::Settings::getLevel() const
-{
-    return level;
-}
-
-void Traceable::Settings::setLevel(const Level level)
-{
-    this->level = level;
-}
-
-// -------------------------
-// DummyPrintWrapper implementation
-// -------------------------
-
-/**
- * @brief Returns the singleton instance of DummyPrintWrapper.
- *
- * This instance is used to provide a no-operation print wrapper
- * when debug output is disabled.
- */
-typename Traceable::DummyPrintWrapper &Traceable::DummyPrintWrapper::instance()
-{
-    static DummyPrintWrapper instance;
-    return instance;
-}
-
-/**
- * @brief No-op write for single byte.
- */
-size_t Traceable::DummyPrintWrapper::write(uint8_t)
-{
-    return 0;
-}
-
-/**
- * @brief No-op write for buffer.
- */
-size_t Traceable::DummyPrintWrapper::write(const uint8_t *, size_t)
-{
-    return 0;
-}
+    
+// Define the global dummy printer instance
+Traceable::DummyPrintWrapper dummyPrinter;
 
 // -------------------------
 // PrintWrapper implementation
@@ -93,21 +37,19 @@ size_t Traceable::DummyPrintWrapper::write(const uint8_t *, size_t)
  * for concurrent usage across multiple Traceable instances.
  */
 Traceable::PrintWrapper &Traceable::PrintWrapper::instance(
-    Traceable &traceable, const Level level,
-    const __FlashStringHelper *const file, const int line)
+    Traceable &traceable, const Level level, const int line)
 {
-    static PrintWrapper instance(traceable, level, file, line);
+    static PrintWrapper instance(traceable, level, line);
     return instance;
 }
 
 /**
  * @brief Constructs a PrintWrapper that logs file/line and level info.
  */
-Traceable::PrintWrapper::PrintWrapper(Traceable &traceable, const Level level,
-                                      const __FlashStringHelper *const file, const int line)
+Traceable::PrintWrapper::PrintWrapper(Traceable &traceable, const Level level, const int line)
     : traceable(&traceable), level(level)
 {
-    traceable.print(level, file, line);
+    traceable.print(level, line);
 }
 
 /**
@@ -157,96 +99,21 @@ Traceable::Traceable(const __FlashStringHelper *const functionName)
     settings = *settingsMap.get(functionName);
     if (settings == nullptr)
     {
-        settings = new Traceable::Settings(&Serial, Traceable::Level::INFO);
+        settings = new Traceable::Settings(functionName, &Serial, Traceable::Level::INFO);
         settingsMap.insert(functionName, settings);
     }
-}
-
-/**
- * @brief Set the logging level.
- */
-void Traceable::setLevel(const Level level)
-{
-    settings->setLevel(level);
-}
-
-/**
- * @brief Get the current logging level.
- */
-typename Traceable::Level Traceable::getLevel() const
-{
-    return settings->getLevel();
-}
-
-/**
- * @brief Check whether a given level is currently enabled.
- */
-bool Traceable::isEnabled(const Level level) const
-{
-    return static_cast<uint8_t>(level) <= static_cast<uint8_t>(settings->getLevel());
-}
-
-/**
- * @brief Set the output device (e.g., Serial, SoftwareSerial).
- */
-void Traceable::setOutput(Print &output)
-{
-    settings->setPrinter(&output);
-}
-
-/**
- * @brief Get the current output device.
- */
-Print *Traceable::getOutput() const
-{
-    return settings->getPrinter();
 }
 
 // -------------------------
 // Logging Methods
 // -------------------------
 
-Print &Traceable::printError(const __FlashStringHelper *const file, const int line)
-{
-    return PrintWrapper::instance(*this, Level::ERROR, file, line);
-}
-
-Print &Traceable::printWarn(const __FlashStringHelper *const file, const int line)
-{
-    return PrintWrapper::instance(*this, Level::WARN, file, line);
-}
-
-Print &Traceable::printInfo(const __FlashStringHelper *const file, const int line)
-{
-    return PrintWrapper::instance(*this, Level::INFO, file, line);
-}
-
-Print &Traceable::printDebug(const __FlashStringHelper *const file, const int line)
-{
-    return PrintWrapper::instance(*this, Level::DEBUG, file, line);
-}
-
-Print &Traceable::printTrace(const __FlashStringHelper *const file, const int line)
-{
-    return PrintWrapper::instance(*this, Level::TRACE, file, line);
-}
-
-/**
- * @brief Return dummy writer for disabled logs.
- */
-Print &Traceable::printDummy()
-{
-    return DummyPrintWrapper::instance();
-}
-
 /**
  * @brief Output formatted log header with timestamp, level, file, and line.
  *
  * This method is called before every log message to write structured headers.
  */
-void Traceable::print(const Level level,
-                      const __FlashStringHelper *const file,
-                      const int line)
+void Traceable::print(const Level level, const int line)
 {
     if (!isEnabled(level))
         return;
@@ -260,13 +127,12 @@ void Traceable::print(const Level level,
 
     // Debug Level
     printer->print('[');
-    printer->print(reinterpret_cast<const __FlashStringHelper *>(
-        pgm_read_word(&(LEVEL_NAMES[static_cast<uint8_t>(level)]))));
+    printer->print(PGMT(pgm_read_word(&(LEVEL_NAMES[static_cast<uint8_t>(level)]))));
     printer->print(']');
 
     // Source Location
     printer->print('(');
-    printer->print(file);
+    printer->print(settings->getFunctionName());
     printer->print(':');
     printer->print(line);
     printer->print(')');

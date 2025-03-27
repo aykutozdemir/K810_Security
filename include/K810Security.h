@@ -35,6 +35,11 @@ public:
     void loop();
 
 private:
+    /**
+     * @brief Name of the class
+     */
+    static const char PROGMEM CLASS_NAME[];
+
     // Bluetooth AT command constants stored in program memory
     static const char PROGMEM CMD_RMAAD[]; ///< Factory reset command
     static const char PROGMEM CMD_ROLE[];  ///< Set role command (slave)

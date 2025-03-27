@@ -18,7 +18,8 @@
 
 #include <Arduino.h>
 #include <Print.h>
-#include "../ArduinoMap/ArduinoMap.h" // Assumed to be a lightweight map implementation for embedded systems
+#include "../../include/TraceLevel.h"
+#include "../ArduinoMap/ArduinoMap.h"
 
 /**
  * @class Traceable
@@ -45,12 +46,12 @@ public:
      */
     enum class Level : uint8_t
     {
-        OFF = 0,
-        ERROR,
-        WARN,
-        INFO,
-        DEBUG,
-        TRACE
+        OFF = TRACE_LEVEL_OFF,
+        ERROR = TRACE_LEVEL_ERROR,
+        WARN = TRACE_LEVEL_WARN,
+        INFO = TRACE_LEVEL_INFO,
+        DEBUG = TRACE_LEVEL_DEBUG,
+        TRACE = TRACE_LEVEL_TRACE
     };
 
     /**
@@ -61,34 +62,44 @@ public:
      *
      * @param functionName The name of the function for tracing.
      */
-    Traceable(const __FlashStringHelper *const functionName);
+    explicit Traceable(const __FlashStringHelper *const functionName);
 
     // Debug level setters and getters
 
-    void setLevel(const Level level);
-    Level getLevel() const;
-    bool isEnabled(const Level level) const;
+    void setLevel(const Level level) { settings->setLevel(level); }
+    Level getLevel() const { return settings->getLevel(); }
+    bool isEnabled(const Level level) const { return static_cast<uint8_t>(level) <= static_cast<uint8_t>(settings->getLevel()); }
 
     // Output redirection
 
-    void setOutput(Print &output);
-    Print *getOutput() const;
+    void setOutput(Print &output) { settings->setPrinter(&output); }
+    Print *getOutput() const { return settings->getPrinter(); }
 
     // Logging methods for each level
 
-    Print &printError(const __FlashStringHelper *const file, const int line);
-    Print &printWarn(const __FlashStringHelper *const file, const int line);
-    Print &printInfo(const __FlashStringHelper *const file, const int line);
-    Print &printDebug(const __FlashStringHelper *const file, const int line);
-    Print &printTrace(const __FlashStringHelper *const file, const int line);
+    Print &printError(const int line) { return PrintWrapper::instance(*this, Level::ERROR, line); }
+    Print &printWarn(const int line) { return PrintWrapper::instance(*this, Level::WARN, line); }
+    Print &printInfo(const int line) { return PrintWrapper::instance(*this, Level::INFO, line); }
+    Print &printDebug(const int line) { return PrintWrapper::instance(*this, Level::DEBUG, line); }
+    Print &printTrace(const int line) { return PrintWrapper::instance(*this, Level::TRACE, line); }
 
     /**
-     * @brief Provides a dummy print wrapper for disabled debug levels.
+     * @class DummyPrintWrapper
+     * @brief Dummy writer that outputs nothing.
      *
-     * Returns a no-op printer that is optimized away by the compiler
-     * when logging is disabled.
+     * Used to eliminate logging overhead when disabled.
      */
-    Print &printDummy();
+    class DummyPrintWrapper : public Print
+    {
+    public:
+        DummyPrintWrapper() = default;
+        size_t write(uint8_t) override __attribute__((always_inline)) { return 0; }
+        size_t write(const uint8_t *, size_t) override __attribute__((always_inline)) { return 0; }
+
+    private:
+        DummyPrintWrapper(const DummyPrintWrapper &) = delete;
+        DummyPrintWrapper &operator=(const DummyPrintWrapper &) = delete;
+    };
 
 private:
     /**
@@ -100,32 +111,19 @@ private:
     class Settings
     {
     public:
-        Settings(Print *const printer, const Level level);
-        inline Print *const getPrinter() const;
-        inline void setPrinter(Print *printer);
-        inline Level getLevel() const;
-        inline void setLevel(const Level level);
+        Settings(const __FlashStringHelper *const functionName, Print *const printer, const Level level)
+            : functionName(functionName), printer(printer), level(level) {}
+        
+        const __FlashStringHelper *const getFunctionName() const { return functionName; }
+        Print *const getPrinter() const { return printer; }
+        void setPrinter(Print *p) { printer = p; }
+        Level getLevel() const { return level; }
+        void setLevel(const Level l) { level = l; }
 
     private:
+        const __FlashStringHelper *functionName;
         Print *printer;
         Level level;
-    };
-
-    /**
-     * @class DummyPrintWrapper
-     * @brief Dummy writer that outputs nothing.
-     *
-     * Used to eliminate logging overhead when disabled.
-     */
-    class DummyPrintWrapper : public Print
-    {
-    public:
-        static DummyPrintWrapper &instance();
-        size_t write(uint8_t) override;
-        size_t write(const uint8_t *, size_t) override;
-
-    private:
-        DummyPrintWrapper() = default;
     };
 
     /**
@@ -138,22 +136,18 @@ private:
     class PrintWrapper : public Print
     {
     public:
-        static PrintWrapper &instance(Traceable &traceable, const Level level,
-                                      const __FlashStringHelper *const file, const int line);
+        static PrintWrapper &instance(Traceable &traceable, const Level level, const int line);
         size_t write(uint8_t c) override;
         size_t write(const uint8_t *buffer, size_t size) override;
 
     private:
-        PrintWrapper(Traceable &traceable, const Level level,
-                     const __FlashStringHelper *const file, const int line);
+        PrintWrapper(Traceable &traceable, const Level level, const int line);
         Traceable *const traceable;
         const Level level;
     };
 
     // Internal method for printing timestamp, file, and line headers
-    void print(const Level level,
-               const __FlashStringHelper *const file,
-               const int line);
+    void print(const Level level, const int line);
 
     // Map holding settings per function name
     static ArduinoMap<const __FlashStringHelper *, Traceable::Settings *> settingsMap;
@@ -161,6 +155,11 @@ private:
     // Pointer to this instance's settings
     Settings *settings;
 };
+
+/**
+ * @brief Global dummy printer instance for disabled logging.
+ */
+extern Traceable::DummyPrintWrapper dummyPrinter;
 
 // ------------------------
 // Print Stream Overloads
@@ -195,30 +194,5 @@ inline Print &operator<<(Print &stream, _EndLineCode)
     stream.flush();
     return stream;
 }
-
-// ------------------------
-// Logging Macros
-// ------------------------
-
-/**
- * @brief Lightweight logging macros for optimized log control.
- *
- * These macros resolve at compile time and eliminate overhead
- * when logging levels are below the threshold.
- */
-
-// Dynamic (instance-based) logging
-#define TRACE_ERROR() ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::ERROR)) ? printError(F(__FILE__), __LINE__) : printDummy())
-#define TRACE_WARN() ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::WARN)) ? printWarn(F(__FILE__), __LINE__) : printDummy())
-#define TRACE_INFO() ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::INFO)) ? printInfo(F(__FILE__), __LINE__) : printDummy())
-#define TRACE_DEBUG() ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::DEBUG)) ? printDebug(F(__FILE__), __LINE__) : printDummy())
-#define TRACE_TRACE() ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::TRACE)) ? printTrace(F(__FILE__), __LINE__) : printDummy())
-
-// Static (per-function) logging
-#define TRACE_ERROR_STATIC(functionName) ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::ERROR)) ? Traceable(functionName).printError(F(__FILE__), __LINE__) : Traceable(functionName).printDummy())
-#define TRACE_WARN_STATIC(functionName) ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::WARN)) ? Traceable(functionName).printWarn(F(__FILE__), __LINE__) : Traceable(functionName).printDummy())
-#define TRACE_INFO_STATIC(functionName) ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::INFO)) ? Traceable(functionName).printInfo(F(__FILE__), __LINE__) : Traceable(functionName).printDummy())
-#define TRACE_DEBUG_STATIC(functionName) ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::DEBUG)) ? Traceable(functionName).printDebug(F(__FILE__), __LINE__) : Traceable(functionName).printDummy())
-#define TRACE_TRACE_STATIC(functionName) ((static_cast<uint8_t>(CLASS_TRACE_LEVEL) >= static_cast<uint8_t>(Traceable::Level::TRACE)) ? Traceable(functionName).printTrace(F(__FILE__), __LINE__) : Traceable(functionName).printDummy())
 
 #endif // TRACEABLE_H

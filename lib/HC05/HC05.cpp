@@ -11,10 +11,11 @@
 
 #include "HC05.h"
 #include <Arduino.h>
-#include "../../include/TraceLevel.h"
 
+#include "../../include/TraceLevel.h"
 #undef CLASS_TRACE_LEVEL
 #define CLASS_TRACE_LEVEL DEBUG_HC05
+#include "../Utilities/TraceHelper.h"
 
 // Define common PROGMEM strings for repeated messages
 const char HC05::QUEUE_FULL_STR[] PROGMEM = "Queue full";

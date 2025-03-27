@@ -31,10 +31,11 @@
 #include "CRCPackageInterface.h"
 #include "PipedStream.h"
 #include "Utilities.h"
-#include "../../include/TraceLevel.h"
 
+#include "../../include/TraceLevel.h"
 #undef CLASS_TRACE_LEVEL
 #define CLASS_TRACE_LEVEL DEBUG_CRC_PACKAGE
+#include "../Utilities/TraceHelper.h"
 
 // Flash String Constants
 // Error message prefixes stored in flash memory to minimize RAM usage

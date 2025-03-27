@@ -4,10 +4,11 @@
 // Project headers
 #include "KeyboardController.h"
 #include "Globals.h"
-#include "TraceLevel.h"
 
+#include "TraceLevel.h"
 #undef CLASS_TRACE_LEVEL
 #define CLASS_TRACE_LEVEL DEBUG_KEYBOARD_CONTROLLER
+#include "TraceHelper.h"
 
 KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
     : Traceable(F("KeyboardController")), m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)

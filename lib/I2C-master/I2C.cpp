@@ -59,12 +59,14 @@
 #include <WProgram.h>
 #endif
 
-#undef CLASS_TRACE_LEVEL
-#define CLASS_TRACE_LEVEL DEBUG_I2C
-
 #include <inttypes.h>
 #include "I2C.h"
+
 #include "../../include/TraceLevel.h"
+#undef CLASS_TRACE_LEVEL
+#define CLASS_TRACE_LEVEL DEBUG_I2C
+#include "../Utilities/TraceHelper.h"
+
 uint8_t I2C::bytesAvailable = 0;
 uint8_t I2C::bufferIndex = 0;
 uint8_t I2C::totalBytes = 0;
