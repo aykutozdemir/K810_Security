@@ -14,6 +14,9 @@ void StatisticController::loop(Print &print,
                                const Statistic *statistics[],
                                const uint8_t statisticSize)
 {
+  UNUSED(statistics);
+  UNUSED(statisticSize);
+
   static bool firstRun = true;
 
   if (firstRun)

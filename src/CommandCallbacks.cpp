@@ -73,24 +73,32 @@ bool seedCheck(SerialCommands &sender, Args &args)
 
 void commandHelp(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   sender.listCommands();
   Utilities::printOK(sender);
 }
 
 void commandPing(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   sender.getSerial().println(F("pong"));
   Utilities::printOK(sender);
 }
 
 void commandRam(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   statisticController.printRam(sender.getSerial());
   Utilities::printOK(sender);
 }
 
 void commandStatistics(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   statisticController.printStatisticTable(sender.getSerial(),
                                           statistics,
                                           lengthOfStatistics);
@@ -99,6 +107,8 @@ void commandStatistics(SerialCommands &sender, Args &args)
 
 void commandGenSalt(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   if (!requireSeedNotChecked(sender))
     return;
   const byte salt = KeyboardController::generateSalt();
@@ -109,6 +119,8 @@ void commandGenSalt(SerialCommands &sender, Args &args)
 
 void commandGenSeed(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   if (!requireSeedNotChecked(sender))
     return;
   const byte salt = KeyboardController::generateSalt();
@@ -125,6 +137,8 @@ void commandGenSeed(SerialCommands &sender, Args &args)
 
 void commandCheck(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   if (KeyboardController::isSeedChecked())
   {
     Utilities::printError(sender, F("Already checked"));
@@ -136,6 +150,8 @@ void commandCheck(SerialCommands &sender, Args &args)
 
 void commandState(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   sender.getSerial().println(keyboardController.state());
   Utilities::printOK(sender);
 }
@@ -158,18 +174,24 @@ void commandUnlock(SerialCommands &sender, Args &args)
 
 void commandReset(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   watchdogController.resetMCU();
   Utilities::printOK(sender);
 }
 
 void commandResetForProgramming(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   watchdogController.resetMCUForSelfProgramming();
   Utilities::printOK(sender);
 }
 
 void commandVersion(SerialCommands &sender, Args &args)
 {
+  UNUSED(args);
+
   sender.getSerial().println(KeyboardController::getVersion());
   Utilities::printOK(sender);
 }

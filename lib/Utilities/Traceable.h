@@ -67,13 +67,13 @@ public:
     // Debug level setters and getters
 
     void setLevel(const Level level) { settings->setLevel(level); }
-    Level getLevel() const { return settings->getLevel(); }
+    Level getLevel() { return settings->getLevel(); }
     bool isEnabled(const Level level) const { return static_cast<uint8_t>(level) <= static_cast<uint8_t>(settings->getLevel()); }
 
     // Output redirection
 
     void setOutput(Print &output) { settings->setPrinter(&output); }
-    Print *getOutput() const { return settings->getPrinter(); }
+    Print *getOutput() { return settings->getPrinter(); }
 
     // Logging methods for each level
 
@@ -114,10 +114,10 @@ private:
         Settings(const __FlashStringHelper *const functionName, Print *const printer, const Level level)
             : functionName(functionName), printer(printer), level(level) {}
         
-        const __FlashStringHelper *const getFunctionName() const { return functionName; }
-        Print *const getPrinter() const { return printer; }
+        const __FlashStringHelper *getFunctionName() { return functionName; }
+        Print *getPrinter() { return printer; }
         void setPrinter(Print *p) { printer = p; }
-        Level getLevel() const { return level; }
+        Level getLevel() { return level; }
         void setLevel(const Level l) { level = l; }
 
     private:

@@ -21,8 +21,11 @@
  */
 namespace Utilities
 {
-// Macro for converting PROGMEM strings to __FlashStringHelper*
-#define PGMT(str) reinterpret_cast<const __FlashStringHelper *>(str)
+    // Macro for converting PROGMEM strings to __FlashStringHelper*
+    #define PGMT(str) reinterpret_cast<const __FlashStringHelper *>(str)
+    
+    // Macro for unused variables
+    #define UNUSED(x) (void)(x)
 
     /**
      * @brief Prints a standard OK response to the serial interface

@@ -52,7 +52,7 @@ HC05::HC05(Stream &stream,
       m_keyPin(keyPin),
       m_statePin(statePin),
       m_resetPin(resetPin),
-      m_status{true, false},
+      m_status{true, false, 0},
       m_stateManager(INITIALIZING),
       m_dataReceivedCallback(nullptr)
 {

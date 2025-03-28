@@ -60,11 +60,11 @@ void K810Security::bluetoothCallback(const __FlashStringHelper *command, const b
 {
     if (result)
     {
-        TRACE_INFO_STATIC(PGMT(CLASS_NAME)) << F("Bluetooth OK") << endl;
+        TRACE_INFO_STATIC(PGMT(CLASS_NAME)) << F("Bluetooth OK: ") << command << endl;
     }
     else
     {
-        TRACE_ERROR_STATIC(PGMT(CLASS_NAME)) << F("Bluetooth ERROR: ") << response << '#' << endl;
+        TRACE_ERROR_STATIC(PGMT(CLASS_NAME)) << F("Bluetooth ERROR: ") << command << F(": ") << response << '#' << endl;
     }
 }
 
