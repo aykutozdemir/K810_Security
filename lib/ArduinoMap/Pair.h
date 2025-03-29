@@ -7,13 +7,13 @@
 #define PAIR_H
 
 template <typename T1, typename T2>
-struct Pair
+struct alignas(alignof(T1) > alignof(T2) ? alignof(T1) : alignof(T2)) Pair
 {
     T1 first;
     T2 second;
 
     Pair() : first(), second() {}
-    Pair(const T1 &a, const T2 &b) : first(a), second(b) {}
+    Pair(const T1 a, const T2 b) : first(a), second(b) {}
 };
 
 template <typename T1, typename T2>

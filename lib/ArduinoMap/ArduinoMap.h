@@ -180,14 +180,44 @@ public:
             return current != other.current;
         }
 
-        Pair<KeyType &, ValueType &> operator*()
+        Pair<KeyType, ValueType> operator*()
         {
-            return Pair<KeyType &, ValueType &>(current->key, current->value);
+            return Pair<KeyType, ValueType>(current->key, current->value);
         }
     };
 
     Iterator begin() { return Iterator(head); }
     Iterator end() { return Iterator(nullptr); }
+
+    // ConstIterator support
+    class ConstIterator
+    {
+    private:
+        const Node *current;
+
+    public:
+        ConstIterator(const Node *node) : current(node) {}
+
+        ConstIterator &operator++()
+        {
+            if (current)
+                current = current->next;
+            return *this;
+        }
+
+        bool operator!=(const ConstIterator &other) const
+        {
+            return current != other.current;
+        }
+
+        Pair<KeyType, ValueType> operator*() const
+        {
+            return Pair<KeyType, ValueType>(current->key, current->value);
+        }
+    };
+
+    ConstIterator cbegin() const { return ConstIterator(head); }
+    ConstIterator cend() const { return ConstIterator(nullptr); }
 };
 
 #endif // ARDUINO_MAP_H

@@ -67,7 +67,7 @@ public:
     // Debug level setters and getters
 
     void setLevel(const Level level) { settings->setLevel(level); }
-    Level getLevel() { return settings->getLevel(); }
+    Level getLevel() const { return settings->getLevel(); }
     bool isEnabled(const Level level) const { return static_cast<uint8_t>(level) <= static_cast<uint8_t>(settings->getLevel()); }
 
     // Output redirection
@@ -101,7 +101,6 @@ public:
         DummyPrintWrapper &operator=(const DummyPrintWrapper &) = delete;
     };
 
-private:
     /**
      * @class Settings
      * @brief Stores configuration for each Traceable instance.
@@ -113,11 +112,11 @@ private:
     public:
         Settings(const __FlashStringHelper *const functionName, Print *const printer, const Level level)
             : functionName(functionName), printer(printer), level(level) {}
-        
-        const __FlashStringHelper *getFunctionName() { return functionName; }
-        Print *getPrinter() { return printer; }
+
+        const __FlashStringHelper *getFunctionName() const { return functionName; }
+        Print *getPrinter() const { return printer; }
         void setPrinter(Print *p) { printer = p; }
-        Level getLevel() { return level; }
+        Level getLevel() const { return level; }
         void setLevel(const Level l) { level = l; }
 
     private:
@@ -126,6 +125,13 @@ private:
         Level level;
     };
 
+    /**
+     * @brief Get the settings map.
+     * @return The settings map.
+     */
+    static const ArduinoMap<const __FlashStringHelper *, Settings *> &getSettingsMap() { return settingsMap; }
+    
+private:
     /**
      * @class PrintWrapper
      * @brief Wrapper around Print with debug context.

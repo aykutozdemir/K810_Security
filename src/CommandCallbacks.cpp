@@ -1,7 +1,7 @@
 #include "CommandCallbacks.h"
 #include "Globals.h"
 #include "Utilities.h"
-
+#include "Traceable.h"
 //================ Helper Functions for Commands ==================
 
 // Helper to check that the seed has not been set already.
@@ -193,5 +193,52 @@ void commandVersion(SerialCommands &sender, Args &args)
   UNUSED(args);
 
   sender.getSerial().println(KeyboardController::getVersion());
+  Utilities::printOK(sender);
+}
+
+void commandListTraceables(SerialCommands &sender, Args &args)
+{
+  UNUSED(args);
+
+  for (ArduinoMap<const __FlashStringHelper *, Traceable::Settings *>::ConstIterator it =
+           Traceable::getSettingsMap().cbegin();
+       it != Traceable::getSettingsMap().cend();
+       ++it)
+  {
+    sender.getSerial().print((*it).first);
+    sender.getSerial().print(F(": "));
+    sender.getSerial().println(static_cast<uint8_t>((*it).second->getLevel()));
+  }
+  Utilities::printOK(sender);
+}
+
+void commandSetTraceLevel(SerialCommands &sender, Args &args)
+{
+  const char *componentName = args[0].getString();
+  const uint8_t level = args[1].getInt();
+
+  if (level > static_cast<uint8_t>(Traceable::Level::TRACE))
+  {
+    Utilities::printError(sender, F("Invalid level"));
+    return;
+  }
+
+  Traceable::Settings *settings = nullptr;
+  for (auto it = Traceable::getSettingsMap().cbegin(); it != Traceable::getSettingsMap().cend(); ++it)
+  {
+    if (strcmp_P(componentName, (PGM_P)(*it).first) == 0)
+    {
+      settings = (*it).second;
+      break;
+    }
+  }
+
+  if (!settings)
+  {
+    Utilities::printError(sender, F("Component not found"));
+    return;
+  }
+
+  settings->setLevel(static_cast<Traceable::Level>(level));
   Utilities::printOK(sender);
 }

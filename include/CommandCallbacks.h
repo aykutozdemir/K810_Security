@@ -104,4 +104,18 @@ void commandResetForProgramming(SerialCommands &sender, Args &args);
  */
 void commandVersion(SerialCommands &sender, Args &args);
 
+/**
+ * @brief List all traceable function names and their levels.
+ * @param sender Reference to the SerialCommands instance.
+ * @param args Command arguments.
+ */
+void commandListTraceables(SerialCommands &sender, Args &args);
+
+/**
+ * @brief Set the trace level for a component.
+ * @param sender Reference to the SerialCommands instance.
+ * @param args Command arguments.
+ */
+void commandSetTraceLevel(SerialCommands &sender, Args &args);
+
 #endif

@@ -49,7 +49,9 @@ const Command serCommands[] = {
     COMMAND(commandStatistics, "stats", NULL, "list statistics"),
     COMMAND(commandReset, "reset", NULL, "reset the keypad"),
     COMMAND(commandResetForProgramming, "resetfp", NULL, "reset the keypad for self programming"),
-    COMMAND(commandVersion, "version", NULL, "display the version")};
+    COMMAND(commandVersion, "version", NULL, "display the version"),
+    COMMAND(commandListTraceables, "listtrace", NULL, "list traceable function names with levels"),
+    COMMAND(commandSetTraceLevel, "settrace", ARG(ArgType::String), ARG(ArgType::Int), NULL, "set trace level for a component")};
 
 char serialCommandBuffer[16];
 SerialCommands serialCommands(

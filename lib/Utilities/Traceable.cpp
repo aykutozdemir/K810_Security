@@ -40,6 +40,9 @@ Traceable::PrintWrapper &Traceable::PrintWrapper::instance(
     Traceable &traceable, const Level level, const int line)
 {
     static PrintWrapper instance(traceable, level, line);
+
+    traceable.print(level, line);
+
     return instance;
 }
 
