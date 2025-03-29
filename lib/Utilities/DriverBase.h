@@ -27,7 +27,7 @@ public:
     /**
      * @brief Default constructor
      */
-    DriverBase(const __FlashStringHelper *const functionName) : Traceable(functionName) {}
+    DriverBase(const __FlashStringHelper *const functionName, const Level compileTimeLevel) : Traceable(functionName, compileTimeLevel) {}
 
     /**
      * @brief Destructor

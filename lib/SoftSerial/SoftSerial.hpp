@@ -105,7 +105,7 @@ unsigned long SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::getBaudRateValue(const
 
 template <uint8_t RX_BUFFER_SIZE, uint8_t TX_BUFFER_SIZE>
 inline SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::SoftSerial(const uint8_t rxPin, const uint8_t txPin)
-    : Stream(), DriverBase(F("SoftSerial")), // Call both parent constructors
+    : Stream(), DriverBase(F("SoftSerial"), static_cast<Level>(DEBUG_SOFT_SERIAL)),
       m_receivedData(0), m_rxBitIndex(UNINITIALIZED_INDEX), m_txBitIndex(UNINITIALIZED_INDEX),
       m_txIsrCounter(OVERSAMPLE), m_rxIsrCounter(SAMPLE), m_expectedBits(10),
       m_rxPin(rxPin, false, true), m_txPin(txPin, true)
@@ -320,7 +320,6 @@ void SoftSerial<RX_BUFFER_SIZE, TX_BUFFER_SIZE>::loop()
       if (!currentState)
       {
         m_txBitChanges[currentBit] = true;
-        currentState = true;
       }
 
       // TX is processed in reverse order in the ISR, so we need to set the

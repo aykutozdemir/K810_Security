@@ -11,7 +11,7 @@
 #include "TraceHelper.h"
 
 KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
-    : Traceable(F("KeyboardController")), m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)
+    : Traceable(F("KeyboardController"), static_cast<Level>(DEBUG_KEYBOARD_CONTROLLER)), m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)
 {
   m_keyboardPowerOutput.low();
 } // end KeyboardController

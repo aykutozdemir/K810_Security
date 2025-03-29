@@ -76,6 +76,7 @@
 
 #include <inttypes.h>
 #include "Traceable.h"
+#include "../SimpleTimer/SimpleTimer.h"
 
 /**
  * @name TWI Status Codes
@@ -441,15 +442,15 @@ private:
   /**
    * @brief Handle bus lockup by resetting TWI hardware
    */
-  inline void lockUp();
+  void lockUp();
 
-  uint8_t returnStatus;          ///< Status code from last operation
-  uint8_t nack;                  ///< Whether a NACK was received
-  uint8_t data[MAX_BUFFER_SIZE]; ///< Buffer for received data
-  static uint8_t bytesAvailable; ///< Number of bytes available in buffer
-  static uint8_t bufferIndex;    ///< Current index in buffer
-  static uint8_t totalBytes;     ///< Total bytes in current transaction
-  static uint16_t timeOutDelay;  ///< Timeout delay in milliseconds
+  static uint8_t returnStatus;          ///< Status code from last operation
+  static uint8_t nack;                  ///< Whether a NACK was received
+  static uint8_t data[MAX_BUFFER_SIZE]; ///< Buffer for received data
+  static uint8_t bytesAvailable;        ///< Number of bytes available in buffer
+  static uint8_t bufferIndex;           ///< Current index in buffer
+  static uint8_t totalBytes;            ///< Total bytes in current transaction
+  static SimpleTimer<uint8_t> timeoutTimer;  ///< Timer for timeout operations
 };
 
 /** Global instance of the I2C class */

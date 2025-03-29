@@ -166,7 +166,7 @@ public:
         Node *current;
 
     public:
-        Iterator(Node *node) : current(node) {}
+        explicit Iterator(Node *node) : current(node) {}
 
         Iterator &operator++()
         {
@@ -196,7 +196,7 @@ public:
         const Node *current;
 
     public:
-        ConstIterator(const Node *node) : current(node) {}
+        explicit ConstIterator(const Node *node) : current(node) {}
 
         ConstIterator &operator++()
         {

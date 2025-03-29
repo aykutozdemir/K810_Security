@@ -97,12 +97,13 @@ ArduinoMap<const __FlashStringHelper *, Traceable::Settings *> Traceable::settin
  * If the function hasn't been registered before, a default Settings
  * object is created and added to the map.
  */
-Traceable::Traceable(const __FlashStringHelper *const functionName)
+Traceable::Traceable(const __FlashStringHelper *const functionName,
+                     const Level compileTimeLevel)
 {
     settings = *settingsMap.get(functionName);
     if (settings == nullptr)
     {
-        settings = new Traceable::Settings(functionName, &Serial, Traceable::Level::INFO);
+        settings = new Traceable::Settings(functionName, compileTimeLevel, &Serial, Traceable::Level::INFO);
         settingsMap.insert(functionName, settings);
     }
 }

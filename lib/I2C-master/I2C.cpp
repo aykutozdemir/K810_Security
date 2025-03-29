@@ -67,12 +67,15 @@
 #define CLASS_TRACE_LEVEL DEBUG_I2C
 #include "../Utilities/TraceHelper.h"
 
+uint8_t I2C::returnStatus = 0;
+uint8_t I2C::nack = 0;
+uint8_t I2C::data[MAX_BUFFER_SIZE];
 uint8_t I2C::bytesAvailable = 0;
 uint8_t I2C::bufferIndex = 0;
 uint8_t I2C::totalBytes = 0;
-uint16_t I2C::timeOutDelay = 0;
+SimpleTimer<uint8_t> I2C::timeoutTimer(0);
 
-I2C::I2C() : Traceable(F("I2C"))
+I2C::I2C() : Traceable(F("I2C"), static_cast<Level>(DEBUG_I2C))
 {
 }
 
@@ -135,7 +138,7 @@ void I2C::end()
  */
 void I2C::timeOut(uint16_t _timeOut)
 {
-  timeOutDelay = _timeOut;
+    timeoutTimer.setInterval(_timeOut);
 }
 
 /*
@@ -225,54 +228,54 @@ void I2C::pullup(uint8_t activate)
  */
 void I2C::scan()
 {
-  uint16_t tempTime = timeOutDelay;
-  timeOut(80);
-  uint8_t totalDevicesFound = 0;
+    uint16_t tempInterval = timeoutTimer.getInterval();
+    timeoutTimer.setInterval(80);
+    uint8_t totalDevicesFound = 0;
 
-  TRACE_INFO()
-      << F("Scanning for devices...please wait")
-      << endl;
-
-  for (uint8_t s = 0; s <= 0x7F; s++)
-  {
-    returnStatus = 0;
-    returnStatus = _start();
-    if (!returnStatus)
-    {
-      returnStatus = _sendAddress(SLA_W(s));
-    }
-    if (returnStatus)
-    {
-      if (returnStatus == 1)
-      {
-        TRACE_ERROR()
-            << F("There is a problem with the bus, could not complete scan")
-            << endl;
-
-        timeOutDelay = tempTime;
-        return;
-      }
-    }
-    else
-    {
-      TRACE_INFO()
-          << F("Found device at address - ")
-          << F(" 0x")
-          << HEX
-          << s
-          << endl;
-      totalDevicesFound++;
-    }
-    _stop();
-  }
-  if (!totalDevicesFound)
-  {
     TRACE_INFO()
-        << F("No devices found")
+        << F("Scanning for devices...please wait")
         << endl;
-  }
 
-  timeOutDelay = tempTime;
+    for (uint8_t s = 0; s <= 0x7F; s++)
+    {
+        returnStatus = 0;
+        returnStatus = _start();
+        if (!returnStatus)
+        {
+            returnStatus = _sendAddress(SLA_W(s));
+        }
+        if (returnStatus)
+        {
+            if (returnStatus == 1)
+            {
+                TRACE_ERROR()
+                    << F("There is a problem with the bus, could not complete scan")
+                    << endl;
+
+                timeoutTimer.setInterval(tempInterval);
+                return;
+            }
+        }
+        else
+        {
+            TRACE_INFO()
+                << F("Found device at address - ")
+                << F(" 0x")
+                << HEX
+                << s
+                << endl;
+            totalDevicesFound++;
+        }
+        _stop();
+    }
+    if (!totalDevicesFound)
+    {
+        TRACE_INFO()
+            << F("No devices found")
+            << endl;
+    }
+
+    timeoutTimer.setInterval(tempInterval);
 }
 
 /*
@@ -1710,15 +1713,15 @@ uint8_t I2C::read16(uint8_t address, uint16_t registerAddress, uint8_t numberByt
  */
 uint8_t I2C::_start()
 {
-  unsigned long startingTime = millis();
+  timeoutTimer.reset();
   TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
   while (!(TWCR & (1 << TWINT)))
   {
-    if (!timeOutDelay)
+    if (!timeoutTimer.isEnabled())
     {
       continue;
     }
-    if ((millis() - startingTime) >= timeOutDelay)
+    if (timeoutTimer.isReady())
     {
       lockUp();
       return (1);
@@ -1755,15 +1758,15 @@ uint8_t I2C::_start()
 uint8_t I2C::_sendAddress(uint8_t i2cAddress)
 {
   TWDR = i2cAddress;
-  unsigned long startingTime = millis();
+  timeoutTimer.reset();
   TWCR = (1 << TWINT) | (1 << TWEN);
   while (!(TWCR & (1 << TWINT)))
   {
-    if (!timeOutDelay)
+    if (!timeoutTimer.isEnabled())
     {
       continue;
     }
-    if ((millis() - startingTime) >= timeOutDelay)
+    if (timeoutTimer.isReady())
     {
       lockUp();
       return (1);
@@ -1801,15 +1804,15 @@ uint8_t I2C::_sendAddress(uint8_t i2cAddress)
 uint8_t I2C::_sendByte(uint8_t i2cData)
 {
   TWDR = i2cData;
-  unsigned long startingTime = millis();
+  timeoutTimer.reset();
   TWCR = (1 << TWINT) | (1 << TWEN);
   while (!(TWCR & (1 << TWINT)))
   {
-    if (!timeOutDelay)
+    if (!timeoutTimer.isEnabled())
     {
       continue;
     }
-    if ((millis() - startingTime) >= timeOutDelay)
+    if (timeoutTimer.isReady())
     {
       lockUp();
       return (1);
@@ -1853,7 +1856,7 @@ uint8_t I2C::_sendByte(uint8_t i2cData)
  */
 uint8_t I2C::_receiveByte(uint8_t ack)
 {
-  unsigned long startingTime = millis();
+  timeoutTimer.reset();
   if (ack)
   {
     TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWEA);
@@ -1864,11 +1867,11 @@ uint8_t I2C::_receiveByte(uint8_t ack)
   }
   while (!(TWCR & (1 << TWINT)))
   {
-    if (!timeOutDelay)
+    if (!timeoutTimer.isEnabled())
     {
       continue;
     }
-    if ((millis() - startingTime) >= timeOutDelay)
+    if (timeoutTimer.isReady())
     {
       lockUp();
       return (1);
@@ -1945,15 +1948,15 @@ uint8_t I2C::_receiveByte(uint8_t ack, uint8_t *target)
  */
 uint8_t I2C::_stop()
 {
-  unsigned long startingTime = millis();
+  timeoutTimer.reset();
   TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
   while ((TWCR & (1 << TWSTO)))
   {
-    if (!timeOutDelay)
+    if (!timeoutTimer.isEnabled())
     {
       continue;
     }
-    if ((millis() - startingTime) >= timeOutDelay)
+    if (timeoutTimer.isReady())
     {
       lockUp();
       return (1);

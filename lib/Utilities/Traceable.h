@@ -61,8 +61,10 @@ public:
      * for output device and debug level.
      *
      * @param functionName The name of the function for tracing.
+     * @param compileTimeLevel The debug level to use at compile time.
      */
-    explicit Traceable(const __FlashStringHelper *const functionName);
+    explicit Traceable(const __FlashStringHelper *const functionName,
+                       const Level compileTimeLevel);
 
     // Debug level setters and getters
 
@@ -110,10 +112,12 @@ public:
     class Settings
     {
     public:
-        Settings(const __FlashStringHelper *const functionName, Print *const printer, const Level level)
-            : functionName(functionName), printer(printer), level(level) {}
+        Settings(const __FlashStringHelper *const functionName, const Level compileTimeLevel, 
+        Print *const printer, const Level level)
+            : functionName(functionName), compileTimeLevel(compileTimeLevel), printer(printer), level(level) {}
 
         const __FlashStringHelper *getFunctionName() const { return functionName; }
+        Level getCompileTimeLevel() const { return compileTimeLevel; }
         Print *getPrinter() const { return printer; }
         void setPrinter(Print *p) { printer = p; }
         Level getLevel() const { return level; }
@@ -121,6 +125,7 @@ public:
 
     private:
         const __FlashStringHelper *functionName;
+        const Level compileTimeLevel;
         Print *printer;
         Level level;
     };

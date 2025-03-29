@@ -20,10 +20,10 @@
 #define TRACE_LEVEL_TRACE   5
 
 // Class-specific Debug Settings
-#define DEBUG_K810_SECURITY         TRACE_LEVEL_INFO
+#define DEBUG_K810_SECURITY         TRACE_LEVEL_OFF
 #define DEBUG_HC05                  TRACE_LEVEL_OFF
 #define DEBUG_SOFT_SERIAL           TRACE_LEVEL_OFF
-#define DEBUG_EEPROM_CONTROLLER     TRACE_LEVEL_OFF
+#define DEBUG_EEPROM_CONTROLLER     TRACE_LEVEL_INFO
 #define DEBUG_CRC_PACKAGE           TRACE_LEVEL_OFF
 #define DEBUG_UTILITIES             TRACE_LEVEL_OFF
 #define DEBUG_I2C                   TRACE_LEVEL_OFF

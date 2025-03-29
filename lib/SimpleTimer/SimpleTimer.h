@@ -39,52 +39,42 @@ public:
      *
      * @param interval Timer interval in milliseconds, defaults to 0.
      */
-    explicit SimpleTimer(const TimeType interval = 0);
+    explicit SimpleTimer(const TimeType interval = 0) : _start(millis()), _interval(interval) {}
+
+    /**
+     * @brief Checks if the timer is enabled.
+     *
+     * @return true if the timer is enabled, false otherwise.
+     */
+    inline bool isEnabled() const { return _interval > 0; }
 
     /**
      * @brief Checks if the timer interval has elapsed.
      *
      * @return true if the timer interval has elapsed, false otherwise.
      */
-    bool isReady();
+    inline bool isReady() const { return (TimeType)(millis() - _start) >= _interval; }
 
     /**
      * @brief Sets a new time interval.
      *
      * @param interval New timer interval in milliseconds.
      */
-    void setInterval(const TimeType interval);
+    inline void setInterval(const TimeType interval) { _interval = interval; }
+
+    /**
+     * @brief Gets the current time interval.
+     *
+     * @return The current timer interval in milliseconds.
+     */
+    inline TimeType getInterval() const { return _interval; }
 
     /**
      * @brief Resets the timer.
      *
      * Resets the start time to the current time, effectively restarting the timer.
      */
-    void reset();
+    inline void reset() { _start = millis(); }
 };
-
-// Implementation must be in header for templates
-template <typename TimeType>
-SimpleTimer<TimeType>::SimpleTimer(const TimeType interval) : _start(millis()), _interval(interval)
-{
-}
-
-template <typename TimeType>
-bool SimpleTimer<TimeType>::isReady()
-{
-    return (TimeType)(millis() - _start) >= _interval;
-}
-
-template <typename TimeType>
-void SimpleTimer<TimeType>::setInterval(TimeType interval)
-{
-    _interval = interval;
-}
-
-template <typename TimeType>
-void SimpleTimer<TimeType>::reset()
-{
-    _start = millis();
-}
 
 #endif // LED_LIGHTING_SIMPLETIMER_H

@@ -72,7 +72,7 @@ const char CRCPackageInterface::RESET_NUM_STR[] PROGMEM = "Reset number";       
  */
 CRCPackageInterface::CRCPackageInterface(PipedStreamPair &pipedStreamPair, const uint16_t encodedBufferSize)
     : PackageInterface(pipedStreamPair, encodedBufferSize),
-      Traceable(F("CRCPackageInterface")),
+      Traceable(F("CRCPackageInterface"), static_cast<Level>(DEBUG_CRC_PACKAGE)),
       m_outgoingTimer(OUTGOING_DATA_READ_TIMEOUT),
       m_incomingTimer(INCOMING_DATA_WAIT_TIMEOUT),
       m_resetDetectionTimer(RESET_DETECTION_TIMEOUT),

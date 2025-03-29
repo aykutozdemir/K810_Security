@@ -69,8 +69,8 @@ private:
     };
 
     // Member variables
-    State state;                                      ///< Current application state
-    SimpleTimer<uint32_t> bluetoothConnectionTimeout; ///< Bluetooth connection timeout timer
+    State state;                            ///< Current application state
+    SimpleTimer<uint16_t> operationTimeout; ///< Bluetooth connection timeout timer
 
     // Private methods
     /**

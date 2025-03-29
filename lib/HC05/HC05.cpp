@@ -47,7 +47,7 @@ HC05::HC05(Stream &stream,
            const uint8_t keyPin,
            const uint8_t statePin,
            const uint8_t resetPin)
-    : DriverBase(F("HC05")), // Call the base class constructor
+    : DriverBase(F("HC05"), static_cast<Level>(DEBUG_HC05)),
       p_stream(&stream),
       m_keyPin(keyPin),
       m_statePin(statePin),

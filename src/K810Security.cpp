@@ -29,11 +29,14 @@ const char PROGMEM K810Security::CMD_UART[] = "AT+UART=38400,1,0"; ///< Set UART
 const char PROGMEM K810Security::CMD_INIT[] = "AT+INIT";           ///< Initialize command
 const char PROGMEM K810Security::CMD_RESET[] = "AT+RESET";         ///< Reset command
 
+constexpr uint16_t BLUETOOTH_OPERATION_TIMEOUT = 60000;
+constexpr uint16_t FORMAT_OPERATION_TIMEOUT = 30000;
+
 /**
  * @brief Constructor implementation
  * Initializes the device in IDLE state and sets up Bluetooth connection timeout
  */
-K810Security::K810Security() : Traceable(PGMT(CLASS_NAME)), state(IDLE), bluetoothConnectionTimeout(120000) {}
+K810Security::K810Security() : Traceable(PGMT(CLASS_NAME), static_cast<Level>(DEBUG_K810_SECURITY)), state(IDLE) {}
 
 //================ Bluetooth Methods ==================
 
@@ -174,8 +177,9 @@ void K810Security::handleBusinessLogic()
         {
             state = IDLE;
         }
-        else if (bluetoothConnectionTimeout.isReady())
+        else if (operationTimeout.isReady())
         {
+            TRACE_ERROR() << F("Connection timeout") << endl;
             hc05.reset(true);
             state = IDLE;
         }
@@ -187,7 +191,12 @@ void K810Security::handleBusinessLogic()
     {
         if (eepromController.state() == EEPROMController::IDLE)
         {            
-            TRACE_INFO() << F("Formatting done, resetting...") << endl;
+            TRACE_INFO() << F("Formatting done") << endl;
+            watchdogController.resetMCU();
+        }
+        else if (operationTimeout.isReady())
+        {
+            TRACE_ERROR() << F("Formatting timeout") << endl;
             watchdogController.resetMCU();
         }
         return;
@@ -227,7 +236,8 @@ void K810Security::handleBusinessLogic()
         TRACE_INFO() << F("Bluetooth resetting...") << endl;
         state = CONNECTING;
         ledController.setState(LEDController::RESETTING_BLUETOOTH);
-        bluetoothConnectionTimeout.reset();
+        operationTimeout.setInterval(BLUETOOTH_OPERATION_TIMEOUT);
+        operationTimeout.reset();
         bluetoothResetSequence();
         break;
 
@@ -236,6 +246,8 @@ void K810Security::handleBusinessLogic()
         keyboardController.unlock();
         state = FORMATTING;
         ledController.setState(LEDController::FORMATTING);
+        operationTimeout.setInterval(FORMAT_OPERATION_TIMEOUT);
+        operationTimeout.reset();
         eepromController.format();
         break;
 
@@ -304,11 +316,12 @@ void K810Security::setup()
     {
         watchdogController.resetMCUForSelfProgramming();
     }
+    watchdogController.enable(WDTO_500MS);
 
     softwareSerial.begin(timer1Setup, BaudRate::BAUD_38400);
 
     I2c.begin();
-    I2c.setSpeed(true);
+    I2c.timeOut(80);
 
     statisticController.setup();
 

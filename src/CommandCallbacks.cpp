@@ -200,12 +200,15 @@ void commandListTraceables(SerialCommands &sender, Args &args)
 {
   UNUSED(args);
 
+  sender.getSerial().println(F("Traceable : Compile Time Level : Run Time Level"));
   for (ArduinoMap<const __FlashStringHelper *, Traceable::Settings *>::ConstIterator it =
            Traceable::getSettingsMap().cbegin();
        it != Traceable::getSettingsMap().cend();
        ++it)
   {
     sender.getSerial().print((*it).first);
+    sender.getSerial().print(F(": "));
+    sender.getSerial().print(static_cast<uint8_t>((*it).second->getCompileTimeLevel()));
     sender.getSerial().print(F(": "));
     sender.getSerial().println(static_cast<uint8_t>((*it).second->getLevel()));
   }

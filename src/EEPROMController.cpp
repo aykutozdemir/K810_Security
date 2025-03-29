@@ -12,13 +12,13 @@
 #define CLASS_TRACE_LEVEL DEBUG_EEPROM_CONTROLLER
 #include "TraceHelper.h"
 // Constants
-constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50 >> 1;
+constexpr uint8_t EXT_EEPROM_I2C_ADDRESS = 0x50;
 constexpr uint8_t EXT_EEPROM_PAGE_SIZE = 32;
 constexpr uint16_t EXT_EEPROM_TOTAL_SIZE = 8192;
 constexpr uint8_t INT_EEPROM_PAGE_SIZE = 32;
 
 EEPROMController::EEPROMController(I2C &i2c)
-    : Traceable(F("EEPROMController")), p_i2c(&i2c), m_state(IDLE), m_currentCounter(0)
+    : Traceable(F("EEPROMController"), static_cast<Level>(DEBUG_EEPROM_CONTROLLER)), p_i2c(&i2c), m_state(IDLE), m_currentCounter(0)
 {
 } // end EEPROMController
 
@@ -31,7 +31,7 @@ void EEPROMController::format()
 {
   if (m_state == IDLE)
   {
-    m_state = FORMATTING_INTERNAL; // TODO: Change to external
+    m_state = FORMATTING_EXTERNAL;
     m_currentCounter = 0;
   } // end if
 } // end format
