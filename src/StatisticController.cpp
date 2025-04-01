@@ -10,13 +10,8 @@ void StatisticController::setup()
   MemoryUsage::stackPaint();
 } // end setup
 
-void StatisticController::loop(Print &print,
-                               const Statistic *statistics[],
-                               const uint8_t statisticSize)
+void StatisticController::loop(Print &print)
 {
-  UNUSED(statistics);
-  UNUSED(statisticSize);
-
   static bool firstRun = true;
 
   if (firstRun)

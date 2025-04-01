@@ -36,12 +36,8 @@ public:
    * update statistics and display them at defined intervals.
    *
    * @param print The output stream to display statistics on.
-   * @param statistics Array of Statistic pointers to monitor.
-   * @param statisticSize Number of statistics in the array.
    */
-  void loop(Print &print,
-            const Statistic *statistics[],
-            const uint8_t statisticSize);
+  void loop(Print &print);
 
   /**
    * @brief Display a formatted table of statistics.

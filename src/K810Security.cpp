@@ -20,9 +20,10 @@
 const char PROGMEM K810Security::CLASS_NAME[] = "K810Security";
 
 // Bluetooth AT command constants stored in program memory
+const char PROGMEM K810Security::CMD_AT[] = "AT";                  ///< AT command
 const char PROGMEM K810Security::CMD_RMAAD[] = "AT+RMAAD";         ///< Factory reset command
 const char PROGMEM K810Security::CMD_ROLE[] = "AT+ROLE=0";         ///< Set role command (slave)
-const char PROGMEM K810Security::CMD_CMODE[] = "AT+CMODE=1";       ///< Set connection mode command
+const char PROGMEM K810Security::CMD_CMODE[] = "AT+CMODE=1";        ///< Set connection mode command (any address)
 const char PROGMEM K810Security::CMD_NAME[] = "AT+NAME=K810";      ///< Set device name command
 const char PROGMEM K810Security::CMD_PSWD[] = "AT+PSWD=1588";      ///< Set pairing password command
 const char PROGMEM K810Security::CMD_UART[] = "AT+UART=38400,1,0"; ///< Set UART parameters command
@@ -109,6 +110,9 @@ void K810Security::sendBluetoothCommand(const char *cmd_progmem, HC05::CommandCa
 void K810Security::bluetoothResetSequence()
 {
     hc05.clearCommandQueue();
+    
+    // Check if the device is in command mode
+    sendBluetoothCommand(CMD_AT, bluetoothCallback, DELAY_BASIC_CMD);
 
     // Factory reset
     sendBluetoothCommand(CMD_RMAAD, bluetoothCallback, DELAY_FACTORY_RESET);
@@ -139,13 +143,11 @@ void K810Security::bluetoothInitSequence()
 {
     hc05.clearCommandQueue();
 
-    // Basic setup
-    sendBluetoothCommand(CMD_ROLE, bluetoothCallback, DELAY_BASIC_CMD);
-    sendBluetoothCommand(CMD_CMODE, bluetoothCallback, DELAY_BASIC_CMD);
+    // Check if the device is in command mode
+    sendBluetoothCommand(CMD_AT, bluetoothCallback, DELAY_BASIC_CMD);
 
-    // Initialize and reset
-    sendBluetoothCommand(CMD_INIT, bluetoothCallback, DELAY_INIT_CMD);
-    sendBluetoothCommand(CMD_RESET, bluetoothCallback, DELAY_FINAL_RESET);
+    // Reset the device
+    sendBluetoothCommand(CMD_RESET, bluetoothResetCallback, DELAY_FINAL_RESET);
 }
 
 //================ Business Logic ==================
@@ -352,8 +354,7 @@ void K810Security::setup()
     communicationStatistic.setName(F("Communication"));
     applicationStatistic.setName(F("Application"));
 
-    TRACE_INFO()
-        << F("K810 started, seed: ")
+    Serial << F("K810 started, seed: ")
         << (checked ? F("checked") : F("unchecked"))
         << F(", version: ")
         << KeyboardController::getVersion()
@@ -378,7 +379,7 @@ void K810Security::loop()
         MEASURE_TIME(systemStatistic)
         {
             watchdogController.loop();
-            statisticController.loop(Serial, statistics, lengthOfStatistics);
+            statisticController.loop(Serial);
         }
 
         // Peripheral updates

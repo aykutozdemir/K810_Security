@@ -57,8 +57,6 @@
 #define EEPROM_SEED_CHECKED_ADDRESS 1
 /// EEPROM address for storing the encryption seed
 #define EEPROM_SEED_ADDRESS 2
-/// EEPROM address for storing the last reset reason
-#define EEPROM_RESET_REASON_ADDRESS 18
 
 /// Size of software serial RX buffer
 constexpr uint8_t SOFTWARE_SERIAL_RX_BUFFER = 32;

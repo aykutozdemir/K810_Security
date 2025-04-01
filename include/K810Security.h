@@ -41,9 +41,10 @@ private:
     static const char PROGMEM CLASS_NAME[];
 
     // Bluetooth AT command constants stored in program memory
+    static const char PROGMEM CMD_AT[];    ///< AT command
     static const char PROGMEM CMD_RMAAD[]; ///< Factory reset command
     static const char PROGMEM CMD_ROLE[];  ///< Set role command (slave)
-    static const char PROGMEM CMD_CMODE[]; ///< Set connection mode command
+    static const char PROGMEM CMD_CMODE[]; ///< Set connection mode command (any address)
     static const char PROGMEM CMD_NAME[];  ///< Set device name command
     static const char PROGMEM CMD_PSWD[];  ///< Set pairing password command
     static const char PROGMEM CMD_UART[];  ///< Set UART parameters command

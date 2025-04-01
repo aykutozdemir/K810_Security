@@ -326,11 +326,11 @@ private:
   template <char... chars>
   static bool anyChar(char c)
   {
-    // return ((c == chars) || ...);
     const char arr[] = {chars...};
-    for (auto ch : arr)
+    const size_t len = sizeof...(chars);
+    for (size_t i = 0; i < len; i++)
     {
-      if (c == ch)
+      if (c == arr[i])
         return true;
     }
     return false;
