@@ -23,7 +23,7 @@ const char PROGMEM K810Security::CLASS_NAME[] = "K810Security";
 const char PROGMEM K810Security::CMD_AT[] = "AT";                  ///< AT command
 const char PROGMEM K810Security::CMD_RMAAD[] = "AT+RMAAD";         ///< Factory reset command
 const char PROGMEM K810Security::CMD_ROLE[] = "AT+ROLE=0";         ///< Set role command (slave)
-const char PROGMEM K810Security::CMD_CMODE[] = "AT+CMODE=1";        ///< Set connection mode command (any address)
+const char PROGMEM K810Security::CMD_CMODE[] = "AT+CMODE=1";       ///< Set connection mode command (any address)
 const char PROGMEM K810Security::CMD_NAME[] = "AT+NAME=K810";      ///< Set device name command
 const char PROGMEM K810Security::CMD_PSWD[] = "AT+PSWD=1588";      ///< Set pairing password command
 const char PROGMEM K810Security::CMD_UART[] = "AT+UART=38400,1,0"; ///< Set UART parameters command
@@ -414,6 +414,11 @@ void K810Security::loop()
                     hc05.sendData(streamBluetoothCommand.read());
                 }
             }
+
+            if (!hc05.isConnected() && keyboardController.isSeedChecked())
+            {
+                keyboardController.lock();
+            } 
         }
 
         // Application logic
