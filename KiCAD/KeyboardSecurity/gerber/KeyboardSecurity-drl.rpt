@@ -1,0 +1,25 @@
+Drill report for KeyboardSecurity.kicad_pcb
+Created on 2025-01-09T13:35:54+0300
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'KeyboardSecurity-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0,300mm  0,0118"  (46 holes)
+    T2  0,500mm  0,0197"  (7 holes)
+    T3  0,800mm  0,0315"  (24 holes)
+    T4  1,000mm  0,0394"  (10 holes)
+
+    Total plated holes count 87
+
+
+Drill file 'KeyboardSecurity-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+
+    Total unplated holes count 0

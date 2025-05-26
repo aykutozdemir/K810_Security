@@ -38,15 +38,19 @@ public:
    */
   enum State : uint_fast8_t
   {
-    LOCKED,  ///< Keyboard is locked (secured)
-    UNLOCKED ///< Keyboard is unlocked (accessible)
+    LOCKED,    ///< Keyboard is locked (secured)
+    UNLOCKED   ///< Keyboard is unlocked (accessible)
   };
 
   /**
    * @brief Constructor that initializes the keyboard controller.
    * @param keyboardPowerPin The pin used to control power to the keyboard.
+   * @param keyboardDpPin The pin used to control d+ pin of the keyboard.
+   * @param keyboardDmPin The pin used to control d- pin of the keyboard.
    */
-  explicit KeyboardController(const uint8_t keyboardPowerPin);
+  explicit KeyboardController(const uint8_t keyboardPowerPin,
+                              const uint8_t keyboardDpPin,
+                              const uint8_t keyboardDmPin);
 
   /**
    * @brief Get the current state of the keyboard.
@@ -61,8 +65,9 @@ public:
 
   /**
    * @brief Unlock the keyboard by providing power.
+   * @param releaseUSBFlag Whether to release USB communication.
    */
-  void unlock();
+  void unlock(const bool releaseUSBFlag = true);
 
   /**
    * @brief Generate a random seed for encryption.
@@ -150,8 +155,25 @@ public:
    */
   void loop();
 
+  /**
+   * @brief Block USB communication by setting DP/DM pins as outputs and pulling them low.
+   */
+  void blockUSB();
+
+  /**
+   * @brief Release USB communication by setting DP/DM pins as inputs.
+   */
+  void releaseUSB();
+
 private:
+  /**
+   * @brief Reset the I2C communication.
+   */
+  void resetI2C();
+
   FastPin m_keyboardPowerOutput; ///< Pin controlling keyboard power
+  FastPin m_keyboardDpControl;   ///< Pin controlling d+ pin of keyboard
+  FastPin m_keyboardDmControl;   ///< Pin controlling d- pin of keyboard
   State m_state;                 ///< Current state of the keyboard controller
 }; // end KeyboardController class
 

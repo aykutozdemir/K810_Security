@@ -10,10 +10,14 @@
 #define CLASS_TRACE_LEVEL DEBUG_KEYBOARD_CONTROLLER
 #include "TraceHelper.h"
 
-KeyboardController::KeyboardController(const uint8_t keyboardPowerPin)
-    : Traceable(F("KeyboardController"), static_cast<Level>(DEBUG_KEYBOARD_CONTROLLER)), m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_state(LOCKED)
+KeyboardController::KeyboardController(const uint8_t keyboardPowerPin,
+                                       const uint8_t keyboardDpPin,
+                                       const uint8_t keyboardDmPin)
+    : Traceable(F("KeyboardController"), static_cast<Level>(DEBUG_KEYBOARD_CONTROLLER)), m_keyboardPowerOutput(keyboardPowerPin, OUTPUT), m_keyboardDpControl(keyboardDpPin, OUTPUT), m_keyboardDmControl(keyboardDmPin, OUTPUT), m_state(LOCKED)
 {
   m_keyboardPowerOutput.low();
+  m_keyboardDpControl.low();
+  m_keyboardDmControl.low();
 } // end KeyboardController
 
 KeyboardController::State KeyboardController::state() const
@@ -27,21 +31,30 @@ void KeyboardController::lock()
   {
     m_state = LOCKED;
     m_keyboardPowerOutput.low();
+    blockUSB();
     TRACE_INFO()
         << F("Keyboard locked")
         << endl;
   } // end if
 } // end lock
 
-void KeyboardController::unlock()
+void KeyboardController::unlock(const bool releaseUSBFlag)
 {
   if (m_state != UNLOCKED)
   {
-    m_state = UNLOCKED;
+    if (releaseUSBFlag)
+    {
+      releaseUSB();
+    } // end if
     m_keyboardPowerOutput.high();
+    m_state = UNLOCKED;
     TRACE_INFO()
         << F("Keyboard unlocked")
         << endl;
+  } // end if
+  if (!releaseUSBFlag)
+  {
+    blockUSB();
   } // end if
 } // end unlock
 
@@ -191,5 +204,33 @@ uint16_t KeyboardController::getVersion()
 
 void KeyboardController::loop()
 {
+  switch (m_state) {
+    case LOCKED:
+      // Do nothing when locked
+      break;
 
+    case UNLOCKED:
+      // Do nothing when unlocked
+      break;
+  }
 } // end loop
+
+void KeyboardController::blockUSB()
+{
+  m_keyboardDpControl.setMode(true);
+  m_keyboardDmControl.setMode(true);
+  m_keyboardDpControl.low();
+  m_keyboardDmControl.low();
+  TRACE_INFO()
+      << F("USB blocked")
+      << endl;
+} // end blockUSB
+
+void KeyboardController::releaseUSB()
+{
+  m_keyboardDpControl.setMode(false);
+  m_keyboardDmControl.setMode(false);
+  TRACE_INFO()
+      << F("USB released")
+      << endl;
+} // end releaseUSB

@@ -32,6 +32,8 @@ void EEPROMController::format()
   if (m_state == IDLE)
   {
     m_state = FORMATTING_EXTERNAL;
+    p_i2c->begin();
+    p_i2c->timeOut(80);
     m_currentCounter = 0;
   } // end if
 } // end format
@@ -51,6 +53,7 @@ void EEPROMController::loop()
 
     if (m_currentCounter >= (EXT_EEPROM_TOTAL_SIZE / EXT_EEPROM_PAGE_SIZE))
     {
+      p_i2c->end();
       m_state = FORMATTING_INTERNAL;
       m_currentCounter = 0;
       TRACE_INFO()

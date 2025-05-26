@@ -122,9 +122,18 @@ public:
    */
   inline uint8_t read() const { return read(pinReg, bitMask); }
 
+  /**
+   * @brief Changes the pin mode (input/output) and optionally configures pull-up
+   * 
+   * @param isOutput Whether to set the pin as output (true) or input (false)
+   * @param pullup Whether to enable internal pull-up resistor (for input pins)
+   */
+  void setMode(const bool isOutput, const bool pullup = false);
+
 private:
   volatile uint8_t *port;   ///< Pointer to the port output register
   volatile uint8_t *pinReg; ///< Pointer to the port input register
+  volatile uint8_t *ddr;    ///< Pointer to the port direction register
   uint8_t bitMask;          ///< Bit mask for this pin
 };
 

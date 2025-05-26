@@ -40,6 +40,10 @@
 #define BUTTON_PIN 10
 /// Pin controlling power to the keyboard
 #define KEYBOARD_POWER_PIN 19
+/// Pin controlling D+ pin of usb of the keyboard
+#define KEYBOARD_DP_PIN 4
+/// Pin controlling D- pin of usb of the keyboard
+#define KEYBOARD_DM_PIN 5
 /// HC05 Bluetooth module RX pin
 #define HC05_RX 6
 /// HC05 Bluetooth module TX pin

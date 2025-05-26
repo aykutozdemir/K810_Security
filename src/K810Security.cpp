@@ -245,7 +245,7 @@ void K810Security::handleBusinessLogic()
 
     case ButtonController::VERY_LONG_PRESS:
         TRACE_INFO() << F("Formatting...") << endl;
-        keyboardController.unlock();
+        keyboardController.unlock(false);
         state = FORMATTING;
         ledController.setState(LEDController::FORMATTING);
         operationTimeout.setInterval(FORMAT_OPERATION_TIMEOUT);
@@ -298,7 +298,6 @@ void K810Security::timer1Setup(const unsigned long oversampleBitPeriod)
  * - Serial communication
  * - Watchdog timer
  * - Software serial
- * - I2C interface
  * - Statistics controller
  * - LED indicators
  * - Bluetooth module
@@ -321,9 +320,6 @@ void K810Security::setup()
     watchdogController.enable(WDTO_500MS);
 
     softwareSerial.begin(timer1Setup, BaudRate::BAUD_38400);
-
-    I2c.begin();
-    I2c.timeOut(80);
 
     statisticController.setup();
 

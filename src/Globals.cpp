@@ -10,7 +10,7 @@ LEDController ledController(GREEN_LED_PIN, RED_LED_PIN);
 ezLED rxLED(LED_BUILTIN_RX_PIN);
 ezLED txLED(LED_BUILTIN_TX_PIN);
 ButtonController buttonController(BUTTON_PIN);
-KeyboardController keyboardController(KEYBOARD_POWER_PIN);
+KeyboardController keyboardController(KEYBOARD_POWER_PIN, KEYBOARD_DP_PIN, KEYBOARD_DM_PIN);
 
 SoftSerial<SOFTWARE_SERIAL_RX_BUFFER, SOFTWARE_SERIAL_TX_BUFFER> softwareSerial(HC05_RX, HC05_TX);
 HC05 hc05(softwareSerial, HC05_KEY, HC05_STATE, HC05_RESET);
