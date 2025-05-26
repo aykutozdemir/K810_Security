@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">K810 Security</string>
+    <string name="lock_desc">Lock Button</string>
+    <string name="unlock_desc">Unlock Button</string>
+    <string name="connecting">Connecting…</string>
+    <string name="not_connected">Not Connected</string>
+    <string name="version">Version</string>
+</resources>
